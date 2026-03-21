@@ -24,13 +24,14 @@ Implemented now:
 - `GET /events`
 - `GET /events/{eventId}`
 - `POST /events/{eventId}/bookings`
+- `GET /me/bookings`
+- `GET /me/bookings/{bookingId}`
 
 Documented contract but not yet implemented:
 - `POST /auth/login`
 - `GET /me`
 - `POST /auth/logout`
 - watchlist endpoints
-- booking query endpoints
 - dashboard and creator endpoints
 
 ### 2.2 Base Path
@@ -356,8 +357,8 @@ Current implementation notes:
 Returns bookings for the current user.
 
 Status:
-- documented contract
-- not yet implemented in the current backend baseline
+- implemented now in the current backend baseline
+- current auth input is temporary request-header based during development
 
 Query parameters:
 - `status`: optional
@@ -389,13 +390,14 @@ Response `200 OK`:
 
 Errors:
 - `UNAUTHENTICATED`
+- `VALIDATION_ERROR` for unsupported `status`
 
 ### 7.3 GET /me/bookings/{bookingId}
 Returns the booking detail page payload.
 
 Status:
-- documented contract
-- not yet implemented in the current backend baseline
+- implemented now in the current backend baseline
+- current auth input is temporary request-header based during development
 
 Response `200 OK`:
 - returns the `Booking Detail` shape

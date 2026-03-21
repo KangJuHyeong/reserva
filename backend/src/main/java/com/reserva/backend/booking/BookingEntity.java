@@ -85,12 +85,20 @@ public class BookingEntity {
         return bookingCode;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
     public String getEventId() {
         return eventId;
     }
 
     public BookingStatus getStatus() {
         return status;
+    }
+
+    public String getParticipantName() {
+        return participantName;
     }
 
     public int getTicketCount() {

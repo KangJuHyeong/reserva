@@ -179,6 +179,8 @@ Implemented now:
 - `GET /api/v1/events`
 - `GET /api/v1/events/{eventId}`
 - `POST /api/v1/events/{eventId}/bookings`
+- `GET /api/v1/me/bookings`
+- `GET /api/v1/me/bookings/{bookingId}`
 
 Temporary implementation detail:
 - Current auth in code uses request headers `X-User-Id`, `X-User-Name`, and `X-User-Role`

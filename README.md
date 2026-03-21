@@ -97,6 +97,8 @@ Current backend implementation status:
   - `GET /api/v1/events`
   - `GET /api/v1/events/{eventId}`
   - `POST /api/v1/events/{eventId}/bookings`
+  - `GET /api/v1/me/bookings`
+  - `GET /api/v1/me/bookings/{bookingId}`
 - Database baseline:
   - Flyway migrations `V1__create_users.sql`
   - `V2__create_events_and_event_inventory.sql`
