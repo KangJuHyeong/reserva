@@ -47,6 +47,7 @@ The following are intentionally not yet committed:
 
 ## Documentation Map
 - `agent.md`: repo operating guide and source-of-truth rules
+- `MAIN_PROMPT.md`: reusable working prompt for Codex-based implementation sessions
 - `docs/IMPLEMENTATION-STATUS.md`: current implementation status and next priorities
 - `docs/DECISIONS.md`: short log of current, temporary, and future-facing decisions
 - `docs/architecture.md`: current system responsibilities and future roadmap
@@ -93,6 +94,13 @@ Current backend implementation baseline:
 - Flyway
 - JPA
 - `backend/.env`-driven datasource configuration
+
+## Local Environment Files
+- Keep real local values in untracked `.env` files
+- Backend local config lives in `backend/.env`
+- Frontend local config should live in `frontend/.env`
+- Example values that are safe to commit should stay in `frontend/.env.example`
+- `.env` and `.env.*` files are ignored by git, while `.env.example` remains tracked for onboarding
 
 These backend choices currently back the first backend implementation baseline. The visible product definition still comes from the prototype first.
 
