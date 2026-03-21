@@ -84,13 +84,15 @@ Current frontend implementation baseline:
   - `X-User-Id`
   - `X-User-Name`
   - `X-User-Role`
+ - backend local frontend origin default:
+   - `http://localhost:3000`
 
 Current backend implementation baseline:
 - Spring Boot
 - MySQL
 - Flyway
 - JPA
-- root `.env`-driven datasource configuration
+- `backend/.env`-driven datasource configuration
 
 These backend choices currently back the first backend implementation baseline. The visible product definition still comes from the prototype first.
 

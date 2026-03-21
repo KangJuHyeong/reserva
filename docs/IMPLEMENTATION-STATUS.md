@@ -8,7 +8,7 @@
 ## Implemented Now
 - Backend project skeleton exists in `backend`
 - Frontend Next.js app skeleton exists in `frontend`
-- Root `.env` is used for datasource configuration
+- `backend/.env` is used for datasource configuration
 - Current backend stack in use:
   - Spring Boot
   - MySQL
@@ -55,6 +55,7 @@
   - `X-User-Role`
 - This is a temporary local-development mechanism, not the final auth contract
 - Current frontend server-side backend wrapper also injects the same temporary development headers
+- Current backend local CORS allowed origin defaults to `http://localhost:3000`
 - Watchlist UI is visible only as disabled/unavailable state in the current frontend slice
 
 ## Next Priorities

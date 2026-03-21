@@ -47,3 +47,8 @@
 - Added a frontend server-side backend wrapper that injects temporary development auth headers.
 - Kept `/dashboard`, `/create`, and `/login` as placeholder routes until their backend support is ready.
 - Updated implementation and frontend architecture docs to reflect the new current state.
+
+## 2026-03-21 Local Env Alignment
+- Moved backend datasource environment loading from the repository root `.env` to `backend/.env`.
+- Added backend local CORS origin configuration with default `http://localhost:3000`.
+- Updated docs to reflect the new backend local environment location and frontend origin default.

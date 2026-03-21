@@ -99,7 +99,8 @@ Current backend baseline:
 - Spring Boot API application
 - MySQL relational database
 - Flyway-managed schema migrations
-- root `.env`-driven datasource configuration
+- `backend/.env`-driven datasource configuration
+- local CORS allowed origin defaulting to `http://localhost:3000`
 
 Current frontend baseline:
 - Next.js App Router application in `frontend`
