@@ -1,0 +1,7 @@
+.env
+backend/.gradle/
+backend/.gradle-home/
+backend/build/
+backend/out/
+backend/bin/
+*.class

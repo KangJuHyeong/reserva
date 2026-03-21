@@ -1,0 +1,12 @@
+CREATE TABLE users (
+    id VARCHAR(36) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    display_name VARCHAR(100) NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    profile_image_url VARCHAR(500) NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    CONSTRAINT pk_users PRIMARY KEY (id),
+    CONSTRAINT uk_users_email UNIQUE (email)
+);
