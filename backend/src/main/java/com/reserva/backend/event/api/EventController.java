@@ -4,6 +4,7 @@ import com.reserva.backend.booking.BookingService;
 import com.reserva.backend.booking.api.BookingCreateRequest;
 import com.reserva.backend.booking.api.BookingCreateResponse;
 import com.reserva.backend.common.api.PageResponse;
+import com.reserva.backend.event.EventCommandService;
 import com.reserva.backend.event.EventQueryService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -26,10 +27,12 @@ import static org.springframework.http.HttpStatus.CREATED;
 public class EventController {
 
     private final EventQueryService eventQueryService;
+    private final EventCommandService eventCommandService;
     private final BookingService bookingService;
 
-    public EventController(EventQueryService eventQueryService, BookingService bookingService) {
+    public EventController(EventQueryService eventQueryService, EventCommandService eventCommandService, BookingService bookingService) {
         this.eventQueryService = eventQueryService;
+        this.eventCommandService = eventCommandService;
         this.bookingService = bookingService;
     }
 
@@ -47,6 +50,12 @@ public class EventController {
     @GetMapping("/{eventId}")
     public EventDetailResponse getEventDetail(@PathVariable String eventId) {
         return eventQueryService.getEventDetail(eventId);
+    }
+
+    @PostMapping
+    @ResponseStatus(CREATED)
+    public EventCreateResponse createEvent(@Valid @RequestBody EventCreateRequest request) {
+        return eventCommandService.createEvent(request);
     }
 
     @PostMapping("/{eventId}/bookings")

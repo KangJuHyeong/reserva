@@ -73,6 +73,23 @@ export interface BookingCreateResponseApi {
   totalAmount: number;
 }
 
+export interface EventCreateRequestApi {
+  title: string;
+  category: string;
+  description: string;
+  price: number;
+  location: string;
+  eventDateTime: string;
+  reservationOpenDateTime: string;
+  totalSlots: number;
+  imageUrl: string;
+}
+
+export interface EventCreateResponseApi {
+  id: string;
+  title: string;
+}
+
 export interface BookingDetailEventApi {
   id: string;
   title: string;

@@ -23,6 +23,7 @@ Current temporary backend implementation:
 Implemented now:
 - `GET /events`
 - `GET /events/{eventId}`
+- `POST /events`
 - `POST /events/{eventId}/bookings`
 - `GET /me/bookings`
 - `GET /me/bookings/{bookingId}`
@@ -409,8 +410,7 @@ Errors:
 ## 8. Dashboard And Creator APIs
 
 Status:
-- documented contract
-- not yet implemented in the current backend baseline
+- partially implemented in the current backend baseline
 
 ### 8.1 GET /me/dashboard-summary
 Returns aggregate counts and preview lists for the dashboard overview.
@@ -439,6 +439,10 @@ Errors:
 ### 8.2 GET /me/events
 Returns creator-owned events.
 
+Status:
+- documented contract
+- not yet implemented in the current backend baseline
+
 Query parameters:
 - `status`: optional
 - `page`
@@ -461,6 +465,10 @@ Errors:
 
 ### 8.3 POST /events
 Creates a new event from the creator form.
+
+Status:
+- implemented now in the current backend baseline
+- current auth input is temporary request-header based during development
 
 Request:
 

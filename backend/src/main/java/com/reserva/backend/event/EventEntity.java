@@ -73,6 +73,39 @@ public class EventEntity {
     @OneToOne(mappedBy = "event", fetch = FetchType.EAGER, cascade = CascadeType.ALL, optional = false)
     private EventInventoryEntity inventory;
 
+    public static EventEntity create(String id,
+                                     UserEntity creator,
+                                     String title,
+                                     EventCategory category,
+                                     String description,
+                                     String imageUrl,
+                                     String location,
+                                     BigDecimal price,
+                                     LocalDateTime eventDateTime,
+                                     LocalDateTime reservationOpenDateTime,
+                                     EventStatus status,
+                                     EventVisibility visibility,
+                                     LocalDateTime now,
+                                     int totalSlots) {
+        EventEntity event = new EventEntity();
+        event.id = id;
+        event.creator = creator;
+        event.title = title;
+        event.category = category;
+        event.description = description;
+        event.imageUrl = imageUrl;
+        event.location = location;
+        event.price = price;
+        event.eventDateTime = eventDateTime;
+        event.reservationOpenDateTime = reservationOpenDateTime;
+        event.status = status;
+        event.visibility = visibility;
+        event.createdAt = now;
+        event.updatedAt = now;
+        event.inventory = EventInventoryEntity.create(event, totalSlots, now);
+        return event;
+    }
+
     public String getId() {
         return id;
     }
