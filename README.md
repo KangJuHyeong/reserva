@@ -53,6 +53,13 @@ The following are intentionally not yet committed:
 - `docs/frontend-architecture.md`: route structure, UX states, and frontend data needs
 - `docs/CHANGELOG-SUMMARY.md`: summary of documentation rebaseline changes
 
+## Git Workflow
+- Use the repository root as a single monorepo for `backend`, `frontend`, `docs`, `prototype`, and `infra`
+- Start feature work from `main`, then create a task branch such as `feature/...`, `fix/...`, or `docs/...`
+- Prefer focused commits with clear prefixes such as `feat:`, `fix:`, and `docs:`
+- Update related docs when API or persistence behavior changes
+- Run the required checks before merge, especially `backend\gradlew.bat test` for backend changes
+
 ## Stack Notes
 Current prototype frontend stack:
 - Next.js App Router
