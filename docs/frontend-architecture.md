@@ -5,6 +5,11 @@ This document describes the frontend structure and UX states implied by the curr
 
 The current frontend is a marketplace-style experience, not a queue-first flow. The docs should follow the visible screens first and only mention future waiting-room ideas as optional later expansion.
 
+Current implementation note:
+- a real `Next.js App Router` frontend now exists in `frontend`
+- the first connected frontend slice currently covers `/`, `/reservation/[id]`, and `/booking/[id]`
+- `/dashboard`, `/create`, and `/login` are currently preserved as placeholder routes, not full implementations
+
 ## 2. Route Map
 Current canonical routes:
 - `/`
@@ -59,8 +64,8 @@ Primary behaviors:
 - global search
 - category switching
 - discovery sections
-- watchlist toggles on cards
 - access to event detail
+- current implementation keeps watchlist as a disabled/unavailable state until persistence APIs exist
 
 Primary sections:
 - trending
@@ -87,7 +92,7 @@ Required visible elements:
 - date/time
 - participant progress
 - reserve CTA
-- watchlist toggle
+- watchlist toggle or disabled placeholder state
 
 ### 5.2 Opening Soon Card
 Required visible elements:
@@ -104,7 +109,7 @@ Required visible elements:
 Design meaning:
 - the event exists and is discoverable
 - booking is not yet available
-- watchlist still matters
+- watchlist still matters as future behavior, even if the first frontend slice keeps it disabled
 
 ## 6. Event Detail Page
 The detail page is the conversion surface for booking.
@@ -121,6 +126,7 @@ Required sections:
 - slot progress
 - remaining slots
 - reserve CTA
+- ticket count input
 - reservation-open datetime
 - watchlist action
 - share action
@@ -132,9 +138,13 @@ Key UX states:
 - not found
 
 Current prototype behavior uses a direct reserve CTA. The frontend should not assume a waiting room or async attempt state as the default experience.
+Current implemented first slice also keeps the reserve action as a direct API-backed booking submission.
 
 ## 7. Dashboard
 The dashboard is a combined personal hub and creator hub.
+Current implementation status:
+- placeholder route only
+- no live dashboard data is wired yet
 
 Primary sections:
 - overview
@@ -195,6 +205,8 @@ Key UX states:
 
 ## 9. Create Event Page
 The create page is a creator-only form.
+Current implementation status:
+- placeholder route only in the current frontend slice
 
 Current visible inputs:
 - cover image
@@ -220,6 +232,8 @@ Current important business rule:
 
 ## 10. Login Page
 The login page currently supports only a minimal auth story.
+Current implementation status:
+- placeholder route only in the current frontend slice
 
 Visible elements:
 - email input
@@ -247,8 +261,8 @@ Those remain future decisions unless separately confirmed.
 - opening soon can be a dedicated filtered mode
 
 ### 11.2 Watchlist
-- toggling should update card and detail state immediately
-- unauthenticated users may need a login redirect or guarded interaction
+- target behavior: toggling should update card and detail state immediately
+- current first-slice behavior: watchlist actions are intentionally disabled until backend watchlist endpoints exist
 
 ### 11.3 Booking Action
 - reserve CTA should show loading while submitting
@@ -272,6 +286,13 @@ Even though the prototype uses mock data, the real frontend will need:
 - creator events request
 - watchlist mutation requests
 
+Current first-slice implementation now uses:
+- event discovery request
+- event detail request
+- booking creation request
+- booking detail request
+- a frontend server-side wrapper that injects temporary development auth headers
+
 ## 13. Future Extension
 Waiting-room or polling UX may be added later for high-demand events, but it is not the primary frontend contract today.
 
@@ -290,5 +311,10 @@ The current frontend architecture centers on:
 - dashboard
 - creator publishing
 - minimal login
+
+Current implementation status is narrower than the target route map:
+- implemented now: discovery, event detail, booking creation, booking detail
+- placeholder only: dashboard, create, login
+- not yet active: watchlist persistence and dashboard data integration
 
 The frontend should stay aligned with the prototype first and only adopt future queue or advanced auth UX when those features are explicitly confirmed.

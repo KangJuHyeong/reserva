@@ -10,7 +10,8 @@
 - `Current`: MySQL is the relational database baseline
 - `Current`: Flyway manages schema versioning
 - `Current`: JPA is the current persistence approach
-- `Current`: datasource configuration is driven by the root `.env`
+- `Current`: datasource configuration is driven by `backend/.env`
+- `Current`: local backend CORS allowed origin defaults to `http://localhost:3000`
 
 ## Auth Decisions
 - `Current target contract`: session-based auth remains the documented direction

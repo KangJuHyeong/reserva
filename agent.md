@@ -172,8 +172,19 @@ Use `docs/IMPLEMENTATION-STATUS.md` as the current-state board for new sessions 
 
 Current backend baseline:
 - Backend phase-1 skeleton exists in `backend`
-- Root `.env` is used for datasource configuration
+- `backend/.env` is used for datasource configuration
 - Current backend implementation uses MySQL, Flyway, and JPA
+
+Current frontend baseline:
+- Frontend phase-1 Next.js app exists in `frontend`
+- Current frontend connects these real backend-backed routes:
+  - `/`
+  - `/reservation/[id]`
+  - `/booking/[id]`
+- Current frontend keeps these routes as placeholders until later backend support:
+  - `/dashboard`
+  - `/create`
+  - `/login`
 
 Implemented now:
 - `GET /api/v1/events`
@@ -185,6 +196,7 @@ Implemented now:
 Temporary implementation detail:
 - Current auth in code uses request headers `X-User-Id`, `X-User-Name`, and `X-User-Role`
 - This temporary header-based mechanism is not the final documented auth contract
+- Current backend CORS allowed origin defaults to `http://localhost:3000` through `FRONTEND_ORIGIN`
 
 Related quick-reference docs:
 - `docs/IMPLEMENTATION-STATUS.md`: implementation status and next priorities

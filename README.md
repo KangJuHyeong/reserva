@@ -70,12 +70,29 @@ Current prototype frontend stack:
 - Tailwind CSS
 - shadcn/ui style component structure
 
+Current frontend implementation baseline:
+- `frontend` now contains a Next.js App Router application
+- currently connected to backend APIs:
+  - `/`
+  - `/reservation/[id]`
+  - `/booking/[id]`
+- currently placeholder-only routes:
+  - `/dashboard`
+  - `/create`
+  - `/login`
+- frontend server-side backend access currently uses temporary development headers:
+  - `X-User-Id`
+  - `X-User-Name`
+  - `X-User-Role`
+ - backend local frontend origin default:
+   - `http://localhost:3000`
+
 Current backend implementation baseline:
 - Spring Boot
 - MySQL
 - Flyway
 - JPA
-- root `.env`-driven datasource configuration
+- `backend/.env`-driven datasource configuration
 
 These backend choices currently back the first backend implementation baseline. The visible product definition still comes from the prototype first.
 
@@ -90,7 +107,7 @@ The following topics remain future scope and are not part of the current confirm
 - advanced observability and operations tooling
 
 ## Current Goal
-The immediate goal is documentation consistency. All top-level docs should describe the same current product, the same route structure, and the same minimum implementation requirements without over-specifying features that are not yet confirmed by the prototype.
+The immediate goal is to turn the prototype into a real product incrementally: keep the prototype-aligned UI, connect the currently supported backend flows, and leave unsupported areas clearly marked as later work instead of pretending they are complete.
 
 Current backend implementation status:
 - Implemented now:
