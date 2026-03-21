@@ -1,6 +1,5 @@
 .env
 .env.*
-!**/.env.example
 backend/.gradle/
 backend/.gradle-home/
 backend/build/

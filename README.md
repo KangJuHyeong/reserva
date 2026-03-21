@@ -99,8 +99,7 @@ Current backend implementation baseline:
 - Keep real local values in untracked `.env` files
 - Backend local config lives in `backend/.env`
 - Frontend local config should live in `frontend/.env`
-- Example values that are safe to commit should stay in `frontend/.env.example`
-- `.env` and `.env.*` files are ignored by git, while `.env.example` remains tracked for onboarding
+- `.env` and `.env.*` files are ignored by git and are intended for local-only values
 
 These backend choices currently back the first backend implementation baseline. The visible product definition still comes from the prototype first.
 
