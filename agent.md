@@ -22,6 +22,8 @@ Rules:
 - The prototype is the primary product truth for visible pages, flows, fields, and terminology.
 - The docs define the minimum backend and data model required to support the prototype.
 - Do not invent extra product scope unless it is clearly required to make the visible flows implementable.
+- Use `docs/IMPLEMENTATION-STATUS.md` for fast current-state checks.
+- Use `docs/DECISIONS.md` for short-form current and temporary decision context.
 
 ## 3. Current Product Definition
 The current product is an event reservation marketplace.
@@ -166,6 +168,8 @@ When implementing code later, do not leave docs behind if API or persistence cha
 Temporary implementation details must be labeled as `temporary` in docs and must not be described as final architecture decisions.
 
 ## 9. Current Implementation Status
+Use `docs/IMPLEMENTATION-STATUS.md` as the current-state board for new sessions and quick implementation checks.
+
 Current backend baseline:
 - Backend phase-1 skeleton exists in `backend`
 - Root `.env` is used for datasource configuration
@@ -179,6 +183,10 @@ Implemented now:
 Temporary implementation detail:
 - Current auth in code uses request headers `X-User-Id`, `X-User-Name`, and `X-User-Role`
 - This temporary header-based mechanism is not the final documented auth contract
+
+Related quick-reference docs:
+- `docs/IMPLEMENTATION-STATUS.md`: implementation status and next priorities
+- `docs/DECISIONS.md`: short-form decisions and temporary choices
 
 ## 10. Testing Expectations
 When backend code changes:
