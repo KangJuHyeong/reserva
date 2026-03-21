@@ -120,7 +120,7 @@ Current backend baseline:
 4. API returns booking confirmation payload.
 
 Implementation note:
-- the event list, event detail, and booking creation flows are currently the implemented backend baseline
+- the event list, event detail, booking creation, and booking query flows are currently the implemented backend baseline
 - auth, watchlist, dashboard, and creator management remain target contract areas beyond the current temporary auth mechanism
 
 ### 5.4 Create Event
@@ -206,5 +206,5 @@ The current architecture is a straightforward product-serving architecture:
 Scalability architecture remains valuable, but it is not the mainline story of the current product.
 
 Current implementation status should be read separately from the target contract:
-- implemented now: event discovery, event detail, booking creation
-- not yet fully implemented: documented auth endpoints, watchlists, booking queries, creator endpoints, dashboard aggregation
+- implemented now: event discovery, event detail, booking creation, booking queries
+- not yet fully implemented: documented auth endpoints, watchlists, creator endpoints, dashboard aggregation

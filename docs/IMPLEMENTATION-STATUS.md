@@ -17,6 +17,8 @@
   - `GET /api/v1/events`
   - `GET /api/v1/events/{eventId}`
   - `POST /api/v1/events/{eventId}/bookings`
+  - `GET /api/v1/me/bookings`
+  - `GET /api/v1/me/bookings/{bookingId}`
 - Database baseline exists through:
   - `V1__create_users.sql`
   - `V2__create_events_and_event_inventory.sql`
@@ -29,7 +31,6 @@
   - `GET /me`
   - `POST /auth/logout`
 - Watchlist persistence endpoints
-- My bookings list and booking detail endpoints
 - Creator event creation/listing endpoints
 - Dashboard aggregation endpoints
 
@@ -42,7 +43,6 @@
 
 ## Next Priorities
 - Watchlist persistence
-- My bookings and booking detail
 - Minimal auth contract
 - Creator event creation and creator-owned event listing
 - Dashboard aggregation
