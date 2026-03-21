@@ -22,6 +22,7 @@
 - Implemented APIs:
   - `GET /api/v1/events`
   - `GET /api/v1/events/{eventId}`
+  - `POST /api/v1/events`
   - `POST /api/v1/events/{eventId}/bookings`
   - `GET /api/v1/me/bookings`
   - `GET /api/v1/me/bookings/{bookingId}`
@@ -29,9 +30,9 @@
   - `/`
   - `/reservation/[id]`
   - `/booking/[id]`
+  - `/create`
 - Placeholder frontend routes preserved for later work:
   - `/dashboard`
-  - `/create`
   - `/login`
 - Database baseline exists through:
   - `V1__create_users.sql`
@@ -45,7 +46,7 @@
   - `GET /me`
   - `POST /auth/logout`
 - Watchlist persistence endpoints
-- Creator event creation/listing endpoints
+- Creator-owned event listing endpoints
 - Dashboard aggregation endpoints
 
 ## Temporary
@@ -62,7 +63,7 @@
 - Watchlist persistence
 - Minimal auth contract
 - Dashboard aggregation and dashboard frontend activation
-- Creator event creation and creator-owned event listing
+- Creator-owned event listing
 
 ## Recent Workflow Status
 - GitHub repository is connected

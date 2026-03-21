@@ -7,8 +7,8 @@ The current frontend is a marketplace-style experience, not a queue-first flow. 
 
 Current implementation note:
 - a real `Next.js App Router` frontend now exists in `frontend`
-- the first connected frontend slice currently covers `/`, `/reservation/[id]`, and `/booking/[id]`
-- `/dashboard`, `/create`, and `/login` are currently preserved as placeholder routes, not full implementations
+- the current connected frontend slice covers `/`, `/reservation/[id]`, `/booking/[id]`, and `/create`
+- `/dashboard` and `/login` are currently preserved as placeholder routes, not full implementations
 
 ## 2. Route Map
 Current canonical routes:
@@ -206,7 +206,7 @@ Key UX states:
 ## 9. Create Event Page
 The create page is a creator-only form.
 Current implementation status:
-- placeholder route only in the current frontend slice
+- implemented as a live create form in the current frontend slice
 
 Current visible inputs:
 - cover image
@@ -313,8 +313,8 @@ The current frontend architecture centers on:
 - minimal login
 
 Current implementation status is narrower than the target route map:
-- implemented now: discovery, event detail, booking creation, booking detail
-- placeholder only: dashboard, create, login
+- implemented now: discovery, event detail, booking creation, booking detail, creator event creation
+- placeholder only: dashboard, login
 - not yet active: watchlist persistence and dashboard data integration
 
 The frontend should stay aligned with the prototype first and only adopt future queue or advanced auth UX when those features are explicitly confirmed.
