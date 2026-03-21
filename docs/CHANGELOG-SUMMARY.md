@@ -33,3 +33,7 @@
 ## Cleanup
 - Removed duplicate sections and contradictory numbering from the previous docs set.
 - Removed outdated assumptions that treated queueing and asynchronous booking as the default current user experience.
+
+## Documentation Workflow Additions
+- Added `docs/IMPLEMENTATION-STATUS.md` as a current-state status board for completed work, temporary implementation details, and next priorities.
+- Added `docs/DECISIONS.md` as a short-form decision log for repository, backend, auth, and documentation decisions.

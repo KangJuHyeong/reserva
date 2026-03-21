@@ -47,6 +47,8 @@ The following are intentionally not yet committed:
 
 ## Documentation Map
 - `agent.md`: repo operating guide and source-of-truth rules
+- `docs/IMPLEMENTATION-STATUS.md`: current implementation status and next priorities
+- `docs/DECISIONS.md`: short log of current, temporary, and future-facing decisions
 - `docs/architecture.md`: current system responsibilities and future roadmap
 - `docs/api-spec.md`: current API contracts inferred from the prototype
 - `docs/db.md`: persistence model and integrity rules
