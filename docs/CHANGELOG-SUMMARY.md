@@ -37,3 +37,13 @@
 ## Documentation Workflow Additions
 - Added `docs/IMPLEMENTATION-STATUS.md` as a current-state status board for completed work, temporary implementation details, and next priorities.
 - Added `docs/DECISIONS.md` as a short-form decision log for repository, backend, auth, and documentation decisions.
+
+## 2026-03-21 Frontend Bootstrap
+- Added a real `Next.js App Router` frontend in `frontend`.
+- Connected the first live frontend slice to current backend APIs:
+  - `/`
+  - `/reservation/[id]`
+  - `/booking/[id]`
+- Added a frontend server-side backend wrapper that injects temporary development auth headers.
+- Kept `/dashboard`, `/create`, and `/login` as placeholder routes until their backend support is ready.
+- Updated implementation and frontend architecture docs to reflect the new current state.

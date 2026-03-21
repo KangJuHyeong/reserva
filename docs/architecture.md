@@ -101,6 +101,11 @@ Current backend baseline:
 - Flyway-managed schema migrations
 - root `.env`-driven datasource configuration
 
+Current frontend baseline:
+- Next.js App Router application in `frontend`
+- current connected frontend slice: discovery, event detail, booking creation, booking detail
+- current placeholder frontend routes: dashboard, create, login
+
 ## 5. Request Flow Overview
 
 ### 5.1 Browse Events
@@ -121,6 +126,7 @@ Current backend baseline:
 
 Implementation note:
 - the event list, event detail, booking creation, and booking query flows are currently the implemented backend baseline
+- the first real frontend slice now consumes those flows through a Next.js server-side backend wrapper with temporary development auth headers
 - auth, watchlist, dashboard, and creator management remain target contract areas beyond the current temporary auth mechanism
 
 ### 5.4 Create Event

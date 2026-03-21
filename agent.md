@@ -175,6 +175,17 @@ Current backend baseline:
 - Root `.env` is used for datasource configuration
 - Current backend implementation uses MySQL, Flyway, and JPA
 
+Current frontend baseline:
+- Frontend phase-1 Next.js app exists in `frontend`
+- Current frontend connects these real backend-backed routes:
+  - `/`
+  - `/reservation/[id]`
+  - `/booking/[id]`
+- Current frontend keeps these routes as placeholders until later backend support:
+  - `/dashboard`
+  - `/create`
+  - `/login`
+
 Implemented now:
 - `GET /api/v1/events`
 - `GET /api/v1/events/{eventId}`
