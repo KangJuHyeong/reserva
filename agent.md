@@ -205,14 +205,66 @@ Current repository policy:
 - Keep `backend`, `frontend`, `docs`, `prototype`, and `infra` in the same repository
 - Only consider separate repositories later if release ownership, access control, or deployment boundaries clearly require it
 
-## 12. Working Principles
+## 12. Git Workflow Rules
+Branching:
+- Do not treat `main` as the default working branch for feature development
+- Start new work from the latest `main`
+- Use one branch per task or fix
+- Recommended branch prefixes:
+  - `feature/...`
+  - `fix/...`
+  - `docs/...`
+  - `refactor/...`
+
+Branch examples:
+- `feature/event-list-api`
+- `fix/booking-capacity-lock`
+- `docs/backend-baseline-sync`
+
+Working flow:
+1. Update local `main`
+2. Create a task branch
+3. Make focused changes for one purpose
+4. Run required validation for that change
+5. Commit with a clear message
+6. Push the branch to GitHub
+7. Merge through a pull request when practical
+
+Commit rules:
+- Keep commits focused on one change set
+- Do not mix unrelated backend, frontend, and docs work in one commit unless they are part of the same feature
+- Use clear commit prefixes such as:
+  - `feat:`
+  - `fix:`
+  - `docs:`
+  - `refactor:`
+  - `test:`
+  - `chore:`
+
+Main branch rules:
+- Prefer not to commit directly to `main` except for very small controlled updates
+- `main` should stay in a state that can be pulled and continued from safely
+- If code behavior changes, update related docs before merging to `main`
+
+Pull request rules:
+- A PR should describe what changed, why it changed, and what was verified
+- If API or persistence changed, the PR should mention which docs were updated
+- If docs were intentionally not updated, the PR should explain why
+
+Git hygiene:
+- Do not commit `.env`, local credentials, cache folders, or build artifacts
+- Review `git status` before every commit
+- Prefer small, reviewable pushes over large unstructured pushes
+- If a change introduces temporary behavior, document it clearly before merge
+
+## 13. Working Principles
 - Prefer prototype alignment over legacy document assumptions
 - Prefer minimum safe contracts over speculative platform design
 - Keep current scope and future scope clearly separated
 - Do not present placeholders as final architecture decisions
 - Favor consistency of naming across all docs
 
-## 13. Review Checklist
+## 14. Review Checklist
 Before considering a docs update complete, verify:
 - All docs use `event`, `booking`, `creator`, and `watchlist` consistently
 - The route set matches the prototype
