@@ -15,24 +15,48 @@ export class BackendApiError extends Error {
 }
 
 function backendBaseUrl() {
-  return process.env.BACKEND_BASE_URL ?? DEFAULT_BACKEND_BASE_URL;
+  return readEnv("BACKEND_BASE_URL") ?? DEFAULT_BACKEND_BASE_URL;
 }
 
-function authHeaders() {
+export function devAuthEnabled() {
+  return readEnv("DEV_AUTH_ENABLED") !== "false";
+}
+
+function readEnv(name: string) {
+  return Reflect.get(process.env, name) as string | undefined;
+}
+
+function authHeaders(): Record<string, string> {
+  if (!devAuthEnabled()) {
+    return {};
+  }
+
   return {
-    "X-User-Id": process.env.DEV_USER_ID ?? "usr_123",
-    "X-User-Name": process.env.DEV_USER_NAME ?? "Alex Johnson",
-    "X-User-Role": process.env.DEV_USER_ROLE ?? "user",
+    "X-User-Id": readEnv("DEV_USER_ID") ?? "usr_123",
+    "X-User-Name": readEnv("DEV_USER_NAME") ?? "Alex Johnson",
+    "X-User-Role": readEnv("DEV_USER_ROLE") ?? "user",
   };
+}
+
+function mergeHeaders(headers?: HeadersInit, includeJsonContentType = false) {
+  const merged = new Headers(authHeaders());
+
+  if (headers) {
+    const incoming = new Headers(headers);
+    incoming.forEach((value, key) => merged.set(key, value));
+  }
+
+  if (includeJsonContentType) {
+    merged.set("Content-Type", "application/json");
+  }
+
+  return merged;
 }
 
 export async function fetchBackendJson<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${backendBaseUrl()}${path}`, {
     ...init,
-    headers: {
-      ...authHeaders(),
-      ...(init?.headers ?? {}),
-    },
+    headers: mergeHeaders(init?.headers),
     cache: "no-store",
   });
 
@@ -59,10 +83,7 @@ export async function proxyBackend(request: Request, path: string, method: strin
 
   const response = await fetch(`${backendBaseUrl()}${path}`, {
     method,
-    headers: {
-      ...authHeaders(),
-      "Content-Type": "application/json",
-    },
+    headers: mergeHeaders(undefined, true),
     body,
     cache: "no-store",
   });

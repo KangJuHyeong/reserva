@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Calendar, CalendarClock, Clock, Heart, MapPin, Share2, Users } from "lucide-react";
+import { ArrowLeft, Calendar, CalendarClock, Clock, MapPin, Share2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { WatchlistToggleButton } from "@/components/watchlist-toggle-button";
 import { ApiErrorResponse, BookingCreateResponseApi, EventDetailViewModel } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -31,8 +32,14 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
   const router = useRouter();
   const [ticketCount, setTicketCount] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isWatchlisted, setIsWatchlisted] = useState(event.isWatchlisted);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [watchlistMessage, setWatchlistMessage] = useState<string | null>(null);
   const progress = (event.reservedSlots / event.totalSlots) * 100;
+
+  useEffect(() => {
+    setIsWatchlisted(event.isWatchlisted);
+  }, [event.isWatchlisted]);
 
   async function handleReserve() {
     if (!Number.isInteger(ticketCount) || ticketCount < 1) {
@@ -71,9 +78,14 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
             <span>Back to Events</span>
           </Link>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="cursor-not-allowed border border-border" disabled title="Watchlist is not available yet.">
-              <Heart className="h-5 w-5" />
-            </Button>
+            <WatchlistToggleButton
+              eventId={event.id}
+              initialIsWatchlisted={isWatchlisted}
+              className="h-10 w-10"
+              iconClassName="h-5 w-5"
+              onChange={setIsWatchlisted}
+              onError={setWatchlistMessage}
+            />
             <Button variant="ghost" size="icon" className="border border-border">
               <Share2 className="h-5 w-5" />
             </Button>
@@ -176,6 +188,7 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
                 </label>
 
                 {errorMessage ? <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{errorMessage}</div> : null}
+                {watchlistMessage ? <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{watchlistMessage}</div> : null}
 
                 <Button
                   className="h-12 w-full bg-primary text-base text-primary-foreground hover:bg-primary/90"
@@ -185,7 +198,9 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
                   {isSubmitting ? "Reserving..." : event.remainingSlots === 0 ? "Sold Out" : "Reserve My Spot"}
                 </Button>
 
-                <p className="text-center text-xs text-muted-foreground">Direct booking flow only. Watchlist and advanced auth are not connected yet.</p>
+                <p className="text-center text-xs text-muted-foreground">
+                  {isWatchlisted ? "Saved in your watchlist." : "Tap the heart to save this event for later."}
+                </p>
               </div>
 
               <div className="mt-6 border-t border-border pt-6">

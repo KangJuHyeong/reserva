@@ -20,8 +20,10 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 @Service
 public class EventQueryService {
@@ -45,15 +47,15 @@ public class EventQueryService {
                 EventSpecifications.hasCategory(parseCategory(category))
         );
 
-        CurrentUser currentUser = currentUserProvider.getCurrentUserOrNull();
+        CurrentUser currentUser = "watchlist".equalsIgnoreCase(section)
+                ? currentUserProvider.getCurrentUserOrThrow()
+                : currentUserProvider.getCurrentUserOrNull();
         List<EventEntity> events = eventRepository.findAll(specification);
+        Set<String> watchlistedEventIds = resolveWatchlistedEventIds(events, currentUser);
 
         if ("watchlist".equalsIgnoreCase(section)) {
-            if (currentUser == null) {
-                return new PageResponse<>(List.of(), page, size, 0);
-            }
             events = events.stream()
-                    .filter(event -> watchlistRepository.existsByUserIdAndEventId(currentUser.id(), event.getId()))
+                    .filter(event -> watchlistedEventIds.contains(event.getId()))
                     .toList();
         }
 
@@ -65,7 +67,7 @@ public class EventQueryService {
 
         int end = Math.min(start + size, sorted.size());
         List<EventSummaryResponse> items = sorted.subList(start, end).stream()
-                .map(event -> toSummaryResponse(event, currentUser))
+                .map(event -> toSummaryResponse(event, watchlistedEventIds))
                 .toList();
         return new PageResponse<>(items, page, size, sorted.size());
     }
@@ -115,8 +117,19 @@ public class EventQueryService {
         };
     }
 
-    private EventSummaryResponse toSummaryResponse(EventEntity event, CurrentUser currentUser) {
-        boolean watchlisted = currentUser != null && watchlistRepository.existsByUserIdAndEventId(currentUser.id(), event.getId());
+    private Set<String> resolveWatchlistedEventIds(List<EventEntity> events, CurrentUser currentUser) {
+        if (currentUser == null || events.isEmpty()) {
+            return Set.of();
+        }
+
+        List<String> eventIds = events.stream()
+                .map(EventEntity::getId)
+                .toList();
+        return new HashSet<>(watchlistRepository.findEventIdsByUserIdAndEventIdIn(currentUser.id(), eventIds));
+    }
+
+    private EventSummaryResponse toSummaryResponse(EventEntity event, Set<String> watchlistedEventIds) {
+        boolean watchlisted = watchlistedEventIds.contains(event.getId());
         return new EventSummaryResponse(
                 event.getId(),
                 event.getTitle(),

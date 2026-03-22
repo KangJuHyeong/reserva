@@ -23,4 +23,17 @@ public class WatchlistEntity {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    public static WatchlistEntity create(String id, String userId, String eventId, LocalDateTime createdAt) {
+        WatchlistEntity watchlist = new WatchlistEntity();
+        watchlist.id = id;
+        watchlist.userId = userId;
+        watchlist.eventId = eventId;
+        watchlist.createdAt = createdAt;
+        return watchlist;
+    }
+
+    public String getEventId() {
+        return eventId;
+    }
 }

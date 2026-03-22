@@ -105,7 +105,8 @@ Current frontend baseline:
 Implementation note:
 - event list, event detail, booking creation, event creation, and booking query flows are currently implemented in the backend baseline
 - the first real frontend slice consumes those flows through a Next.js server-side backend wrapper with temporary development auth headers
-- auth, watchlist, dashboard, and creator event listing remain target contract areas beyond the current temporary auth mechanism
+- watchlist save and remove flows are now implemented on top of the current temporary auth mechanism
+- auth, dashboard, and creator event listing remain target contract areas beyond the current temporary auth mechanism
 
 ### Create Event
 1. Authenticated creator submits the create-event form.

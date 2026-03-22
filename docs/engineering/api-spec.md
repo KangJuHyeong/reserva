@@ -229,8 +229,8 @@ Errors:
 
 ## Watchlist APIs
 Status:
-- documented contract
-- not yet implemented in the current backend baseline
+- implemented now in the current backend baseline
+- current auth input is temporary request-header based during development
 
 ### POST /events/{eventId}/watchlist
 Response `204 No Content`
