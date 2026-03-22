@@ -1,59 +1,25 @@
-# api-spec.md
+# API Specification
 
-## 1. Purpose
-This document defines the minimum API contract required to support the current prototype.
+This document defines the minimum API contract for the current product baseline.
 
-Vocabulary:
-- `event`: a joinable listing shown in discovery and detail pages
-- `booking`: a user's confirmed reservation record for an event
+Use `docs/product/implementation-status.md` for current implementation coverage and `agent.md` for scope boundaries.
 
-The prototype currently uses mock data. These endpoints are the inferred minimum needed to make those screens implementable without committing to unconfirmed product scope.
+## Common Rules
 
-## 2. Common Rules
-
-### 2.1 Current Implementation Status
-Target documented auth model:
-- session-based authentication
-
-Current temporary backend implementation:
-- request headers `X-User-Id`, `X-User-Name`, `X-User-Role`
-- this is a development-only current-user resolution mechanism
-- this is not the final documented auth contract
-
-Implemented now:
-- `GET /events`
-- `GET /events/{eventId}`
-- `POST /events`
-- `POST /events/{eventId}/bookings`
-- `GET /me/bookings`
-- `GET /me/bookings/{bookingId}`
-
-Documented contract but not yet implemented:
-- `POST /auth/login`
-- `GET /me`
-- `POST /auth/logout`
-- watchlist endpoints
-- dashboard and creator endpoints
-
-### 2.2 Base Path
-Example base path:
-
+### Base Path
 ```text
 /api/v1
 ```
 
-### 2.3 Auth Model
+### Auth Model
 Current documented default:
 - session-based authentication
-
-Authenticated endpoints should use the current logged-in user from the active session.
 
 Temporary implementation note:
 - the current backend code resolves the user from request headers during local development
 - this temporary mechanism should not be treated as the final auth design
 
-### 2.4 Common Error Shape
-
+### Common Error Shape
 ```json
 {
   "code": "EVENT_SOLD_OUT",
@@ -71,10 +37,9 @@ Common error codes:
 - `ALREADY_BOOKED`
 - `INVALID_SCHEDULE`
 
-## 3. Shared Data Shapes
+## Shared Data Shapes
 
-### 3.1 Event Summary
-
+### Event Summary
 ```json
 {
   "id": "evt_123",
@@ -100,8 +65,7 @@ Common error codes:
 }
 ```
 
-### 3.2 Event Detail
-
+### Event Detail
 ```json
 {
   "id": "evt_123",
@@ -125,8 +89,7 @@ Common error codes:
 }
 ```
 
-### 3.3 Booking Summary
-
+### Booking Summary
 ```json
 {
   "bookingId": "BK-2026-001",
@@ -141,8 +104,7 @@ Common error codes:
 }
 ```
 
-### 3.4 Booking Detail
-
+### Booking Detail
 ```json
 {
   "bookingId": "BK-2026-001",
@@ -171,17 +133,13 @@ Common error codes:
 }
 ```
 
-## 4. Auth APIs
-
+## Auth APIs
 Status:
 - documented contract
 - not yet implemented in the current backend baseline
 
-### 4.1 POST /auth/login
-Logs a user in with the current minimal login form.
-
+### POST /auth/login
 Request:
-
 ```json
 {
   "email": "alex@example.com",
@@ -190,7 +148,6 @@ Request:
 ```
 
 Response `200 OK`:
-
 ```json
 {
   "user": {
@@ -202,15 +159,8 @@ Response `200 OK`:
 }
 ```
 
-Errors:
-- `UNAUTHENTICATED` for invalid credentials
-- `VALIDATION_ERROR`
-
-### 4.2 GET /me
-Returns the current user for app bootstrapping and route protection.
-
+### GET /me
 Response `200 OK`:
-
 ```json
 {
   "id": "usr_123",
@@ -220,28 +170,20 @@ Response `200 OK`:
 }
 ```
 
-Errors:
-- `UNAUTHENTICATED`
-
-### 4.3 POST /auth/logout
-Ends the current authenticated session.
-
+### POST /auth/logout
 Response `204 No Content`
 
-## 5. Event Discovery APIs
+## Event Discovery APIs
 
-### 5.1 GET /events
-Returns the discovery feed for the home page.
-
+### GET /events
 Query parameters:
-- `q`: search string
-- `category`: `Concert | Restaurant | Art & Design | Sports`
-- `section`: optional derived section such as `trending`, `endingSoon`, `openingSoon`, `watchlist`
+- `q`
+- `category`
+- `section`
 - `page`
 - `size`
 
 Response `200 OK`:
-
 ```json
 {
   "items": [
@@ -278,50 +220,32 @@ Notes:
 - The server may compute `isTrending`, `isEndingSoon`, and `isOpeningSoon`.
 - The `watchlist` section requires authentication.
 
-### 5.2 GET /events/{eventId}
-Returns the event detail page payload.
-
+### GET /events/{eventId}
 Response `200 OK`:
 - returns the `Event Detail` shape
 
 Errors:
 - `EVENT_NOT_FOUND`
 
-## 6. Watchlist APIs
-
+## Watchlist APIs
 Status:
 - documented contract
 - not yet implemented in the current backend baseline
 
-### 6.1 POST /events/{eventId}/watchlist
-Adds an event to the current user's watchlist.
-
+### POST /events/{eventId}/watchlist
 Response `204 No Content`
 
-Errors:
-- `UNAUTHENTICATED`
-- `EVENT_NOT_FOUND`
-
-### 6.2 DELETE /events/{eventId}/watchlist
-Removes an event from the current user's watchlist.
-
+### DELETE /events/{eventId}/watchlist
 Response `204 No Content`
 
-Errors:
-- `UNAUTHENTICATED`
-- `EVENT_NOT_FOUND`
+## Booking APIs
 
-## 7. Booking APIs
-
-### 7.1 POST /events/{eventId}/bookings
-Creates a booking for the current user.
-
+### POST /events/{eventId}/bookings
 Status:
 - implemented now in the current backend baseline
 - current auth input is temporary request-header based during development
 
 Request:
-
 ```json
 {
   "ticketCount": 2
@@ -329,7 +253,6 @@ Request:
 ```
 
 Response `201 Created`:
-
 ```json
 {
   "bookingId": "BK-2026-001",
@@ -342,60 +265,17 @@ Response `201 Created`:
 }
 ```
 
-Errors:
-- `UNAUTHENTICATED`
-- `EVENT_NOT_FOUND`
-- `EVENT_SOLD_OUT`
-- `ALREADY_BOOKED`
-- `VALIDATION_ERROR`
-
-Current implementation notes:
-- duplicate active bookings are rejected
-- sold-out or insufficient remaining slots are rejected
-- inventory update and booking creation are handled in one transaction
-
-### 7.2 GET /me/bookings
-Returns bookings for the current user.
-
+### GET /me/bookings
 Status:
 - implemented now in the current backend baseline
 - current auth input is temporary request-header based during development
 
 Query parameters:
-- `status`: optional
+- `status`
 - `page`
 - `size`
 
-Response `200 OK`:
-
-```json
-{
-  "items": [
-    {
-      "bookingId": "BK-2026-001",
-      "eventId": "evt_123",
-      "title": "Summer Jazz Night",
-      "imageUrl": "https://example.com/image.jpg",
-      "status": "confirmed",
-      "location": "Blue Note Jazz Club, NYC",
-      "eventDateTime": "2026-03-15T20:00:00Z",
-      "bookedAt": "2026-03-05T09:30:00Z",
-      "ticketCount": 2
-    }
-  ],
-  "page": 1,
-  "size": 20,
-  "total": 3
-}
-```
-
-Errors:
-- `UNAUTHENTICATED`
-- `VALIDATION_ERROR` for unsupported `status`
-
-### 7.3 GET /me/bookings/{bookingId}
-Returns the booking detail page payload.
-
+### GET /me/bookings/{bookingId}
 Status:
 - implemented now in the current backend baseline
 - current auth input is temporary request-header based during development
@@ -403,20 +283,10 @@ Status:
 Response `200 OK`:
 - returns the `Booking Detail` shape
 
-Errors:
-- `UNAUTHENTICATED`
-- `BOOKING_NOT_FOUND`
+## Dashboard And Creator APIs
 
-## 8. Dashboard And Creator APIs
-
-Status:
-- partially implemented in the current backend baseline
-
-### 8.1 GET /me/dashboard-summary
-Returns aggregate counts and preview lists for the dashboard overview.
-
+### GET /me/dashboard-summary
 Response `200 OK`:
-
 ```json
 {
   "stats": {
@@ -433,45 +303,17 @@ Response `200 OK`:
 }
 ```
 
-Errors:
-- `UNAUTHENTICATED`
-
-### 8.2 GET /me/events
-Returns creator-owned events.
-
+### GET /me/events
 Status:
 - documented contract
 - not yet implemented in the current backend baseline
 
-Query parameters:
-- `status`: optional
-- `page`
-- `size`
-
-Response `200 OK`:
-
-```json
-{
-  "items": [],
-  "page": 1,
-  "size": 20,
-  "total": 2
-}
-```
-
-Errors:
-- `UNAUTHENTICATED`
-- `FORBIDDEN`
-
-### 8.3 POST /events
-Creates a new event from the creator form.
-
+### POST /events
 Status:
 - implemented now in the current backend baseline
 - current auth input is temporary request-header based during development
 
 Request:
-
 ```json
 {
   "title": "New Event",
@@ -487,7 +329,6 @@ Request:
 ```
 
 Response `201 Created`:
-
 ```json
 {
   "id": "evt_999",
@@ -495,13 +336,7 @@ Response `201 Created`:
 }
 ```
 
-Errors:
-- `UNAUTHENTICATED`
-- `FORBIDDEN`
-- `INVALID_SCHEDULE`
-- `VALIDATION_ERROR`
-
-## 9. Unconfirmed Auth Features
+## Unconfirmed Auth Features
 The following are intentionally not defined in the current API contract:
 - signup
 - OAuth
@@ -509,5 +344,3 @@ The following are intentionally not defined in the current API contract:
 - email verification
 - MFA
 - final token strategy beyond the current session-based default
-
-If these features are later confirmed, they should be added as a separate documented expansion rather than silently folded into the current minimum scope.

@@ -1,43 +1,61 @@
 # agent.md
 
 ## 1. Purpose
-This document is the implementation operating guide for this repository.
+This document is the canonical operating guide for implementation work in this repository.
 
-Its job is to keep code, product scope, and supporting docs aligned with the current prototype in `prototype/b_XRSe9jZaGQj-1773064905125`.
+Use it to keep code, scope, and supporting documents aligned with the current product baseline.
 
-This is not the public-facing project introduction. Use `README.md` for the external summary.
+`README.md` is the public-facing project summary. It is not the implementation source of truth.
 
 ## 2. Source Of Truth Order
-When documents conflict, use this order:
+When repository documents conflict, use this order:
 
-1. `prototype/b_XRSe9jZaGQj-1773064905125`
-2. `agent.md`
-3. `docs/frontend-architecture.md`
-4. `docs/api-spec.md`
-5. `docs/db.md`
-6. `docs/architecture.md`
-7. `README.md`
+1. `agent.md`
+2. `docs/product/implementation-status.md`
+3. `docs/product/decisions.md`
+4. `docs/engineering/frontend-architecture.md`
+5. `docs/engineering/api-spec.md`
+6. `docs/engineering/db.md`
+7. `docs/engineering/architecture.md`
+8. `README.md`
 
 Rules:
-- The prototype is the primary product truth for visible pages, flows, fields, and terminology.
-- The docs define the minimum backend and data model required to support the prototype.
-- Do not invent extra product scope unless it is clearly required to make the visible flows implementable.
-- Use `docs/IMPLEMENTATION-STATUS.md` for fast current-state checks.
-- Use `docs/DECISIONS.md` for short-form current and temporary decision context.
+- `agent.md` owns repository operating rules, scope boundaries, and documentation ownership.
+- Product and engineering docs should define minimum safe contracts, not speculative platform scope.
+- If a topic is not part of the current product baseline and not required for safe implementation, keep it out of current scope.
 
-## 3. Current Product Definition
+## 3. Documentation Map
+
+### 3.1 Root Entry Documents
+- `README.md`: external-facing project summary, stack, repo shape, and doc links
+- `agent.md`: internal operating guide and implementation source of truth
+- `MAIN_PROMPT.md`: thin launcher for implementation sessions that defers to `agent.md`
+
+### 3.2 Product Documents
+- `docs/product/implementation-status.md`: current implementation baseline, temporary details, and next priorities
+- `docs/product/decisions.md`: current, temporary, and future-facing decisions
+
+### 3.3 Engineering Documents
+- `docs/engineering/architecture.md`: service responsibilities, request flows, and system boundaries
+- `docs/engineering/frontend-architecture.md`: route map, UX states, and frontend data expectations
+- `docs/engineering/api-spec.md`: API contracts, shared payloads, and error behavior
+- `docs/engineering/db.md`: persistence model, constraints, and integrity rules
+
+### 3.4 Operations Documents
+- `docs/operations/README.md`: boundary for operations documentation that does not belong in root entry files
+- `docs/operations/implementation-workflow.md`: default feature-slice implementation workflow and service ownership rules
+
+## 4. Current Product Definition
 The current product is an event reservation marketplace.
 
 Primary user-visible flows:
-- Browse events on the home page
-- Search and filter events
+- Browse and filter events
 - View event detail
 - Reserve a spot
 - Save and remove watchlist items
-- View personal dashboard
-- View booking detail
-- Create an event
-- Log in
+- View personal bookings and booking detail
+- Create an event as a creator
+- Log in with the minimum documented auth contract
 
 Current canonical routes:
 - `/`
@@ -53,23 +71,21 @@ Terminology:
 - `creator`: a user allowed to create and manage events
 - `watchlist`: a per-user saved-events collection
 
-## 4. Documentation Boundaries
-Every change should be classified into one of these buckets.
+## 5. Scope Boundaries
 
-### 4.1 Current Scope
-Use for behavior already visible in the prototype or directly required by visible pages.
+### 5.1 Current Scope
+Use for behavior already part of the current product baseline or directly required by visible pages.
 
 Examples:
 - Event discovery and filtering
 - Event detail view
-- Join flow
+- Booking creation and booking detail
 - Dashboard sections
-- Booking detail
 - Event creation form
 - Minimal login flow
 - Watchlist behavior
 
-### 4.2 Minimum Inferred Backend Requirements
+### 5.2 Minimum Inferred Backend Requirements
 Use for requirements not directly visible in the UI but necessary to implement it safely.
 
 Examples:
@@ -81,8 +97,8 @@ Examples:
 - Duplicate booking prevention
 - Booking and watchlist persistence
 
-### 4.3 Future Scope
-Use for ideas not yet confirmed by the prototype.
+### 5.3 Future Scope
+Use for ideas not yet confirmed for the current product baseline.
 
 Examples:
 - Signup
@@ -97,8 +113,8 @@ Examples:
 
 Do not move future scope into current scope without a visible product reason or explicit instruction.
 
-## 5. Current Implementation Priorities
-If code implementation starts from this document, the priority order is:
+## 6. Current Implementation Priorities
+If implementation starts from this document, use this priority order:
 
 1. Event catalog and filtering
 2. Event detail contract
@@ -112,99 +128,100 @@ If code implementation starts from this document, the priority order is:
 Why this order:
 - The homepage and detail flows define the product.
 - Booking integrity is more important than cosmetic completeness.
-- Creator and dashboard features depend on auth and persisted event/booking data.
+- Creator and dashboard features depend on auth and persisted event and booking data.
 
-## 6. Minimal Auth Contract
-Auth is intentionally small for the current docs.
-
-Documented current auth endpoints:
+## 7. Minimal Auth Contract
+Current documented auth endpoints:
 - `POST /auth/login`
 - `GET /me`
 - `POST /auth/logout`
 
 Current assumptions:
-- Initial design can assume server-managed session auth.
+- Session-based auth is the documented default contract.
 - One user model can support creator capability through a role field.
-- Advanced auth choices remain undecided and must stay labeled as future scope.
+- Final auth implementation details beyond the minimum contract remain undecided.
 
 Do not document as confirmed:
 - Signup API
 - OAuth providers
-- JWT vs session as a final architectural commitment
+- JWT vs session as a final commitment
 - Forgot password
 - Email verification
 
-## 7. Required Supporting Rules
-These requirements are not always visible in the prototype, but they are required for a safe implementation.
+## 8. Required Supporting Rules
 
-### 7.1 Validation
+### 8.1 Validation
 - Event title, category, location, and description are required
 - `price >= 0`
 - `totalSlots >= 1`
 - `reservationOpenDateTime < eventDateTime`
 - Only creators can create events
 
-### 7.2 Booking Integrity
+### 8.2 Booking Integrity
 - A sold-out event must reject additional bookings
 - Duplicate booking protection must exist at application and DB levels
 - Slot decrement and booking creation must be handled atomically
 - Booking detail must preserve price context through snapshots or equivalent fields
 
-### 7.3 List Behavior
+### 8.3 List Behavior
 - Discovery, bookings, and creator lists must support pagination
-- Server should own derived sections such as trending, ending soon, and opening soon
+- The server should own derived sections such as trending, ending soon, and opening soon
 - Filtering and sorting rules must be documented in the API contract, not inferred only from UI code
 
-## 8. Documentation Update Rules
-When product scope changes:
-- Update `agent.md` if priorities, boundaries, or terminology change
-- Update `README.md` if route-level summary or public product framing changes
-- Update `docs/frontend-architecture.md` if page structure or UX states change
-- Update `docs/api-spec.md` if routes, payloads, filters, or errors change
-- Update `docs/db.md` if entities, constraints, or persistence rules change
-- Update `docs/architecture.md` if service responsibilities or system boundaries change
+## 9. Documentation Update Rules
+When scope or behavior changes:
+- Update `agent.md` if boundaries, priorities, terminology, or doc ownership change
+- Update `README.md` if the public-facing product summary, stack summary, or repo shape changes
+- Update `docs/product/implementation-status.md` if implementation coverage or temporary mechanisms change
+- Update `docs/product/decisions.md` if decisions or temporary choices change
+- Update `docs/engineering/frontend-architecture.md` if page structure or UX states change
+- Update `docs/engineering/api-spec.md` if routes, payloads, filters, or errors change
+- Update `docs/engineering/db.md` if entities, constraints, or persistence rules change
+- Update `docs/engineering/architecture.md` if service responsibilities or system boundaries change
 
-When implementing code later, do not leave docs behind if API or persistence changes.
-Temporary implementation details must be labeled as `temporary` in docs and must not be described as final architecture decisions.
+Temporary implementation details must be labeled as `temporary` and must not be described as final architecture decisions.
 
-## 9. Current Implementation Status
-Use `docs/IMPLEMENTATION-STATUS.md` as the current-state board for new sessions and quick implementation checks.
+## 10. Implementation Workflow
+Default implementation mode is a full-stack feature slice.
+
+For any feature in current scope, use this order:
+1. Confirm the feature belongs to current scope and identify its priority in this document.
+2. Check whether `docs/engineering/api-spec.md` or `docs/engineering/db.md` must change before code changes begin.
+3. Define or update request, response, error, validation, and persistence expectations for the feature.
+4. Implement the backend slice in the owning feature package.
+5. Implement the frontend route or UI integration for the same feature.
+6. Verify behavior end to end, then update `docs/product/implementation-status.md` if implementation coverage changed.
+
+Default ownership rule:
+- Work is organized by feature task, but service ownership remains aligned to feature domains.
+- A feature package should own its controller, service, repository access, DTOs, and domain rules.
+- Reuse existing `CommandService` and `QueryService` separation where the feature already follows that pattern.
+- Create a dedicated orchestration service only when one use case coordinates multiple feature domains and would otherwise overgrow an existing service.
+- Do not combine unrelated booking, event, dashboard, and auth behavior into one broad service.
+
+Reference:
+- Use `docs/operations/implementation-workflow.md` for the detailed workflow template and the watchlist example.
+
+## 11. Current Baseline
+Use `docs/product/implementation-status.md` for quick current-state checks.
 
 Current backend baseline:
-- Backend phase-1 skeleton exists in `backend`
-- `backend/.env` is used for datasource configuration
-- Current backend implementation uses MySQL, Flyway, and JPA
+- Backend project exists in `backend`
+- Datasource configuration is driven by `backend/.env`
+- Spring Boot, MySQL, Flyway, and JPA are active
 
 Current frontend baseline:
-- Frontend phase-1 Next.js app exists in `frontend`
-- Current frontend connects these real backend-backed routes:
-  - `/`
-  - `/reservation/[id]`
-  - `/booking/[id]`
-- Current frontend keeps these routes as placeholders until later backend support:
-  - `/dashboard`
-  - `/create`
-  - `/login`
-
-Implemented now:
-- `GET /api/v1/events`
-- `GET /api/v1/events/{eventId}`
-- `POST /api/v1/events/{eventId}/bookings`
-- `GET /api/v1/me/bookings`
-- `GET /api/v1/me/bookings/{bookingId}`
+- Frontend project exists in `frontend`
+- Connected routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, and `/create`
+- `/dashboard` and `/login` remain placeholder routes
 
 Temporary implementation detail:
 - Current auth in code uses request headers `X-User-Id`, `X-User-Name`, and `X-User-Role`
-- This temporary header-based mechanism is not the final documented auth contract
-- Current backend CORS allowed origin defaults to `http://localhost:3000` through `FRONTEND_ORIGIN`
+- This mechanism is temporary and not the final documented auth contract
 
-Related quick-reference docs:
-- `docs/IMPLEMENTATION-STATUS.md`: implementation status and next priorities
-- `docs/DECISIONS.md`: short-form decisions and temporary choices
-
-## 10. Testing Expectations
+## 12. Testing Expectations
 When backend code changes:
-- Run `backend\gradlew.bat test`
+- Run `backend\\gradlew.bat test`
 - Confirm the application starts successfully
 - Confirm Flyway migrations apply successfully
 
@@ -217,61 +234,34 @@ When API behavior changes:
 - Verify duplicate booking rejection
 
 When docs change:
-- Verify `agent.md`, `README.md`, `docs/api-spec.md`, `docs/db.md`, and `docs/architecture.md` do not contradict each other
+- Verify root docs and engineering docs do not contradict each other
+- Verify links resolve after moves or deletions
+- Verify each retained document has one clear audience
 
-## 11. Repository Policy
-Git management should start now, not after frontend completion.
-
-Current repository policy:
+## 13. Repository Policy
 - Manage the root folder as a single monorepo
-- Keep `backend`, `frontend`, `docs`, `prototype`, and `infra` in the same repository
-- Only consider separate repositories later if release ownership, access control, or deployment boundaries clearly require it
+- Keep `backend`, `frontend`, `docs`, `prototype`, and `infra` in the same repository while `prototype` remains a legacy reference directory
+- Only consider separate repositories later if ownership or deployment boundaries clearly require it
 
-## 12. Git Workflow Rules
+## 14. Git Workflow Rules
 Branching:
-- Do not treat `main` as the default working branch for feature development
 - Start new work from the latest `main`
 - Use one branch per task or fix
-- Recommended branch prefixes:
-  - `feature/...`
-  - `fix/...`
-  - `docs/...`
-  - `refactor/...`
-
-Branch examples:
-- `feature/event-list-api`
-- `fix/booking-capacity-lock`
-- `docs/backend-baseline-sync`
+- Recommended prefixes: `feature/...`, `fix/...`, `docs/...`, `refactor/...`
 
 Working flow:
 1. Update local `main`
 2. Create a task branch
-3. Make focused changes for one purpose
-4. Run required validation for that change
+3. Make focused changes
+4. Run required validation
 5. Commit with a clear message
-6. Push the branch to GitHub
+6. Push the branch
 7. Merge through a pull request when practical
 
 Commit rules:
 - Keep commits focused on one change set
 - Do not mix unrelated backend, frontend, and docs work in one commit unless they are part of the same feature
-- Use clear commit prefixes such as:
-  - `feat:`
-  - `fix:`
-  - `docs:`
-  - `refactor:`
-  - `test:`
-  - `chore:`
-
-Main branch rules:
-- Prefer not to commit directly to `main` except for very small controlled updates
-- `main` should stay in a state that can be pulled and continued from safely
-- If code behavior changes, update related docs before merging to `main`
-
-Pull request rules:
-- A PR should describe what changed, why it changed, and what was verified
-- If API or persistence changed, the PR should mention which docs were updated
-- If docs were intentionally not updated, the PR should explain why
+- Use clear commit prefixes such as `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, or `chore:`
 
 Git hygiene:
 - Do not commit `.env`, local credentials, cache folders, or build artifacts
@@ -279,17 +269,17 @@ Git hygiene:
 - Prefer small, reviewable pushes over large unstructured pushes
 - If a change introduces temporary behavior, document it clearly before merge
 
-## 13. Working Principles
-- Prefer prototype alignment over legacy document assumptions
+## 15. Working Principles
+- Prefer current product alignment over legacy document assumptions
 - Prefer minimum safe contracts over speculative platform design
 - Keep current scope and future scope clearly separated
 - Do not present placeholders as final architecture decisions
-- Favor consistency of naming across all docs
+- Favor consistent naming across all docs
 
-## 14. Review Checklist
+## 16. Review Checklist
 Before considering a docs update complete, verify:
 - All docs use `event`, `booking`, `creator`, and `watchlist` consistently
-- The route set matches the prototype
+- The documented route set matches the current product baseline
 - Minimal auth remains minimal
 - Unconfirmed features are labeled future scope
 - No queue-first or Kafka-first framing appears as the current product story
