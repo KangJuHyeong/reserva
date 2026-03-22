@@ -15,11 +15,15 @@ export class BackendApiError extends Error {
 }
 
 function backendBaseUrl() {
-  return process.env.BACKEND_BASE_URL ?? DEFAULT_BACKEND_BASE_URL;
+  return readEnv("BACKEND_BASE_URL") ?? DEFAULT_BACKEND_BASE_URL;
 }
 
-function devAuthEnabled() {
-  return process.env.DEV_AUTH_ENABLED !== "false";
+export function devAuthEnabled() {
+  return readEnv("DEV_AUTH_ENABLED") !== "false";
+}
+
+function readEnv(name: string) {
+  return Reflect.get(process.env, name) as string | undefined;
 }
 
 function authHeaders(): Record<string, string> {
@@ -28,9 +32,9 @@ function authHeaders(): Record<string, string> {
   }
 
   return {
-    "X-User-Id": process.env.DEV_USER_ID ?? "usr_123",
-    "X-User-Name": process.env.DEV_USER_NAME ?? "Alex Johnson",
-    "X-User-Role": process.env.DEV_USER_ROLE ?? "user",
+    "X-User-Id": readEnv("DEV_USER_ID") ?? "usr_123",
+    "X-User-Name": readEnv("DEV_USER_NAME") ?? "Alex Johnson",
+    "X-User-Role": readEnv("DEV_USER_ROLE") ?? "user",
   };
 }
 

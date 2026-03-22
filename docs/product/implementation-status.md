@@ -66,6 +66,7 @@
 - Playwright E2E is runnable once local frontend and backend are started with the expected dev settings
 - Backend demo seed can be enabled with `SEED_DEMO_DATA=true`
 - Frontend development auth header injection can be disabled with `DEV_AUTH_ENABLED=false`
+- When frontend dev auth is disabled, `/?view=Watchlist` should render the explicit unauthenticated state instead of attempting the authenticated watchlist load
 - Seeded stable demo event ids when demo data is enabled:
   - `evt_demo_jazz`
   - `evt_demo_art`

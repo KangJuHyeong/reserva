@@ -1,6 +1,6 @@
 import { HomePage } from "@/components/home-page";
 import { toEventSummaryViewModel } from "@/lib/mappers";
-import { BackendApiError } from "@/lib/server/backend";
+import { BackendApiError, devAuthEnabled } from "@/lib/server/backend";
 import { fetchEvents } from "@/lib/server/queries";
 import { Category } from "@/lib/types";
 
@@ -41,6 +41,11 @@ export default async function Home({
   const searchQuery = params.q?.trim() ?? "";
   const selectedCategory = parseCategory(params.view);
   const shouldUseDefaultSections = selectedCategory === "All" && !searchQuery;
+
+  if (selectedCategory === "Watchlist" && !devAuthEnabled()) {
+    return <HomePage searchQuery={searchQuery} selectedCategory={selectedCategory} items={[]} mode="watchlist_unauthenticated" />;
+  }
+
   try {
     const response = await fetchEvents({
       q: searchQuery || undefined,
