@@ -21,6 +21,13 @@ export interface ApiErrorResponse {
   message: string;
 }
 
+export interface CurrentUserApi {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 export interface EventHostApi {
   id: string;
   name: string;

@@ -67,11 +67,31 @@ public class UserEntity {
         return displayName;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
     public UserRole getRole() {
         return role;
     }
 
     public String getProfileImageUrl() {
         return profileImageUrl;
+    }
+
+    public void refreshSeedProfile(String passwordHash,
+                                   String displayName,
+                                   UserRole role,
+                                   String profileImageUrl,
+                                   LocalDateTime now) {
+        this.passwordHash = passwordHash;
+        this.displayName = displayName;
+        this.role = role;
+        this.profileImageUrl = profileImageUrl;
+        this.updatedAt = now;
     }
 }

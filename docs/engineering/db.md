@@ -29,6 +29,7 @@ Purpose:
 - stores application users
 - supports authentication and current-user loading
 - supports creator capability through a role field
+- backs the current session login contract without a separate auth table
 
 Recommended columns:
 - `id`
@@ -39,6 +40,10 @@ Recommended columns:
 - `profile_image_url`
 - `created_at`
 - `updated_at`
+
+Rules:
+- `email` is unique
+- `password_hash` stores a one-way password hash suitable for BCrypt verification
 
 ### events
 Purpose:

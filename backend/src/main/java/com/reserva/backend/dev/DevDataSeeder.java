@@ -14,6 +14,7 @@ import jakarta.persistence.EntityManager;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,27 +35,39 @@ public class DevDataSeeder implements ApplicationRunner {
     private final EventRepository eventRepository;
     private final WatchlistRepository watchlistRepository;
     private final EntityManager entityManager;
+    private final PasswordEncoder passwordEncoder;
 
     public DevDataSeeder(UserRepository userRepository,
                          EventRepository eventRepository,
                          WatchlistRepository watchlistRepository,
-                         EntityManager entityManager) {
+                         EntityManager entityManager,
+                         PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
         this.watchlistRepository = watchlistRepository;
         this.entityManager = entityManager;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        String demoPasswordHash = passwordEncoder.encode("dev-password");
 
         UserEntity demoUser = userRepository.findById(DEMO_USER_ID)
+                .map(existing -> refreshSeedUser(
+                        existing,
+                        demoPasswordHash,
+                        "Alex Johnson",
+                        UserRole.USER,
+                        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+                        now
+                ))
                 .orElseGet(() -> persist(UserEntity.create(
                         DEMO_USER_ID,
                         "alex@example.com",
-                        "dev-password",
+                        demoPasswordHash,
                         "Alex Johnson",
                         UserRole.USER,
                         "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
@@ -62,10 +75,18 @@ public class DevDataSeeder implements ApplicationRunner {
                 )));
 
         UserEntity demoCreator = userRepository.findById(DEMO_CREATOR_ID)
+                .map(existing -> refreshSeedUser(
+                        existing,
+                        demoPasswordHash,
+                        "City Culture Studio",
+                        UserRole.CREATOR,
+                        "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
+                        now
+                ))
                 .orElseGet(() -> persist(UserEntity.create(
                         DEMO_CREATOR_ID,
                         "creator@example.com",
-                        "dev-password",
+                        demoPasswordHash,
                         "City Culture Studio",
                         UserRole.CREATOR,
                         "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
@@ -121,5 +142,15 @@ public class DevDataSeeder implements ApplicationRunner {
     private <T> T persist(T entity) {
         entityManager.persist(entity);
         return entity;
+    }
+
+    private UserEntity refreshSeedUser(UserEntity user,
+                                       String passwordHash,
+                                       String displayName,
+                                       UserRole role,
+                                       String profileImageUrl,
+                                       LocalDateTime now) {
+        user.refreshSeedProfile(passwordHash, displayName, role, profileImageUrl, now);
+        return user;
     }
 }

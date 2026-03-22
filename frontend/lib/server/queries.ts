@@ -2,6 +2,7 @@ import "server-only";
 import { fetchBackendJson } from "@/lib/server/backend";
 import {
   BookingDetailApi,
+  CurrentUserApi,
   EventDetailApi,
   EventSummaryApi,
   PageResponse,
@@ -31,4 +32,11 @@ export async function fetchEventDetail(eventId: string) {
 
 export async function fetchBookingDetail(bookingId: string) {
   return fetchBackendJson<BookingDetailApi>(`/api/v1/me/bookings/${bookingId}`);
+}
+
+export async function fetchCurrentUser(options?: { includeDevAuth?: boolean }) {
+  return fetchBackendJson<CurrentUserApi>("/api/v1/me", undefined, {
+    includeDevAuth: options?.includeDevAuth ?? true,
+    includeIncomingCookies: true,
+  });
 }

@@ -21,6 +21,9 @@
   - TypeScript
   - Tailwind CSS
 - Implemented APIs:
+  - `POST /api/v1/auth/login`
+  - `GET /api/v1/me`
+  - `POST /api/v1/auth/logout`
   - `GET /api/v1/events`
   - `GET /api/v1/events/{eventId}`
   - `POST /api/v1/events`
@@ -34,11 +37,11 @@
   - `/reservation/[id]`
   - `/booking/[id]`
   - `/create`
+  - `/login`
 - Watchlist save/remove UI is connected on discovery cards and event detail
 - `/?view=Watchlist` now loads persisted watchlist items
 - Placeholder frontend routes preserved for later work:
   - `/dashboard`
-  - `/login`
 - Database baseline exists through:
   - `V1__create_users.sql`
   - `V2__create_events_and_event_inventory.sql`
@@ -46,26 +49,24 @@
   - `V4__create_watchlists.sql`
 
 ## Documented But Not Implemented
-- Session-based auth endpoints:
-  - `POST /auth/login`
-  - `GET /me`
-  - `POST /auth/logout`
 - Creator-owned event listing endpoints
 - Dashboard aggregation endpoints
 
 ## Temporary
-- Current auth in code uses request headers:
+- Current auth in code uses server-managed sessions for the implemented login contract
+- Protected route fallback in local development can still use request headers:
   - `X-User-Id`
   - `X-User-Name`
   - `X-User-Role`
-- This is a temporary local-development mechanism, not the final auth contract
-- Current frontend server-side backend wrapper also injects the same temporary development headers
+- This header path is a temporary local-development mechanism, not the final auth contract
+- Current frontend server-side backend wrapper can still inject the same temporary development headers when `DEV_AUTH_ENABLED=true`
 - Current backend local CORS allowed origin defaults to `http://localhost:3000`
 
 ## Playwright Readiness
 - Playwright E2E is runnable once local frontend and backend are started with the expected dev settings
 - Backend demo seed can be enabled with `SEED_DEMO_DATA=true`
 - Frontend development auth header injection can be disabled with `DEV_AUTH_ENABLED=false`
+- Minimal session login can be verified with `alex@example.com / dev-password` and `creator@example.com / dev-password` when demo seed is enabled
 - When frontend dev auth is disabled, `/?view=Watchlist` should render the explicit unauthenticated state instead of attempting the authenticated watchlist load
 - Seeded stable demo event ids when demo data is enabled:
   - `evt_demo_jazz`
@@ -82,14 +83,14 @@
   - unauthenticated watchlist state
 
 ## Next Priorities
-- Minimal auth contract
 - Dashboard aggregation and dashboard frontend activation
 - Creator-owned event listing
+- Auth hardening beyond the minimum contract
 
 Priority rationale:
-- Minimal auth contract comes first because booking and watchlist still depend on temporary request-header identity
 - Dashboard follows because `/dashboard` is still a placeholder route and depends on authenticated user summary data
 - Creator-owned event listing follows dashboard because it will likely support dashboard and creator flows, but it is less urgent as a standalone user-visible gap
+- Auth hardening remains later because the minimum session contract is now implemented, but the development fallback is still temporary
 
 ## Workflow Status
 - GitHub repository is connected

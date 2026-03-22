@@ -3,18 +3,21 @@
 import Link from "next/link";
 import { useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Bell, Plus, Search, User } from "lucide-react";
+import { Bell, LogOut, Plus, Search, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CurrentUserApi } from "@/lib/types";
 
 interface NavbarProps {
   searchQuery: string;
+  currentUser: CurrentUserApi | null;
 }
 
-export function Navbar({ searchQuery }: NavbarProps) {
+export function Navbar({ searchQuery, currentUser }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const [isLoggingOut, startLogoutTransition] = useTransition();
 
   function updateSearch(query: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -27,6 +30,14 @@ export function Navbar({ searchQuery }: NavbarProps) {
 
     startTransition(() => {
       router.replace(`${pathname}?${params.toString()}`);
+    });
+  }
+
+  function logout() {
+    startLogoutTransition(async () => {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.refresh();
+      router.push("/");
     });
   }
 
@@ -64,11 +75,26 @@ export function Navbar({ searchQuery }: NavbarProps) {
           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
             <Bell className="h-5 w-5" />
           </Button>
-          <Link href="/dashboard">
-            <Button variant="ghost" size="icon" className="rounded-full bg-secondary">
-              <User className="h-5 w-5 text-secondary-foreground" />
-            </Button>
-          </Link>
+          {currentUser ? (
+            <>
+              <Link href="/dashboard">
+                <Button variant="ghost" className="gap-2 rounded-full bg-secondary px-4 text-secondary-foreground">
+                  <User className="h-4 w-4" />
+                  <span className="hidden md:inline">{currentUser.name}</span>
+                </Button>
+              </Link>
+              <Button variant="ghost" size="icon" onClick={logout} disabled={isLoggingOut} className="rounded-full border border-border">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <Link href="/login">
+              <Button variant="outline" className="gap-2">
+                <User className="h-4 w-4" />
+                Sign In
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </header>
