@@ -40,6 +40,25 @@ public class UserEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    public static UserEntity create(String id,
+                                    String email,
+                                    String passwordHash,
+                                    String displayName,
+                                    UserRole role,
+                                    String profileImageUrl,
+                                    LocalDateTime now) {
+        UserEntity user = new UserEntity();
+        user.id = id;
+        user.email = email;
+        user.passwordHash = passwordHash;
+        user.displayName = displayName;
+        user.role = role;
+        user.profileImageUrl = profileImageUrl;
+        user.createdAt = now;
+        user.updatedAt = now;
+        return user;
+    }
+
     public String getId() {
         return id;
     }

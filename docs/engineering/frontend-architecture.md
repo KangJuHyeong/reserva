@@ -56,7 +56,8 @@ Primary behaviors:
 - category switching
 - discovery sections
 - navigation into event detail
-- watchlist as a disabled or unavailable state until persistence APIs exist
+- watchlist save and remove actions on event cards
+- watchlist filtered view through `/?view=Watchlist`
 
 Primary sections:
 - trending
@@ -174,7 +175,8 @@ Do not treat the page as confirmation of:
 
 ### Watchlist
 - target behavior: toggling should update card and detail state immediately
-- current first-slice behavior: watchlist actions are intentionally disabled until backend watchlist endpoints exist
+- current implementation: watchlist toggles are connected on discovery cards, opening-soon cards, and event detail
+- current implementation: the watchlist filtered view loads persisted items and shows an explicit unauthenticated or empty state when needed
 
 ### Booking Action
 - reserve CTA should show loading while submitting
@@ -204,7 +206,9 @@ Current first-slice implementation uses:
 - booking creation request
 - booking detail request
 - create event request
+- watchlist mutation requests
 - a server-side wrapper that injects temporary development auth headers
+- development auth header injection can be disabled for browser-side unauthenticated verification
 
 ## Future Extension
 Waiting-room or polling UX may be added later for high-demand events, but it is not the primary frontend contract today.

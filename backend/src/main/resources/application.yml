@@ -26,3 +26,5 @@ app:
     code-prefix: BK
   cors:
     allowed-origin: ${FRONTEND_ORIGIN:http://localhost:3000}
+  dev:
+    seed-demo-data: ${SEED_DEMO_DATA:false}

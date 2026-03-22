@@ -61,10 +61,34 @@
 - This is a temporary local-development mechanism, not the final auth contract
 - Current frontend server-side backend wrapper also injects the same temporary development headers
 - Current backend local CORS allowed origin defaults to `http://localhost:3000`
+
+## Playwright Readiness
+- Playwright E2E is runnable once local frontend and backend are started with the expected dev settings
+- Backend demo seed can be enabled with `SEED_DEMO_DATA=true`
+- Frontend development auth header injection can be disabled with `DEV_AUTH_ENABLED=false`
+- Seeded stable demo event ids when demo data is enabled:
+  - `evt_demo_jazz`
+  - `evt_demo_art`
+- Minimum routes to verify once local servers are running:
+  - `/`
+  - `/?view=Watchlist`
+  - `/reservation/[id]`
+- Minimum interaction checks to verify once local servers are running:
+  - discovery list render
+  - watchlist filter entry
+  - card watchlist toggle
+  - detail watchlist toggle
+  - unauthenticated watchlist state
+
 ## Next Priorities
 - Minimal auth contract
 - Dashboard aggregation and dashboard frontend activation
 - Creator-owned event listing
+
+Priority rationale:
+- Minimal auth contract comes first because booking and watchlist still depend on temporary request-header identity
+- Dashboard follows because `/dashboard` is still a placeholder route and depends on authenticated user summary data
+- Creator-owned event listing follows dashboard because it will likely support dashboard and creator flows, but it is less urgent as a standalone user-visible gap
 
 ## Workflow Status
 - GitHub repository is connected

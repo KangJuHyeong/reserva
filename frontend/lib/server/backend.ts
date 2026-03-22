@@ -18,7 +18,15 @@ function backendBaseUrl() {
   return process.env.BACKEND_BASE_URL ?? DEFAULT_BACKEND_BASE_URL;
 }
 
-function authHeaders() {
+function devAuthEnabled() {
+  return process.env.DEV_AUTH_ENABLED !== "false";
+}
+
+function authHeaders(): Record<string, string> {
+  if (!devAuthEnabled()) {
+    return {};
+  }
+
   return {
     "X-User-Id": process.env.DEV_USER_ID ?? "usr_123",
     "X-User-Name": process.env.DEV_USER_NAME ?? "Alex Johnson",
@@ -26,13 +34,25 @@ function authHeaders() {
   };
 }
 
+function mergeHeaders(headers?: HeadersInit, includeJsonContentType = false) {
+  const merged = new Headers(authHeaders());
+
+  if (headers) {
+    const incoming = new Headers(headers);
+    incoming.forEach((value, key) => merged.set(key, value));
+  }
+
+  if (includeJsonContentType) {
+    merged.set("Content-Type", "application/json");
+  }
+
+  return merged;
+}
+
 export async function fetchBackendJson<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${backendBaseUrl()}${path}`, {
     ...init,
-    headers: {
-      ...authHeaders(),
-      ...(init?.headers ?? {}),
-    },
+    headers: mergeHeaders(init?.headers),
     cache: "no-store",
   });
 
@@ -59,10 +79,7 @@ export async function proxyBackend(request: Request, path: string, method: strin
 
   const response = await fetch(`${backendBaseUrl()}${path}`, {
     method,
-    headers: {
-      ...authHeaders(),
-      "Content-Type": "application/json",
-    },
+    headers: mergeHeaders(undefined, true),
     body,
     cache: "no-store",
   });
