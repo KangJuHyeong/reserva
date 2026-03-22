@@ -1,8 +1,8 @@
-# DECISIONS
+# Decisions
 
 ## Product And Repository Decisions
 - `Current`: manage the repository root as a single monorepo
-- `Current`: keep `backend`, `frontend`, `docs`, `prototype`, and `infra` in the same repository
+- `Current`: keep `backend`, `frontend`, `docs`, `prototype`, and `infra` in the same repository while `prototype` remains a legacy reference directory
 - `Current`: use branch + pull request + merge as the default GitHub workflow
 
 ## Backend Decisions
@@ -20,12 +20,14 @@
 
 ## Documentation Decisions
 - `Current`: `agent.md` is the operating guide and rule hub
-- `Current`: `README.md` is the public-facing summary and quick entry point
-- `Current`: `docs/IMPLEMENTATION-STATUS.md` is the current-state status board
-- `Current`: `docs/DECISIONS.md` is the short decision log
-- `Current`: detailed API, DB, and architecture contracts stay in their dedicated docs
+- `Current`: `README.md` is the public-facing project summary
+- `Current`: `docs/product/implementation-status.md` is the current-state status board
+- `Current`: `docs/product/decisions.md` is the short decision log
+- `Current`: detailed API, DB, and architecture contracts stay in dedicated engineering docs
+- `Current`: default implementation should follow a full-stack feature-slice workflow
+- `Current`: service ownership should stay aligned to feature domains, not temporary task groupings
 
 ## Scope Decisions
-- `Current`: prioritize prototype-visible flows first
+- `Current`: prioritize current product flows first
 - `Current`: keep minimum safe backend requirements in scope
 - `Future / Not finalized`: signup, OAuth, payments, notifications, queueing, Redis, and Kafka-based flows
