@@ -24,6 +24,8 @@
   - `GET /api/v1/events`
   - `GET /api/v1/events/{eventId}`
   - `POST /api/v1/events`
+  - `POST /api/v1/events/{eventId}/watchlist`
+  - `DELETE /api/v1/events/{eventId}/watchlist`
   - `POST /api/v1/events/{eventId}/bookings`
   - `GET /api/v1/me/bookings`
   - `GET /api/v1/me/bookings/{bookingId}`
@@ -32,6 +34,8 @@
   - `/reservation/[id]`
   - `/booking/[id]`
   - `/create`
+- Watchlist save/remove UI is connected on discovery cards and event detail
+- `/?view=Watchlist` now loads persisted watchlist items
 - Placeholder frontend routes preserved for later work:
   - `/dashboard`
   - `/login`
@@ -46,7 +50,6 @@
   - `POST /auth/login`
   - `GET /me`
   - `POST /auth/logout`
-- Watchlist persistence endpoints
 - Creator-owned event listing endpoints
 - Dashboard aggregation endpoints
 
@@ -58,10 +61,7 @@
 - This is a temporary local-development mechanism, not the final auth contract
 - Current frontend server-side backend wrapper also injects the same temporary development headers
 - Current backend local CORS allowed origin defaults to `http://localhost:3000`
-- Watchlist UI is visible only as a disabled or unavailable state in the current frontend slice
-
 ## Next Priorities
-- Watchlist persistence
 - Minimal auth contract
 - Dashboard aggregation and dashboard frontend activation
 - Creator-owned event listing

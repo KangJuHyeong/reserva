@@ -25,7 +25,7 @@ interface MobileNavProps {
   selectedCategory: Category;
 }
 
-const categories: Array<{ id: Category; label: string; icon: React.ElementType; disabled?: boolean }> = [
+const categories: Array<{ id: Category; label: string; icon: React.ElementType }> = [
   { id: "All", label: "All", icon: LayoutGrid },
   { id: "Concert", label: "Concert", icon: Music },
   { id: "Restaurant", label: "Restaurant", icon: UtensilsCrossed },
@@ -34,7 +34,7 @@ const categories: Array<{ id: Category; label: string; icon: React.ElementType; 
   { id: "Trending", label: "Trending", icon: TrendingUp },
   { id: "Ending Soon", label: "Ending Soon", icon: Clock },
   { id: "Upcoming", label: "Upcoming", icon: CalendarClock },
-  { id: "Watchlist", label: "Watchlist", icon: Heart, disabled: true },
+  { id: "Watchlist", label: "Watchlist", icon: Heart },
 ];
 
 export function MobileNav({ selectedCategory }: MobileNavProps) {
@@ -94,11 +94,10 @@ export function MobileNav({ selectedCategory }: MobileNavProps) {
                   <button
                     key={category.id}
                     type="button"
-                    disabled={category.disabled || isPending}
+                    disabled={isPending}
                     onClick={() => changeCategory(category.id)}
                     className={cn(
                       "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                      category.disabled && "cursor-not-allowed opacity-50",
                       isActive
                         ? "bg-sidebar-accent text-sidebar-accent-foreground"
                         : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"

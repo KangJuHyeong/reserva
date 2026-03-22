@@ -1,13 +1,15 @@
 import Image from "next/image";
 import { Calendar, Clock, Lock, MapPin, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { WatchlistToggleButton } from "@/components/watchlist-toggle-button";
 import { EventSummaryViewModel } from "@/lib/types";
 
 interface UpcomingCardProps {
   reservation: EventSummaryViewModel;
+  onWatchlistChange?: (nextValue: boolean) => void;
 }
 
-export function UpcomingCard({ reservation }: UpcomingCardProps) {
+export function UpcomingCard({ reservation, onWatchlistChange }: UpcomingCardProps) {
   return (
     <div className="group overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:border-primary/50">
       <div className="relative h-48 w-full">
@@ -57,10 +59,17 @@ export function UpcomingCard({ reservation }: UpcomingCardProps) {
             <span className="font-bold text-foreground">{reservation.totalSlots}</span>
           </div>
         </div>
-        <Button disabled className="w-full" variant="secondary">
-          <Lock className="mr-2 h-4 w-4" />
-          Opens Soon
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button disabled className="flex-1" variant="secondary">
+            <Lock className="mr-2 h-4 w-4" />
+            Opens Soon
+          </Button>
+          <WatchlistToggleButton
+            eventId={reservation.id}
+            initialIsWatchlisted={reservation.isWatchlisted}
+            onChange={onWatchlistChange}
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,12 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, Heart, MapPin, Users } from "lucide-react";
+import { Calendar, MapPin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { WatchlistToggleButton } from "@/components/watchlist-toggle-button";
 import { EventSummaryViewModel } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface ReservationCardProps {
   reservation: EventSummaryViewModel;
+  onWatchlistChange?: (nextValue: boolean) => void;
 }
 
 const categoryColors: Record<string, string> = {
@@ -16,7 +18,7 @@ const categoryColors: Record<string, string> = {
   Sports: "bg-chart-3/20 text-chart-3",
 };
 
-export function ReservationCard({ reservation }: ReservationCardProps) {
+export function ReservationCard({ reservation, onWatchlistChange }: ReservationCardProps) {
   const progress = (reservation.reservedSlots / reservation.totalSlots) * 100;
 
   return (
@@ -80,9 +82,7 @@ export function ReservationCard({ reservation }: ReservationCardProps) {
           <Link href={`/reservation/${reservation.id}`} className="flex-1">
             <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Reserve My Spot</Button>
           </Link>
-          <Button variant="ghost" size="icon" className="shrink-0 cursor-not-allowed border border-border text-muted-foreground" title="Watchlist is not available yet." disabled>
-            <Heart className="h-4 w-4" />
-          </Button>
+          <WatchlistToggleButton eventId={reservation.id} initialIsWatchlisted={reservation.isWatchlisted} onChange={onWatchlistChange} />
         </div>
       </div>
     </div>
