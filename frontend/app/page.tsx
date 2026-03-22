@@ -44,7 +44,7 @@ export default async function Home({
   let currentUser = null;
 
   try {
-    currentUser = await fetchCurrentUser({ includeDevAuth: true });
+    currentUser = await fetchCurrentUser({ includeDevAuth: false });
   } catch (error) {
     if (!(error instanceof BackendApiError) || error.code !== "UNAUTHENTICATED") {
       throw error;
