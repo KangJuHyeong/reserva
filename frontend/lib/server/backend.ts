@@ -1,4 +1,5 @@
 import "server-only";
+import { cookies } from "next/headers";
 import { ApiErrorResponse } from "@/lib/types";
 
 const DEFAULT_BACKEND_BASE_URL = "http://localhost:8080";
@@ -27,6 +28,14 @@ function readEnv(name: string) {
 }
 
 function authHeaders(): Record<string, string> {
+  return authHeadersForMode(true);
+}
+
+function authHeadersForMode(includeDevAuth: boolean): Record<string, string> {
+  if (!includeDevAuth) {
+    return {};
+  }
+
   if (!devAuthEnabled()) {
     return {};
   }
@@ -38,8 +47,28 @@ function authHeaders(): Record<string, string> {
   };
 }
 
-function mergeHeaders(headers?: HeadersInit, includeJsonContentType = false) {
-  const merged = new Headers(authHeaders());
+async function incomingCookiesHeader() {
+  const cookieStore = await cookies();
+  const serialized = cookieStore.toString();
+  return serialized ? serialized : null;
+}
+
+async function mergeHeaders(
+  headers?: HeadersInit,
+  includeJsonContentType = false,
+  options?: {
+    includeDevAuth?: boolean;
+    includeIncomingCookies?: boolean;
+  }
+) {
+  const merged = new Headers(authHeadersForMode(options?.includeDevAuth ?? true));
+
+  if (options?.includeIncomingCookies) {
+    const cookieHeader = await incomingCookiesHeader();
+    if (cookieHeader) {
+      merged.set("Cookie", cookieHeader);
+    }
+  }
 
   if (headers) {
     const incoming = new Headers(headers);
@@ -53,10 +82,17 @@ function mergeHeaders(headers?: HeadersInit, includeJsonContentType = false) {
   return merged;
 }
 
-export async function fetchBackendJson<T>(path: string, init?: RequestInit): Promise<T> {
+export async function fetchBackendJson<T>(
+  path: string,
+  init?: RequestInit,
+  options?: {
+    includeDevAuth?: boolean;
+    includeIncomingCookies?: boolean;
+  }
+): Promise<T> {
   const response = await fetch(`${backendBaseUrl()}${path}`, {
     ...init,
-    headers: mergeHeaders(init?.headers),
+    headers: await mergeHeaders(init?.headers, false, options),
     cache: "no-store",
   });
 
@@ -78,20 +114,43 @@ export async function fetchBackendJson<T>(path: string, init?: RequestInit): Pro
   return (await response.json()) as T;
 }
 
-export async function proxyBackend(request: Request, path: string, method: string) {
+export async function proxyBackend(
+  request: Request,
+  path: string,
+  method: string,
+  options?: {
+    includeDevAuth?: boolean;
+  }
+) {
   const body = method === "GET" || method === "HEAD" ? undefined : await request.text();
+  const requestHeaders = new Headers(request.headers);
+  const mergedHeaders = await mergeHeaders(undefined, !!body, {
+    includeDevAuth: options?.includeDevAuth ?? true,
+  });
+  const cookieHeader = requestHeaders.get("cookie");
+  if (cookieHeader) {
+    mergedHeaders.set("Cookie", cookieHeader);
+  }
 
   const response = await fetch(`${backendBaseUrl()}${path}`, {
     method,
-    headers: mergeHeaders(undefined, true),
+    headers: mergedHeaders,
     body,
     cache: "no-store",
   });
 
+  const headers = new Headers();
+  const contentType = response.headers.get("Content-Type");
+  const setCookie = response.headers.get("set-cookie");
+  if (contentType) {
+    headers.set("Content-Type", contentType);
+  }
+  if (setCookie) {
+    headers.set("set-cookie", setCookie);
+  }
+
   return new Response(response.body, {
     status: response.status,
-    headers: {
-      "Content-Type": response.headers.get("Content-Type") ?? "application/json",
-    },
+    headers,
   });
 }

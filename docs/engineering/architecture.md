@@ -17,8 +17,11 @@ Current documented default:
 - server-managed session authentication
 
 Current temporary implementation:
-- current-user resolution from request headers `X-User-Id`, `X-User-Name`, `X-User-Role`
-- this is a development-only temporary mechanism, not the final auth contract
+- `POST /auth/login` creates an HTTP session after email/password verification
+- `GET /me` returns the current authenticated user from the active session
+- `POST /auth/logout` invalidates the active session
+- protected routes can still resolve current-user from request headers `X-User-Id`, `X-User-Name`, `X-User-Role` only as a development fallback when enabled
+- this header path is a development-only temporary mechanism, not the final auth contract
 
 ### Event Catalog Service
 Responsibilities:
@@ -80,8 +83,8 @@ Current backend baseline:
 
 Current frontend baseline:
 - Next.js App Router application in `frontend`
-- current connected frontend slice: discovery, event detail, booking creation, booking detail
-- current placeholder frontend routes: dashboard and login
+- current connected frontend slice: discovery, event detail, booking creation, booking detail, and minimal login
+- current placeholder frontend route: dashboard
 - current implemented create-event route: `/create`
 
 ## Request Flow Overview
@@ -104,9 +107,10 @@ Current frontend baseline:
 
 Implementation note:
 - event list, event detail, booking creation, event creation, and booking query flows are currently implemented in the backend baseline
-- the first real frontend slice consumes those flows through a Next.js server-side backend wrapper with temporary development auth headers
-- watchlist save and remove flows are now implemented on top of the current temporary auth mechanism
-- auth, dashboard, and creator event listing remain target contract areas beyond the current temporary auth mechanism
+- the frontend now uses same-origin proxy routes for login, logout, and current-user bootstrap
+- the first real frontend slice still consumes event, booking, and watchlist flows through a Next.js server-side backend wrapper with development auth fallback available
+- watchlist save and remove flows now work against session auth or the development fallback
+- dashboard and creator event listing remain target contract areas beyond the current temporary auth mechanism
 
 ### Create Event
 1. Authenticated creator submits the create-event form.

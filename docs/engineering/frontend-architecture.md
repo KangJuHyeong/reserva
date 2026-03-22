@@ -151,15 +151,13 @@ Required frontend behavior:
 
 ## Login Page
 Current implementation status:
-- placeholder route only in the current frontend slice
+- implemented as a live session-login route in the current frontend slice
 
 Visible elements:
 - email input
 - password input
-- remember me checkbox
-- forgot password placeholder
 - sign in CTA
-- provider-style buttons as visual placeholders
+- demo credential guidance
 
 Do not treat the page as confirmation of:
 - signup flow
@@ -206,8 +204,10 @@ Current first-slice implementation uses:
 - booking creation request
 - booking detail request
 - create event request
+- current-user bootstrap request
 - watchlist mutation requests
-- a server-side wrapper that injects temporary development auth headers
+- same-origin auth proxy routes for login, logout, and current-user bootstrap
+- a server-side wrapper that can still inject temporary development auth headers for local fallback
 - development auth header injection can be disabled for browser-side unauthenticated verification
 
 ## Future Extension

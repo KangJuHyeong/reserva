@@ -1,7 +1,7 @@
 import { HomePage } from "@/components/home-page";
 import { toEventSummaryViewModel } from "@/lib/mappers";
 import { BackendApiError, devAuthEnabled } from "@/lib/server/backend";
-import { fetchEvents } from "@/lib/server/queries";
+import { fetchCurrentUser, fetchEvents } from "@/lib/server/queries";
 import { Category } from "@/lib/types";
 
 function parseCategory(value?: string): Category {
@@ -41,9 +41,18 @@ export default async function Home({
   const searchQuery = params.q?.trim() ?? "";
   const selectedCategory = parseCategory(params.view);
   const shouldUseDefaultSections = selectedCategory === "All" && !searchQuery;
+  let currentUser = null;
+
+  try {
+    currentUser = await fetchCurrentUser({ includeDevAuth: true });
+  } catch (error) {
+    if (!(error instanceof BackendApiError) || error.code !== "UNAUTHENTICATED") {
+      throw error;
+    }
+  }
 
   if (selectedCategory === "Watchlist" && !devAuthEnabled()) {
-    return <HomePage searchQuery={searchQuery} selectedCategory={selectedCategory} items={[]} mode="watchlist_unauthenticated" />;
+    return <HomePage searchQuery={searchQuery} selectedCategory={selectedCategory} items={[]} currentUser={currentUser} mode="watchlist_unauthenticated" />;
   }
 
   try {
@@ -60,12 +69,13 @@ export default async function Home({
         searchQuery={searchQuery}
         selectedCategory={selectedCategory}
         items={items}
+        currentUser={currentUser}
         mode={shouldUseDefaultSections ? "default" : "filtered"}
       />
     );
   } catch (error) {
     if (error instanceof BackendApiError && error.code === "UNAUTHENTICATED" && selectedCategory === "Watchlist") {
-      return <HomePage searchQuery={searchQuery} selectedCategory={selectedCategory} items={[]} mode="watchlist_unauthenticated" />;
+      return <HomePage searchQuery={searchQuery} selectedCategory={selectedCategory} items={[]} currentUser={currentUser} mode="watchlist_unauthenticated" />;
     }
 
     throw error;

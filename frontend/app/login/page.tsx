@@ -1,5 +1,17 @@
-import { PlaceholderPage } from "@/components/placeholder-page";
+import { redirect } from "next/navigation";
+import { LoginForm } from "@/components/login-form";
+import { BackendApiError } from "@/lib/server/backend";
+import { fetchCurrentUser } from "@/lib/server/queries";
 
-export default function LoginPage() {
-  return <PlaceholderPage title="Login Coming Next" description="Minimal auth remains a later backend priority, so this route stays as a placeholder in the first frontend slice." />;
+export default async function LoginPage() {
+  try {
+    await fetchCurrentUser({ includeDevAuth: false });
+    redirect("/");
+  } catch (error) {
+    if (!(error instanceof BackendApiError) || error.code !== "UNAUTHENTICATED") {
+      throw error;
+    }
+  }
+
+  return <LoginForm />;
 }

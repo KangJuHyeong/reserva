@@ -8,16 +8,17 @@ import { Navbar } from "@/components/navbar";
 import { ReservationCard } from "@/components/reservation-card";
 import { Sidebar } from "@/components/sidebar";
 import { UpcomingCard } from "@/components/upcoming-card";
-import { Category, EventSummaryViewModel } from "@/lib/types";
+import { Category, CurrentUserApi, EventSummaryViewModel } from "@/lib/types";
 
 interface HomePageProps {
   searchQuery: string;
   selectedCategory: Category;
   items: EventSummaryViewModel[];
+  currentUser: CurrentUserApi | null;
   mode: "default" | "filtered" | "watchlist_unauthenticated";
 }
 
-export function HomePage({ searchQuery, selectedCategory, items, mode }: HomePageProps) {
+export function HomePage({ searchQuery, selectedCategory, items, currentUser, mode }: HomePageProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -53,7 +54,7 @@ export function HomePage({ searchQuery, selectedCategory, items, mode }: HomePag
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar searchQuery={searchQuery} />
+      <Navbar searchQuery={searchQuery} currentUser={currentUser} />
 
       <div className="flex">
         <Sidebar selectedCategory={selectedCategory} />

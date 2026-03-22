@@ -16,7 +16,8 @@ Current documented default:
 - session-based authentication
 
 Temporary implementation note:
-- the current backend code resolves the user from request headers during local development
+- the backend now authenticates through server-managed sessions for the documented auth endpoints
+- protected routes may still resolve the user from request headers during local development only when `DEV_AUTH_ENABLED=true`
 - this temporary mechanism should not be treated as the final auth design
 
 ### Common Error Shape
@@ -135,8 +136,7 @@ Common error codes:
 
 ## Auth APIs
 Status:
-- documented contract
-- not yet implemented in the current backend baseline
+- implemented in the current backend baseline
 
 ### POST /auth/login
 Request:
@@ -159,6 +159,10 @@ Response `200 OK`:
 }
 ```
 
+Errors:
+- `UNAUTHENTICATED` for invalid email or password
+- `VALIDATION_ERROR` for malformed request fields
+
 ### GET /me
 Response `200 OK`:
 ```json
@@ -170,8 +174,14 @@ Response `200 OK`:
 }
 ```
 
+Errors:
+- `UNAUTHENTICATED`
+
 ### POST /auth/logout
 Response `204 No Content`
+
+Notes:
+- invalidating a missing session is still treated as success
 
 ## Event Discovery APIs
 
@@ -230,7 +240,7 @@ Errors:
 ## Watchlist APIs
 Status:
 - implemented now in the current backend baseline
-- current auth input is temporary request-header based during development
+- current auth input uses session first, with development header fallback when enabled
 
 ### POST /events/{eventId}/watchlist
 Response `204 No Content`
@@ -243,7 +253,7 @@ Response `204 No Content`
 ### POST /events/{eventId}/bookings
 Status:
 - implemented now in the current backend baseline
-- current auth input is temporary request-header based during development
+- current auth input uses session first, with development header fallback when enabled
 
 Request:
 ```json
@@ -268,7 +278,7 @@ Response `201 Created`:
 ### GET /me/bookings
 Status:
 - implemented now in the current backend baseline
-- current auth input is temporary request-header based during development
+- current auth input uses session first, with development header fallback when enabled
 
 Query parameters:
 - `status`
@@ -278,7 +288,7 @@ Query parameters:
 ### GET /me/bookings/{bookingId}
 Status:
 - implemented now in the current backend baseline
-- current auth input is temporary request-header based during development
+- current auth input uses session first, with development header fallback when enabled
 
 Response `200 OK`:
 - returns the `Booking Detail` shape
@@ -311,7 +321,7 @@ Status:
 ### POST /events
 Status:
 - implemented now in the current backend baseline
-- current auth input is temporary request-header based during development
+- current auth input uses session first, with development header fallback when enabled
 
 Request:
 ```json
