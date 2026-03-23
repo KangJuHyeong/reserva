@@ -2,9 +2,9 @@
 
 ## Summary
 - Current product mode: event reservation marketplace
-- Current implementation mode: backend phase-1 baseline with docs-first contracts
+- Current implementation mode: full-stack feature slices on a live backend baseline
 - Current repository workflow: branch + PR + merge on a root monorepo
-- Current implementation workflow: full-stack feature slices across docs, backend, frontend, and verification
+- Current implementation workflow: backend, frontend, docs, and verification move together per feature slice
 
 ## Implemented Now
 - Backend project exists in `backend`
@@ -15,7 +15,7 @@
   - MySQL
   - Flyway
   - JPA
-  - QueryDSL not yet configured in the current build
+  - QueryDSL
 - Current frontend stack in use:
   - Next.js App Router
   - React
@@ -33,40 +33,42 @@
   - `POST /api/v1/events/{eventId}/bookings`
   - `GET /api/v1/me/bookings`
   - `GET /api/v1/me/bookings/{bookingId}`
+  - `GET /api/v1/me/dashboard-summary`
 - Implemented frontend routes backed by real API data:
   - `/`
   - `/reservation/[id]`
   - `/booking/[id]`
   - `/create`
   - `/login`
-- Watchlist save/remove UI is connected on discovery cards and event detail
-- `/?view=Watchlist` now loads persisted watchlist items
-- Filtered catalog views now support paginated result navigation through the homepage query state
-- Derived discovery sections now validate supported values and return only matching events for the selected section
-- Placeholder frontend routes preserved for later work:
   - `/dashboard`
+- Implemented product behaviors:
+  - event discovery with search, category filtering, derived sections, and pagination
+  - event detail with watchlist state and direct booking action
+  - booking creation with capacity checks and duplicate-booking protection
+  - my bookings list and booking detail
+  - watchlist save/remove on cards and event detail
+  - persisted watchlist loading through `/?view=Watchlist`
+  - creator-only event creation form and API
+  - personalized dashboard summary with stats, recent bookings, watchlist preview, opening-soon preview, and created-events preview
 - Database baseline exists through:
   - `V1__create_users.sql`
   - `V2__create_events_and_event_inventory.sql`
   - `V3__create_bookings.sql`
   - `V4__create_watchlists.sql`
 
-## Documented But Not Implemented
-- Creator-owned event listing endpoints
-- Dashboard aggregation endpoints
+## Not Implemented Yet
+- `GET /api/v1/me/events`
 
 ## Temporary
 - Current auth in code uses server-managed sessions for the implemented login contract
 - Implemented auth routes are session-first and match the documented minimum login, me, and logout contract
-- Protected route fallback in local development can still use request headers:
+- Protected routes may still resolve users from request headers during local development when the fallback is enabled:
   - `X-User-Id`
   - `X-User-Name`
   - `X-User-Role`
 - This header path is a temporary local-development mechanism, not the final auth contract
 - Current frontend server-side backend wrapper can still inject the same temporary development headers when `DEV_AUTH_ENABLED=true`
 - Current backend local CORS allowed origin defaults to `http://localhost:3000`
-- Current event discovery dynamic filtering is implemented with JPA Specification
-- Dynamic query work is expected to move toward QueryDSL for future refactors and new multi-condition queries
 
 ## Playwright Readiness
 - Playwright E2E is runnable once local frontend and backend are started with the expected dev settings
@@ -82,22 +84,30 @@
   - `/`
   - `/?view=Watchlist`
   - `/reservation/[id]`
+  - `/booking/[id]`
+  - `/create`
+  - `/login`
+  - `/dashboard`
 - Minimum interaction checks to verify once local servers are running:
   - discovery list render
+  - filtered pagination
   - watchlist filter entry
   - card watchlist toggle
   - detail watchlist toggle
+  - booking submission
+  - login flow
+  - dashboard summary render
   - unauthenticated watchlist state
 
 ## Next Priorities
-- Dashboard aggregation and dashboard frontend activation
-- Creator-owned event listing
-- Auth hardening beyond the minimum contract
+1. Creator-owned event listing
+2. Auth temporary fallback cleanup
+3. Residual validation and test hardening
 
 Priority rationale:
-- Dashboard follows because `/dashboard` is still a placeholder route and depends on authenticated user summary data
-- Creator-owned event listing follows dashboard because it will likely support dashboard and creator flows, but it is less urgent as a standalone user-visible gap
-- Auth hardening remains later because the minimum session contract is now implemented, but the development fallback is still temporary
+- Core event, booking, watchlist, event creation, minimum auth, and dashboard flows are already implemented in the current baseline.
+- The largest remaining visible product gap is creator-owned event listing.
+- Auth cleanup and broader test hardening remain important, but they follow the missing creator feature.
 
 ## Workflow Status
 - GitHub repository is connected

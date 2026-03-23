@@ -1,6 +1,8 @@
 import {
   BookingDetailApi,
   BookingDetailViewModel,
+  BookingSummaryApi,
+  BookingSummaryViewModel,
   EventDetailApi,
   EventDetailViewModel,
   EventSummaryApi,
@@ -98,5 +100,23 @@ export function toBookingDetailViewModel(booking: BookingDetailApi): BookingDeta
     reservationOpenLabel: formatDateTimeLabel(booking.event.reservationOpenDateTime),
     hostName: booking.event.host.name,
     hostAvatarUrl: booking.event.host.avatarUrl,
+  };
+}
+
+export function toBookingSummaryViewModel(booking: BookingSummaryApi): BookingSummaryViewModel {
+  const statusLabel = booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
+
+  return {
+    bookingId: booking.bookingId,
+    eventId: booking.eventId,
+    title: booking.title,
+    imageUrl: booking.imageUrl,
+    status: booking.status,
+    statusLabel,
+    location: booking.location,
+    eventDateLabel: formatDateLabel(booking.eventDateTime),
+    eventTimeLabel: formatTimeLabel(booking.eventDateTime),
+    bookedAtLabel: formatDateTimeLabel(booking.bookedAt),
+    ticketCount: booking.ticketCount,
   };
 }

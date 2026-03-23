@@ -2,6 +2,7 @@ import "server-only";
 import { fetchBackendJson } from "@/lib/server/backend";
 import {
   BookingDetailApi,
+  DashboardSummaryApi,
   CurrentUserApi,
   EventDetailApi,
   EventSummaryApi,
@@ -36,6 +37,13 @@ export async function fetchBookingDetail(bookingId: string) {
 
 export async function fetchCurrentUser(options?: { includeDevAuth?: boolean }) {
   return fetchBackendJson<CurrentUserApi>("/api/v1/me", undefined, {
+    includeDevAuth: options?.includeDevAuth ?? true,
+    includeIncomingCookies: true,
+  });
+}
+
+export async function fetchDashboardSummary(options?: { includeDevAuth?: boolean }) {
+  return fetchBackendJson<DashboardSummaryApi>("/api/v1/me/dashboard-summary", undefined, {
     includeDevAuth: options?.includeDevAuth ?? true,
     includeIncomingCookies: true,
   });

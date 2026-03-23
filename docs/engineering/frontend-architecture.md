@@ -12,6 +12,20 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - `/create`
 - `/login`
 
+## Current Route Status
+- live route: `/`
+- live route: `/reservation/[id]`
+- live route: `/booking/[id]`
+- live route: `/dashboard`
+- live route: `/create`
+- live route: `/login`
+
+## Frontend Work Areas
+- `frontend/app`: route entry points
+- `frontend/app/api`: same-origin proxy routes for auth and event mutations
+- `frontend/components`: interactive UI and page composition
+- `frontend/lib/server`: backend wrappers and server-side queries
+
 ## Core Frontend Data Model
 
 ### Event Shape
@@ -72,7 +86,15 @@ UX expectations:
 - filtered state should feel like a list view
 - empty results should be handled with an explicit empty state
 
+Current implementation:
+- discovery sections are backed by live API data
+- filtered discovery states support pagination through the homepage query state
+- watchlist view shows explicit unauthenticated and empty states when needed
+
 ## Event Detail Page
+Current implementation status:
+- live route backed by real API data
+
 Required sections:
 - cover image
 - category badge
@@ -100,17 +122,26 @@ Current implementation keeps the reserve action as a direct API-backed booking s
 
 ## Dashboard
 Current implementation status:
-- placeholder route only
-- no live dashboard data is wired yet
+- live route backed by dashboard summary data
 
 Primary sections:
-- overview
-- my reservations
-- created reservations
-- watchlist
-- quick actions
+- overview stats
+- recent bookings
+- opening-soon preview
+- watchlist preview
+- created-events preview
+- quick context / actions
+
+Key UX states:
+- authenticated dashboard summary
+- creator dashboard with created-event preview
+- non-creator dashboard with empty created-events section
+- unauthenticated access redirected to `/login`
 
 ## Booking Detail Page
+Current implementation status:
+- live route backed by real API data
+
 Required sections:
 - booking status banner
 - event summary and cover image
@@ -188,29 +219,26 @@ Required empty states:
 - no search results
 - no bookings
 - no opening-soon items
+- no watchlist items
+- no created events
 - not-found routes
 
-## Frontend Data Fetching Expectations
-The real frontend needs:
+## Frontend Data Fetching
+
+### Currently Used
 - current-user bootstrap from `GET /me`
 - paginated event discovery requests
-- event detail request
-- booking list and detail requests
-- dashboard summary request
-- creator events request
-- watchlist mutation requests
-
-Current first-slice implementation uses:
-- event discovery request
 - event detail request
 - booking creation request
 - booking detail request
 - create event request
-- current-user bootstrap request
+- dashboard summary request
 - watchlist mutation requests
-- same-origin auth proxy routes for login, logout, and current-user bootstrap
-- a server-side wrapper that can still inject temporary development auth headers for local fallback
-- development auth header injection can be disabled for browser-side unauthenticated verification
+- same-origin proxy routes for login, logout, current-user bootstrap, bookings, and watchlist mutations
+- a server-side wrapper that can still inject the temporary development auth fallback
+
+### Still Needed For Remaining Product Gaps
+- creator events request
 
 ## Future Extension
 Waiting-room or polling UX may be added later for high-demand events, but it is not the primary frontend contract today.
