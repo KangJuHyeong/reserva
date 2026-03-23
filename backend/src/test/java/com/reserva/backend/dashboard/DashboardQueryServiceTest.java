@@ -3,7 +3,6 @@ package com.reserva.backend.dashboard;
 import com.reserva.backend.booking.BookingEntity;
 import com.reserva.backend.booking.BookingRepository;
 import com.reserva.backend.booking.model.BookingStatus;
-import com.reserva.backend.common.model.UserRole;
 import com.reserva.backend.common.security.CurrentUser;
 import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.dashboard.api.DashboardSummaryResponse;
@@ -53,7 +52,7 @@ class DashboardQueryServiceTest {
 
     @Test
     void getDashboardSummaryAggregatesBookingsAndEventPreviews() {
-        CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson", UserRole.CREATOR);
+        CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson");
         BookingEntity booking = booking("BK-2026-RECENT", "usr_1", "evt_booked", BookingStatus.CONFIRMED);
         EventEntity bookedEvent = event("evt_booked", "Booked Event", "usr_host", LocalDateTime.now().plusDays(7), LocalDateTime.now().minusDays(1), 100, 35);
         EventEntity watchlistUpcoming = event("evt_watch_1", "Opening Soon Event", "usr_host", LocalDateTime.now().plusDays(10), LocalDateTime.now().plusDays(2), 80, 12);
@@ -116,7 +115,7 @@ class DashboardQueryServiceTest {
         ReflectionTestUtils.setField(creator, "id", creatorId);
         ReflectionTestUtils.setField(creator, "displayName", "Creator " + creatorId);
         ReflectionTestUtils.setField(creator, "profileImageUrl", "https://example.com/avatar.jpg");
-        ReflectionTestUtils.setField(creator, "role", UserRole.CREATOR);
+        ReflectionTestUtils.setField(creator, "role", com.reserva.backend.common.model.UserRole.CREATOR);
 
         EventInventoryEntity inventory = new EventInventoryEntity();
         ReflectionTestUtils.setField(inventory, "eventId", eventId);

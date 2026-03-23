@@ -94,7 +94,7 @@ export function LoginForm() {
                 <Button type="submit" size="lg" className="h-12 rounded-xl px-6 text-base" disabled={isPending}>
                   {isPending ? "Signing in..." : "Sign In"}
                 </Button>
-                <p className="text-sm text-muted-foreground">시드가 켜져 있으면 `alex@example.com / dev-password` 또는 `creator@example.com / dev-password`를 사용할 수 있습니다.</p>
+                <p className="text-sm text-muted-foreground">시드가 켜져 있으면 `alex@example.com / dev-password` 또는 `creator@example.com / dev-password`를 사용할 수 있습니다. 두 계정 모두 이벤트 생성과 예약이 가능합니다.</p>
               </div>
             </form>
           </section>
@@ -113,11 +113,11 @@ export function LoginForm() {
               <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">Demo Credentials</p>
               <div className="mt-4 space-y-3 text-sm">
                 <div className="rounded-xl bg-card px-4 py-3">
-                  <div className="text-xs text-muted-foreground">user</div>
+                  <div className="text-xs text-muted-foreground">alex</div>
                   <div className="mt-1 text-foreground">alex@example.com / dev-password</div>
                 </div>
                 <div className="rounded-xl bg-card px-4 py-3">
-                  <div className="text-xs text-muted-foreground">creator</div>
+                  <div className="text-xs text-muted-foreground">studio</div>
                   <div className="mt-1 text-foreground">creator@example.com / dev-password</div>
                 </div>
               </div>

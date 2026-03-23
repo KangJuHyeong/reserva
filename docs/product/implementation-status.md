@@ -4,11 +4,7 @@
 - Current product mode: event reservation marketplace
 - Current implementation mode: full-stack feature slices on a live backend baseline
 - Current repository workflow: branch + PR + merge on a root monorepo
-<<<<<<< HEAD
 - Current implementation workflow: backend, frontend, docs, and verification move together per feature slice
-=======
-- Current documentation priority: align repo entry docs and engineering docs to the current codebase
->>>>>>> docs/baseline-alignment
 
 ## Implemented Now
 - Backend project exists in `backend`
@@ -38,16 +34,15 @@
   - `GET /api/v1/me/bookings`
   - `GET /api/v1/me/bookings/{bookingId}`
   - `GET /api/v1/me/dashboard-summary`
+  - `GET /api/v1/me/events`
 - Implemented frontend routes backed by real API data:
   - `/`
   - `/reservation/[id]`
   - `/booking/[id]`
+  - `/dashboard`
+  - `/my-events`
   - `/create`
   - `/login`
-<<<<<<< HEAD
-  - `/dashboard`
-=======
->>>>>>> docs/baseline-alignment
 - Implemented product behaviors:
   - event discovery with search, category filtering, derived sections, and pagination
   - event detail with watchlist state and direct booking action
@@ -55,11 +50,9 @@
   - my bookings list and booking detail
   - watchlist save/remove on cards and event detail
   - persisted watchlist loading through `/?view=Watchlist`
-  - creator-only event creation form and API
-<<<<<<< HEAD
-  - personalized dashboard summary with stats, recent bookings, watchlist preview, opening-soon preview, and created-events preview
-=======
->>>>>>> docs/baseline-alignment
+  - authenticated event creation form and API
+  - personalized dashboard summary with stats, recent bookings, watchlist preview, opening-soon preview, and my-events navigation
+  - dedicated `/my-events` page for the current user's created events with pagination
 - Database baseline exists through:
   - `V1__create_users.sql`
   - `V2__create_events_and_event_inventory.sql`
@@ -67,13 +60,8 @@
   - `V4__create_watchlists.sql`
 
 ## Not Implemented Yet
-<<<<<<< HEAD
-- `GET /api/v1/me/events`
-=======
-- `GET /api/v1/me/dashboard-summary`
-- `GET /api/v1/me/events`
-- Live dashboard frontend backed by dashboard summary data
->>>>>>> docs/baseline-alignment
+- Auth temporary fallback cleanup
+- Residual validation and test hardening
 
 ## Temporary
 - Current auth in code uses server-managed sessions for the implemented login contract
@@ -81,7 +69,6 @@
 - Protected routes may still resolve users from request headers during local development when the fallback is enabled:
   - `X-User-Id`
   - `X-User-Name`
-  - `X-User-Role`
 - This header path is a temporary local-development mechanism, not the final auth contract
 - Current frontend server-side backend wrapper can still inject the same temporary development headers when `DEV_AUTH_ENABLED=true`
 - Current backend local CORS allowed origin defaults to `http://localhost:3000`
@@ -101,12 +88,10 @@
   - `/?view=Watchlist`
   - `/reservation/[id]`
   - `/booking/[id]`
+  - `/dashboard`
+  - `/my-events`
   - `/create`
   - `/login`
-<<<<<<< HEAD
-  - `/dashboard`
-=======
->>>>>>> docs/baseline-alignment
 - Minimum interaction checks to verify once local servers are running:
   - discovery list render
   - filtered pagination
@@ -115,34 +100,19 @@
   - detail watchlist toggle
   - booking submission
   - login flow
-<<<<<<< HEAD
   - dashboard summary render
+  - my events list render
   - unauthenticated watchlist state
 
 ## Next Priorities
-1. Creator-owned event listing
-2. Auth temporary fallback cleanup
-3. Residual validation and test hardening
+1. Auth temporary fallback cleanup
+2. Residual validation and test hardening
+3. Documentation consistency follow-up
 
 Priority rationale:
-- Core event, booking, watchlist, event creation, minimum auth, and dashboard flows are already implemented in the current baseline.
-- The largest remaining visible product gap is creator-owned event listing.
-- Auth cleanup and broader test hardening remain important, but they follow the missing creator feature.
-=======
-  - unauthenticated watchlist state
-
-## Next Priorities
-1. Documentation baseline alignment and contract consistency
-2. Dashboard aggregation and dashboard frontend activation
-3. Creator-owned event listing
-4. Auth temporary fallback cleanup
-5. Residual validation and test hardening
-
-Priority rationale:
-- Core event, booking, watchlist, event creation, and minimum auth flows are already implemented in the current baseline.
-- The highest immediate risk is drift between `agent.md`, product status, and engineering docs.
-- Dashboard and creator-owned event listing remain the largest visible product gaps.
->>>>>>> docs/baseline-alignment
+- Core event, booking, watchlist, dashboard, event creation, and my-events flows are implemented in the current baseline.
+- The highest remaining implementation risk is the temporary development auth fallback.
+- Validation hardening and document consistency remain the main follow-up tasks.
 
 ## Workflow Status
 - GitHub repository is connected

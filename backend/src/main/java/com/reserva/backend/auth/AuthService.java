@@ -20,8 +20,6 @@ public class AuthService {
 
     private static final String SESSION_USER_ID = "AUTH_USER_ID";
     private static final String SESSION_USER_NAME = "AUTH_USER_NAME";
-    private static final String SESSION_USER_ROLE = "AUTH_USER_ROLE";
-
     private final UserRepository userRepository;
     private final CurrentUserProvider currentUserProvider;
     private final PasswordEncoder passwordEncoder;
@@ -42,7 +40,6 @@ public class AuthService {
         HttpSession session = httpRequest.getSession(true);
         session.setAttribute(SESSION_USER_ID, user.getId());
         session.setAttribute(SESSION_USER_NAME, user.getDisplayName());
-        session.setAttribute(SESSION_USER_ROLE, user.getRole());
 
         return new LoginResponse(toCurrentUserResponse(user));
     }
@@ -65,8 +62,7 @@ public class AuthService {
         return new CurrentUserResponse(
                 user.getId(),
                 user.getDisplayName(),
-                user.getEmail(),
-                user.getRole().name().toLowerCase()
+                user.getEmail()
         );
     }
 

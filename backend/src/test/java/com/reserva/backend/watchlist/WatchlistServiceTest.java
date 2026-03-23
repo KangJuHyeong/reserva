@@ -2,7 +2,6 @@ package com.reserva.backend.watchlist;
 
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
-import com.reserva.backend.common.model.UserRole;
 import com.reserva.backend.common.security.CurrentUser;
 import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.event.EventEntity;
@@ -48,7 +47,7 @@ class WatchlistServiceTest {
 
     @Test
     void savePersistsWatchlistForCurrentUser() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson", UserRole.USER));
+        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.of(event("evt_1")));
         when(watchlistRepository.existsByUserIdAndEventId("usr_1", "evt_1")).thenReturn(false);
@@ -62,7 +61,7 @@ class WatchlistServiceTest {
 
     @Test
     void saveIsIdempotentWhenWatchlistAlreadyExists() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson", UserRole.USER));
+        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.of(event("evt_1")));
         when(watchlistRepository.existsByUserIdAndEventId("usr_1", "evt_1")).thenReturn(true);
@@ -74,7 +73,7 @@ class WatchlistServiceTest {
 
     @Test
     void saveThrowsWhenEventDoesNotExist() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson", UserRole.USER));
+        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByIdAndStatusAndVisibility("evt_missing", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.empty());
 
@@ -89,7 +88,7 @@ class WatchlistServiceTest {
 
     @Test
     void removeDeletesExistingOrMissingWatchlistIdempotently() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson", UserRole.USER));
+        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.of(event("evt_1")));
 

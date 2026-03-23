@@ -52,7 +52,7 @@ class EventCommandServiceTest {
 
     @Test
     void createEventCreatesPublishedPublicEventWithInventory() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_creator", "Creator Name", UserRole.CREATOR));
+        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_creator", "Creator Name"));
         when(userRepository.findById("usr_creator")).thenReturn(Optional.of(user("usr_creator", UserRole.CREATOR)));
         when(eventRepository.save(any(EventEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -72,21 +72,19 @@ class EventCommandServiceTest {
     }
 
     @Test
-    void createEventRejectsNonCreatorUser() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson", UserRole.USER));
+    void createEventAllowsAnyAuthenticatedUser() {
+        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
+        when(userRepository.findById("usr_1")).thenReturn(Optional.of(user("usr_1", UserRole.USER)));
+        when(eventRepository.save(any(EventEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertThatThrownBy(() -> eventCommandService.createEvent(validRequest()))
-                .isInstanceOf(ApiException.class)
-                .satisfies(exception -> {
-                    ApiException apiException = (ApiException) exception;
-                    assertThat(apiException.getErrorCode()).isEqualTo(ErrorCode.FORBIDDEN);
-                    assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.FORBIDDEN);
-                });
+        EventCreateResponse response = eventCommandService.createEvent(validRequest());
+
+        assertThat(response.title()).isEqualTo("Summer Jazz Night");
     }
 
     @Test
     void createEventRejectsInvalidSchedule() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_creator", "Creator Name", UserRole.CREATOR));
+        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_creator", "Creator Name"));
 
         EventCreateRequest request = new EventCreateRequest(
                 "Summer Jazz Night",
@@ -111,7 +109,7 @@ class EventCommandServiceTest {
 
     @Test
     void createEventRejectsUnsupportedCategory() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_creator", "Creator Name", UserRole.CREATOR));
+        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_creator", "Creator Name"));
 
         EventCreateRequest request = new EventCreateRequest(
                 "Summer Jazz Night",

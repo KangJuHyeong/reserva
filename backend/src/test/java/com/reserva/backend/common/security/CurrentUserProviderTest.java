@@ -2,7 +2,6 @@ package com.reserva.backend.common.security;
 
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
-import com.reserva.backend.common.model.UserRole;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -25,16 +24,14 @@ class CurrentUserProviderTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.getSession(true).setAttribute("AUTH_USER_ID", "usr_session");
         request.getSession().setAttribute("AUTH_USER_NAME", "Session User");
-        request.getSession().setAttribute("AUTH_USER_ROLE", UserRole.CREATOR);
         request.addHeader("X-User-Id", "usr_header");
         request.addHeader("X-User-Name", "Header User");
-        request.addHeader("X-User-Role", "user");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
         CurrentUser currentUser = provider.getCurrentUserOrThrow();
 
         assertThat(currentUser.id()).isEqualTo("usr_session");
-        assertThat(currentUser.role()).isEqualTo(UserRole.CREATOR);
+        assertThat(currentUser.name()).isEqualTo("Session User");
     }
 
     @Test
@@ -43,13 +40,12 @@ class CurrentUserProviderTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("X-User-Id", "usr_header");
         request.addHeader("X-User-Name", "Header User");
-        request.addHeader("X-User-Role", "creator");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
         CurrentUser currentUser = provider.getCurrentUserOrThrow();
 
         assertThat(currentUser.id()).isEqualTo("usr_header");
-        assertThat(currentUser.role()).isEqualTo(UserRole.CREATOR);
+        assertThat(currentUser.name()).isEqualTo("Header User");
     }
 
     @Test

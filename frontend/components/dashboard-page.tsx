@@ -11,7 +11,6 @@ interface DashboardPageProps {
   recentBookings: BookingSummaryViewModel[];
   upcomingOpenEvents: EventSummaryViewModel[];
   watchlistPreview: EventSummaryViewModel[];
-  createdEventsPreview: EventSummaryViewModel[];
 }
 
 const statCards = [
@@ -28,10 +27,7 @@ export function DashboardPage({
   recentBookings,
   upcomingOpenEvents,
   watchlistPreview,
-  createdEventsPreview,
 }: DashboardPageProps) {
-  const isCreator = currentUser.role === "creator";
-
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(242,189,97,0.18),_transparent_28%),linear-gradient(180deg,_hsl(var(--background)),_hsl(var(--secondary)))] px-6 py-8">
       <div className="mx-auto max-w-7xl space-y-8">
@@ -43,7 +39,7 @@ export function DashboardPage({
                 {currentUser.name}, your reservation pulse is live.
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Track bookings, monitor saved events that are about to open, and keep an eye on creator activity without leaving the product flow.
+                Track bookings, monitor saved events that are about to open, and move between your personal activity and your published events without losing context.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
@@ -53,14 +49,18 @@ export function DashboardPage({
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
-                {isCreator ? (
-                  <Button asChild variant="outline" size="lg" className="h-11 rounded-xl px-5">
-                    <Link href="/create">
-                      <Plus className="h-4 w-4" />
-                      Create Event
-                    </Link>
-                  </Button>
-                ) : null}
+                <Button asChild variant="outline" size="lg" className="h-11 rounded-xl px-5">
+                  <Link href="/my-events">
+                    <LayoutDashboard className="h-4 w-4" />
+                    My Events
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="h-11 rounded-xl px-5">
+                  <Link href="/create">
+                    <Plus className="h-4 w-4" />
+                    Create Event
+                  </Link>
+                </Button>
               </div>
             </div>
 
@@ -141,15 +141,29 @@ export function DashboardPage({
             </DashboardSection>
 
             <DashboardSection
-              title="Created Events"
-              description={isCreator ? "Your most recently created events." : "Creator activity appears here once you publish events."}
-              emptyMessage={isCreator ? "You have not created any events yet." : "This account does not have created events yet."}
+              title="My Events"
+              description="Keep your created events in a dedicated page separate from your personal reservations."
+              emptyMessage="Create your first event to start building your lineup."
               icon={<LayoutDashboard className="h-4 w-4 text-primary" />}
             >
-              <div className="space-y-4">
-                {createdEventsPreview.map((event) => (
-                  <EventPreviewCard key={event.id} event={event} eyebrow={event.category} compact />
-                ))}
+              <div className="rounded-2xl border border-border/70 bg-background/60 p-5">
+                <p className="text-sm text-muted-foreground">
+                  My Page now focuses on bookings, watchlist activity, and summary stats. Use My Events for your full published event list.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <Button asChild className="rounded-xl">
+                    <Link href="/my-events">
+                      Open My Events
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="rounded-xl">
+                    <Link href="/create">
+                      <Plus className="h-4 w-4" />
+                      Create Event
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </DashboardSection>
 

@@ -2,7 +2,6 @@ package com.reserva.backend.event;
 
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
-import com.reserva.backend.common.model.UserRole;
 import com.reserva.backend.common.security.CurrentUser;
 import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.event.api.EventCreateRequest;
@@ -38,10 +37,6 @@ public class EventCommandService {
     @Transactional
     public EventCreateResponse createEvent(EventCreateRequest request) {
         CurrentUser currentUser = currentUserProvider.getCurrentUserOrThrow();
-        if (currentUser.role() != UserRole.CREATOR) {
-            throw new ApiException(ErrorCode.FORBIDDEN, HttpStatus.FORBIDDEN, "Creator access is required.");
-        }
-
         if (!request.reservationOpenDateTime().isBefore(request.eventDateTime())) {
             throw new ApiException(ErrorCode.INVALID_SCHEDULE, HttpStatus.BAD_REQUEST, "Reservation open datetime must be before event datetime.");
         }

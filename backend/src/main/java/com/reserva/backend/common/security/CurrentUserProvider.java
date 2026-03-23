@@ -2,7 +2,6 @@ package com.reserva.backend.common.security;
 
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
-import com.reserva.backend.common.model.UserRole;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +15,6 @@ public class CurrentUserProvider {
 
     static final String SESSION_USER_ID = "AUTH_USER_ID";
     static final String SESSION_USER_NAME = "AUTH_USER_NAME";
-    static final String SESSION_USER_ROLE = "AUTH_USER_ROLE";
 
     private final boolean devAuthHeadersEnabled;
 
@@ -35,12 +33,10 @@ public class CurrentUserProvider {
         if (session != null) {
             String sessionUserId = stringAttribute(session, SESSION_USER_ID);
             String sessionUserName = stringAttribute(session, SESSION_USER_NAME);
-            UserRole sessionUserRole = roleAttribute(session, SESSION_USER_ROLE);
-            if (sessionUserId != null && !sessionUserId.isBlank() && sessionUserRole != null) {
+            if (sessionUserId != null && !sessionUserId.isBlank()) {
                 return new CurrentUser(
                         sessionUserId,
-                        sessionUserName == null || sessionUserName.isBlank() ? "Guest User" : sessionUserName,
-                        sessionUserRole
+                        sessionUserName == null || sessionUserName.isBlank() ? "Guest User" : sessionUserName
                 );
             }
         }
@@ -54,10 +50,7 @@ public class CurrentUserProvider {
             throw unauthenticated();
         }
         String userName = request.getHeader("X-User-Name");
-        String roleHeader = request.getHeader("X-User-Role");
-        UserRole role = "creator".equalsIgnoreCase(roleHeader) ? UserRole.CREATOR : UserRole.USER;
-
-        return new CurrentUser(userId, userName == null || userName.isBlank() ? "Guest User" : userName, role);
+        return new CurrentUser(userId, userName == null || userName.isBlank() ? "Guest User" : userName);
     }
 
     public CurrentUser getCurrentUserOrNull() {
@@ -75,10 +68,5 @@ public class CurrentUserProvider {
     private String stringAttribute(HttpSession session, String key) {
         Object value = session.getAttribute(key);
         return value instanceof String stringValue ? stringValue : null;
-    }
-
-    private UserRole roleAttribute(HttpSession session, String key) {
-        Object value = session.getAttribute(key);
-        return value instanceof UserRole userRole ? userRole : null;
     }
 }
