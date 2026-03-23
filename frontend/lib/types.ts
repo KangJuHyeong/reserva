@@ -80,6 +80,18 @@ export interface BookingCreateResponseApi {
   totalAmount: number;
 }
 
+export interface BookingSummaryApi {
+  bookingId: string;
+  eventId: string;
+  title: string;
+  imageUrl: string;
+  status: string;
+  location: string;
+  eventDateTime: string;
+  bookedAt: string;
+  ticketCount: number;
+}
+
 export interface EventCreateRequestApi {
   title: string;
   category: string;
@@ -119,6 +131,22 @@ export interface BookingDetailApi {
   unitPrice: number;
   totalAmount: number;
   event: BookingDetailEventApi;
+}
+
+export interface DashboardStatsApi {
+  totalBookings: number;
+  upcomingOpenEvents: number;
+  completedBookings: number;
+  watchlistCount: number;
+  createdEvents: number;
+}
+
+export interface DashboardSummaryApi {
+  stats: DashboardStatsApi;
+  recentBookings: BookingSummaryApi[];
+  upcomingOpenEvents: EventSummaryApi[];
+  watchlistPreview: EventSummaryApi[];
+  createdEventsPreview: EventSummaryApi[];
 }
 
 export interface EventSummaryViewModel {
@@ -181,4 +209,18 @@ export interface BookingDetailViewModel {
   reservationOpenLabel: string;
   hostName: string;
   hostAvatarUrl: string | null;
+}
+
+export interface BookingSummaryViewModel {
+  bookingId: string;
+  eventId: string;
+  title: string;
+  imageUrl: string;
+  status: string;
+  statusLabel: string;
+  location: string;
+  eventDateLabel: string;
+  eventTimeLabel: string;
+  bookedAtLabel: string;
+  ticketCount: number;
 }

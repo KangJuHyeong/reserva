@@ -16,9 +16,9 @@ Current documented default:
 - session-based authentication
 
 Temporary implementation note:
-- the backend now authenticates through server-managed sessions for the documented auth endpoints
+- the backend authenticates through server-managed sessions for the documented auth endpoints
 - protected routes may still resolve the user from request headers during local development only when `DEV_AUTH_ENABLED=true`
-- this temporary mechanism should not be treated as the final auth design
+- this header-based fallback is temporary and must not be treated as the final auth design
 
 ### Common Error Shape
 ```json
@@ -186,6 +186,9 @@ Notes:
 ## Event Discovery APIs
 
 ### GET /events
+Status:
+- implemented now in the current backend baseline
+
 Query parameters:
 - `q`
 - `category`
@@ -233,11 +236,14 @@ Response `200 OK`:
 ```
 
 Notes:
-- The server may compute `isTrending`, `isEndingSoon`, and `isOpeningSoon`.
-- `section=trending`, `section=endingSoon`, and `section=openingSoon` return only items that belong to that derived section.
-- The `watchlist` section requires authentication.
+- the server may compute `isTrending`, `isEndingSoon`, and `isOpeningSoon`
+- `section=trending`, `section=endingSoon`, and `section=openingSoon` return only items that belong to that derived section
+- `section=watchlist` requires authentication
 
 ### GET /events/{eventId}
+Status:
+- implemented now in the current backend baseline
+
 Response `200 OK`:
 - returns the `Event Detail` shape
 
@@ -247,7 +253,7 @@ Errors:
 ## Watchlist APIs
 Status:
 - implemented now in the current backend baseline
-- current auth input uses session first, with development header fallback when enabled
+- current auth input is session-first, with the temporary development fallback when enabled
 
 ### POST /events/{eventId}/watchlist
 Response `204 No Content`
@@ -260,7 +266,7 @@ Response `204 No Content`
 ### POST /events/{eventId}/bookings
 Status:
 - implemented now in the current backend baseline
-- current auth input uses session first, with development header fallback when enabled
+- current auth input is session-first, with the temporary development fallback when enabled
 
 Request:
 ```json
@@ -285,7 +291,7 @@ Response `201 Created`:
 ### GET /me/bookings
 Status:
 - implemented now in the current backend baseline
-- current auth input uses session first, with development header fallback when enabled
+- current auth input is session-first, with the temporary development fallback when enabled
 
 Query parameters:
 - `status`
@@ -295,7 +301,7 @@ Query parameters:
 ### GET /me/bookings/{bookingId}
 Status:
 - implemented now in the current backend baseline
-- current auth input uses session first, with development header fallback when enabled
+- current auth input is session-first, with the temporary development fallback when enabled
 
 Response `200 OK`:
 - returns the `Booking Detail` shape
@@ -303,6 +309,15 @@ Response `200 OK`:
 ## Dashboard And Creator APIs
 
 ### GET /me/dashboard-summary
+Status:
+<<<<<<< HEAD
+- implemented now in the current backend baseline
+- current auth input is session-first, with the temporary development fallback when enabled
+=======
+- documented target contract
+- not yet implemented in the current backend baseline
+>>>>>>> docs/baseline-alignment
+
 Response `200 OK`:
 ```json
 {
@@ -313,22 +328,38 @@ Response `200 OK`:
     "watchlistCount": 4,
     "createdEvents": 2
   },
-  "recentBookings": [],
+  "recentBookings": [
+    {
+      "bookingId": "BK-2026-001",
+      "eventId": "evt_123",
+      "title": "Summer Jazz Night",
+      "imageUrl": "https://example.com/image.jpg",
+      "status": "confirmed",
+      "location": "Blue Note Jazz Club, NYC",
+      "eventDateTime": "2026-03-15T20:00:00Z",
+      "bookedAt": "2026-03-05T09:30:00Z",
+      "ticketCount": 2
+    }
+  ],
   "upcomingOpenEvents": [],
   "watchlistPreview": [],
   "createdEventsPreview": []
 }
 ```
 
+Notes:
+- `recentBookings` reuses the `Booking Summary` shape
+- `upcomingOpenEvents`, `watchlistPreview`, and `createdEventsPreview` reuse the `Event Summary` shape
+
 ### GET /me/events
 Status:
-- documented contract
+- documented target contract
 - not yet implemented in the current backend baseline
 
 ### POST /events
 Status:
 - implemented now in the current backend baseline
-- current auth input uses session first, with development header fallback when enabled
+- current auth input is session-first, with the temporary development fallback when enabled
 
 Request:
 ```json
