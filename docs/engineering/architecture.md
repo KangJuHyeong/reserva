@@ -1,209 +1,192 @@
 # Architecture
 
-This document describes the current system architecture for the product baseline.
+This document describes the current product-baseline system responsibilities, request flows, and system boundaries.
 
 Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` for current implementation coverage.
 
-## Current System Responsibilities
+## Status Frame
 
-### Auth Service
-Status:
-- implemented in the current backend baseline
+### Current
+- The system currently runs around `frontend`, `backend`, and a relational database.
+- The main user-visible flows in scope are discovery, event detail, booking, watchlist, dashboard, my-events, create, and login.
 
-Responsibilities:
-- handle `POST /auth/login`
-- return current user from `GET /me`
-- end session through `POST /auth/logout`
-- expose the current user's identity to the rest of the system
+### Temporary
+- Authentication is session-first, but a request-header-based fallback still remains in some protected flows during local development.
 
-Current documented default:
-- server-managed session authentication
+### Target
+- Converge all authenticated flows on the same session contract and remove the development-only fallback.
+- Keep the current route split where dashboard remains a summary workspace and my-events remains the created-events workspace.
 
-Current temporary implementation:
-- `POST /auth/login` creates an HTTP session after email/password verification
-- `GET /me` returns the current authenticated user from the active session
-- `POST /auth/logout` invalidates the active session
-- protected routes can still resolve current-user from request headers `X-User-Id` and `X-User-Name` only as a development fallback when enabled
-- this header-based fallback is temporary and not the final auth contract
-
-### Event Catalog Service
-Status:
-- implemented in the current backend baseline
-
-Responsibilities:
-- list events for the home page
-- support search and category filtering
-- support pagination
-- provide server-owned derived sections such as trending, ending soon, opening soon, and watchlist
-- return watchlist state for the current user when authenticated
-
-### Event Detail Service
-Status:
-- implemented in the current backend baseline
-
-Responsibilities:
-- return a single event by id
-- include event, host, inventory, and watchlist state needed by the detail screen
-- provide the current reservation-open datetime and current fill state
-
-### Booking Service
-Status:
-- implemented in the current backend baseline
-
-Responsibilities:
-- create bookings from an event detail action
-- protect slot integrity under concurrent access
-- prevent duplicate bookings according to product policy
-- expose my bookings list and booking detail
-- preserve booking snapshots needed for the confirmation page
-
-### Watchlist Service
-Status:
-- implemented in the current backend baseline
-
-Responsibilities:
-- add an event to a user's watchlist
-- remove an event from a user's watchlist
-- support the homepage watchlist section and event-card watchlist toggles
-
-### Event Management Service
-Status:
-- implemented in the current backend baseline
-
-Responsibilities:
-- create events
-- list the current authenticated user's created events
-
-Current baseline:
-- event creation is implemented
-- created-events listing is implemented through `GET /me/events`
-
-### Dashboard Aggregation
-Status:
-- implemented in the current backend baseline
-
-Responsibilities:
-- aggregate counts and preview lists for dashboard overview
-- return my bookings summary
-- return created-events summary
-- return watchlist summary
+### Out Of Scope
+- Advanced authentication flows
+- Payments
+- Notifications
+- Queue-based traffic control
+- Kafka-based asynchronous booking confirmation
 
 ## Logical Components
-- Web frontend
-  - renders discovery, event detail, booking detail, dashboard, my-events, create, and login routes
-- API application
-  - handles auth, events, bookings, watchlists, dashboard, and my-events actions
-- Relational database
-  - stores users, events, inventory state, bookings, and watchlists
-- Optional media layer
-  - stores or references uploaded event cover images
 
-Current backend baseline:
-- Spring Boot API application
-- Spring Data JPA for persistence
-- QueryDSL for dynamic repository query composition where needed
-- MySQL relational database
-- Flyway-managed schema migrations
-- `backend/.env`-driven datasource configuration
-- local CORS allowed origin defaulting to `http://localhost:3000`
+### Frontend Web App
+Responsibilities:
+- render discovery, event detail, booking detail, dashboard, my-events, create, and login routes
+- connect auth, booking, and watchlist mutations through same-origin API routes
+- manage query-string-based search, filter, and pagination state
 
-Current frontend baseline:
-- Next.js App Router application in `frontend`
-- live routes: discovery, event detail, booking detail, dashboard, my-events, create, and login
-- same-origin proxy routes for login, logout, current-user bootstrap, booking, and watchlist mutations
+Current baseline:
+- Next.js App Router application
+- `frontend/app` and `frontend/components` centered structure
+
+### Backend API Application
+Responsibilities:
+- provide auth, events, bookings, watchlists, dashboard, and my-events capabilities
+- perform validation, authorization, and error mapping
+- compute derived sections and compose user-specific payloads
+
+Current baseline:
+- Spring Boot
+- Spring Data JPA
+- QueryDSL
+
+### Relational Database
+Responsibilities:
+- persist users, events, inventory, bookings, and watchlists
+- support booking integrity and watchlist uniqueness
+
+Current baseline:
+- MySQL
+- Flyway-managed migrations
+
+### Optional Media Layer
+Responsibilities:
+- store or reference event cover images
+
+Current baseline:
+- image-URL-reference-first approach
+
+## Feature Responsibility Map
+
+### Auth
+Current:
+- `POST /auth/login`
+- `GET /me`
+- `POST /auth/logout`
+- expose the current user identity to the rest of the system
+
+Temporary:
+- `X-User-Id` and `X-User-Name` fallback still exists in local development
+
+### Event Catalog
+Current:
+- provide the home-page event list
+- support search, category filtering, and pagination
+- compute trending, ending soon, opening soon, and watchlist sections
+- return watchlist state for authenticated users
+
+### Event Detail
+Current:
+- load one event by id
+- include host info, inventory state, and watchlist state
+- provide reservation-open datetime and fill state
+
+### Booking
+Current:
+- create bookings from event detail
+- protect slot integrity under concurrent access
+- prevent duplicate bookings
+- expose my-bookings list and detail
+- preserve snapshot data required by the confirmation view
+
+### Watchlist
+Current:
+- save and remove watchlist items
+- support the home watchlist view and card/detail toggles
+
+### Event Management
+Current:
+- create events
+- list the current user's created events
+
+### Dashboard Aggregation
+Current:
+- aggregate dashboard overview counts and preview lists
+- return recent bookings, watchlist summary, created-events summary, and opening-soon preview
 
 ## Request Flow Overview
 
 ### Browse Events
-1. Frontend requests the event list with search, category, section, and page inputs.
-2. API applies filters and derived-section rules through the event query layer.
-3. API returns event cards with inventory summary and watchlist state.
+1. The frontend requests the event list with search, category, section, and page inputs.
+2. The API applies filters and derived-section rules in the event query layer.
+3. The API returns event cards with inventory summary and watchlist state.
 
 ### View Event Detail
-1. Frontend requests an event by id.
-2. API loads event, creator info, remaining capacity, and current user's watchlist state.
-3. Frontend renders the detail page and reserve CTA.
+1. The frontend requests the event detail by id.
+2. The API loads the event, host, remaining capacity, and watchlist state.
+3. The frontend renders the detail page and reserve CTA.
 
 ### Create Booking
-1. Authenticated user submits a booking request for an event.
-2. API validates event status, reservation-open time, capacity, and duplicate-booking rules.
-3. API atomically decrements capacity and creates the booking.
-4. API returns a booking confirmation payload.
+1. An authenticated user submits a booking request for an event.
+2. The API validates event state, reservation-open time, capacity, and duplicate-booking rules.
+3. The API atomically decrements capacity and creates the booking.
+4. The API returns a booking confirmation payload.
 
 ### Query My Bookings
-1. Authenticated user requests booking list or booking detail.
-2. API loads the user's booking records and related event data.
-3. Frontend renders the booking summary or detail page.
+1. An authenticated user requests the booking list or booking detail.
+2. The API loads the user's bookings and related event data.
+3. The frontend renders the summary or detail page.
 
 ### Save Or Remove Watchlist
-1. Authenticated user toggles watchlist state from discovery or detail.
-2. API validates the event and persists or removes the watchlist entry.
-3. Frontend updates watchlist state in place.
+1. An authenticated user toggles watchlist state from discovery or detail.
+2. The API validates the event and persists or removes the watchlist entry.
+3. The frontend updates watchlist state in place.
 
 ### Create Event
-1. Authenticated user submits the create-event form.
-2. API validates required fields and schedule rules.
-3. API stores the new event and initial inventory.
-4. API returns the created event summary.
+1. An authenticated user submits the create-event form.
+2. The API validates required fields and schedule rules.
+3. The API stores the new event and initial inventory.
+4. The API returns the created event summary.
 
 ### Load Dashboard
-1. Frontend requests current-user identity and dashboard summary data.
-2. API aggregates recent bookings, watchlist previews, opening-soon previews, and created-events counts for the current user.
-3. Frontend renders the dashboard sections using those personalized summaries.
+1. The frontend requests current-user identity and dashboard summary data.
+2. The API aggregates recent bookings, watchlist preview, opening-soon preview, and created-events counts.
+3. The frontend renders the personalized dashboard sections.
 
 ### Load My Events
-1. Authenticated user requests the created-events list.
-2. API loads only the current user's created events ordered by newest first.
-3. Frontend renders the paginated `/my-events` page.
+1. An authenticated user requests the created-events list.
+2. The API loads only the current user's events, ordered newest first.
+3. The frontend renders the paginated `/my-events` page.
 
-## Inferred Backend Requirements
+## Required Backend Rules
 
-### Auth And Access Model
-- Event creation and my-events listing require an authenticated user
-- Booking and watchlist actions require an authenticated user
+### Auth And Access
+- Event creation and my-events listing require an authenticated user.
+- Booking and watchlist actions require an authenticated user.
 
-### Validation Rules
+### Validation
 - `price >= 0`
 - `totalSlots >= 1`
-- reservation-open datetime must be before event datetime
+- `reservationOpenDateTime < eventDateTime`
 - category must be one of the supported values
-- event title, description, location, and image reference are required by current product expectations
-
-### Pagination
-- event list
-- my bookings
-- my events
-- watchlist-backed sections when they become list endpoints
+- title, description, location, and image reference are required by current product expectations
 
 ### Error Contract
 At minimum, the API must distinguish:
-- unauthenticated
-- forbidden
-- validation failure
-- sold out
-- already booked
-- event not found
-- booking not found
+- `UNAUTHENTICATED`
+- `FORBIDDEN`
+- `VALIDATION_ERROR`
+- `EVENT_NOT_FOUND`
+- `BOOKING_NOT_FOUND`
+- `EVENT_SOLD_OUT`
+- `ALREADY_BOOKED`
 
-### Concurrency Guarantees
-- booking creation must protect remaining capacity
-- duplicate booking prevention must not rely only on client behavior
-- DB constraints and transactional logic must both be used where appropriate
+### Concurrency
+- Booking creation must protect remaining capacity.
+- Duplicate booking prevention must not rely on client behavior alone.
+- DB constraints and transactional logic should be combined where needed.
 
 ## Architecture Principles
-- Product-critical flows come first
-- Backend contracts should be minimal but implementable
-- Keep event and booking terminology distinct
-- Prefer current-safe synchronous booking semantics over speculative async booking complexity
-- Derived UI sections should be owned by the server when business semantics matter
-- Keep service ownership aligned to feature domains rather than temporary task groupings
-
-## Future-Only Extensions
-The following are future scope and must not be described as the current architecture contract:
-- signup and advanced auth flows
-- payment integration
-- notification delivery
-- Redis waiting room
-- queue-based traffic shaping
-- Kafka-based asynchronous booking confirmation
-- advanced observability and operations tooling
+- Prioritize product-critical flows.
+- Keep backend contracts minimal but implementable.
+- Keep event and booking terminology distinct.
+- Prefer safe synchronous booking semantics over speculative async complexity.
+- Let the server own derived UI sections when business semantics matter.
+- Keep service ownership aligned to feature domains instead of temporary task groupings.

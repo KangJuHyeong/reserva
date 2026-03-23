@@ -4,23 +4,19 @@
 - Current product mode: event reservation marketplace
 - Current implementation mode: full-stack feature slices on a live backend baseline
 - Current repository workflow: branch + PR + merge on a root monorepo
-- Current implementation workflow: backend, frontend, docs, and verification move together per feature slice
+- Current documentation rule: treat current code as the factual baseline and `prototype` as reference input only
 
-## Implemented Now
-- Backend project exists in `backend`
-- Frontend Next.js app exists in `frontend`
-- `backend/.env` is used for datasource configuration
-- Current backend stack in use:
+## Current
+
+### Backend
+- Backend project exists in `backend`.
+- Datasource configuration uses `backend/.env`.
+- Current stack in use:
   - Spring Boot
   - MySQL
   - Flyway
   - JPA
   - QueryDSL
-- Current frontend stack in use:
-  - Next.js App Router
-  - React
-  - TypeScript
-  - Tailwind CSS
 - Implemented APIs:
   - `POST /api/v1/auth/login`
   - `GET /api/v1/me`
@@ -35,7 +31,10 @@
   - `GET /api/v1/me/bookings/{bookingId}`
   - `GET /api/v1/me/dashboard-summary`
   - `GET /api/v1/me/events`
-- Implemented frontend routes backed by real API data:
+
+### Frontend
+- Frontend Next.js app exists in `frontend`.
+- Live routes backed by real API data:
   - `/`
   - `/reservation/[id]`
   - `/booking/[id]`
@@ -51,38 +50,57 @@
   - watchlist save/remove on cards and event detail
   - persisted watchlist loading through `/?view=Watchlist`
   - authenticated event creation form and API
-  - personalized dashboard summary with stats, recent bookings, watchlist preview, opening-soon preview, and my-events navigation
+  - personalized dashboard summary with stats, recent bookings, opening-soon preview, watchlist preview, and quick access to my-events
   - dedicated `/my-events` page for the current user's created events with pagination
+
+### Database
 - Database baseline exists through:
   - `V1__create_users.sql`
   - `V2__create_events_and_event_inventory.sql`
   - `V3__create_bookings.sql`
   - `V4__create_watchlists.sql`
 
-## Not Implemented Yet
-- Auth temporary fallback cleanup
-- Residual validation and test hardening
-
 ## Temporary
-- Current auth in code uses server-managed sessions for the implemented login contract
-- Implemented auth routes are session-first and match the documented minimum login, me, and logout contract
+- Current auth uses server-managed sessions for the implemented login contract.
+- Implemented auth routes are session-first and match the documented minimum login, me, and logout contract.
 - Protected routes may still resolve users from request headers during local development when the fallback is enabled:
   - `X-User-Id`
   - `X-User-Name`
-- This header path is a temporary local-development mechanism, not the final auth contract
-- Current frontend server-side backend wrapper can still inject the same temporary development headers when `DEV_AUTH_ENABLED=true`
-- Current backend local CORS allowed origin defaults to `http://localhost:3000`
+- This header-based path is a temporary local-development mechanism, not the final auth contract.
+- The frontend server-side backend wrapper can still inject the same temporary development headers when `DEV_AUTH_ENABLED=true`.
+- Backend local CORS allowed origin defaults to `http://localhost:3000`.
 
-## Playwright Readiness
-- Playwright E2E is runnable once local frontend and backend are started with the expected dev settings
-- Backend demo seed can be enabled with `SEED_DEMO_DATA=true`
-- Frontend development auth header injection can be disabled with `DEV_AUTH_ENABLED=false`
-- Minimal session login can be verified with `alex@example.com / dev-password` and `creator@example.com / dev-password` when demo seed is enabled
-- When frontend dev auth is disabled, `/?view=Watchlist` should render the explicit unauthenticated state instead of attempting the authenticated watchlist load
-- Seeded stable demo event ids when demo data is enabled:
+## Target
+- Remove the development auth header fallback so authenticated pages depend on the same session contract in every environment.
+- Keep `/dashboard` as a summary page and `/my-events` as the dedicated created-events workspace instead of collapsing both responsibilities into one route.
+- Continue using `prototype` only as comparison input and promote only the parts that improve clarity, hierarchy, or task flow over the live UI.
+- Keep page documentation in a fixed IA format:
+  - purpose
+  - current structure
+  - current states
+  - current data dependencies
+  - target improvements
+
+## Out Of Scope
+- Signup
+- OAuth providers
+- Password reset
+- Email verification
+- Payments
+- Notifications
+- Queue-based access
+- Kafka-based async processing
+- Redis waiting room
+
+## Verification Readiness
+- Playwright E2E is runnable once local frontend and backend are started with the expected dev settings.
+- Backend demo seed can be enabled with `SEED_DEMO_DATA=true`.
+- Frontend development auth header injection can be disabled with `DEV_AUTH_ENABLED=false`.
+- Minimal session login can be verified with `alex@example.com / dev-password` and `creator@example.com / dev-password` when demo seed is enabled.
+- When frontend dev auth is disabled, `/?view=Watchlist` should render the explicit unauthenticated state instead of attempting authenticated watchlist loading.
+- Stable demo event ids when demo data is enabled:
   - `evt_demo_jazz`
   - `evt_demo_art`
-- Demo seed now expands the catalog with additional themed events across concert, restaurant, art & design, and sports
 - Minimum routes to verify once local servers are running:
   - `/`
   - `/?view=Watchlist`
@@ -92,30 +110,13 @@
   - `/my-events`
   - `/create`
   - `/login`
-- Minimum interaction checks to verify once local servers are running:
-  - discovery list render
-  - filtered pagination
-  - watchlist filter entry
-  - card watchlist toggle
-  - detail watchlist toggle
-  - booking submission
-  - login flow
-  - dashboard summary render
-  - my events list render
-  - unauthenticated watchlist state
 
 ## Next Priorities
 1. Auth temporary fallback cleanup
 2. Residual validation and test hardening
-3. Documentation consistency follow-up
+3. IA polish tied to real route or data changes
 
 Priority rationale:
-- Core event, booking, watchlist, dashboard, event creation, and my-events flows are implemented in the current baseline.
+- Core event, booking, watchlist, dashboard, event creation, and my-events flows are already implemented in the current baseline.
 - The highest remaining implementation risk is the temporary development auth fallback.
-- Validation hardening and document consistency remain the main follow-up tasks.
-
-## Workflow Status
-- GitHub repository is connected
-- Root monorepo workflow is active
-- Branch + PR + merge workflow is adopted
-- PR template is configured in `.github/pull_request_template.md`
+- IA follow-up work should stay attached to real UI changes instead of drifting into speculative redesign.

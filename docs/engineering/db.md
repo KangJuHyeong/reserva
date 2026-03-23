@@ -1,35 +1,40 @@
 # Database Model
 
-This document defines the minimum persistence model for the current product baseline and inferred backend requirements.
+This document defines the minimum persistence model and integrity requirements for the current product baseline.
 
-Use `docs/product/implementation-status.md` for current migration coverage and `agent.md` for scope boundaries.
+Use `docs/product/implementation-status.md` for current implementation coverage and `agent.md` for scope boundaries.
 
-## Current Baseline
-Current implemented tables:
-- `users`
-- `events`
-- `event_inventory`
-- `bookings`
-- `watchlists`
+## Status Frame
 
-Current migration baseline:
-- `V1__create_users.sql`
-- `V2__create_events_and_event_inventory.sql`
-- `V3__create_bookings.sql`
-- `V4__create_watchlists.sql`
+### Current
+- The current baseline tables are `users`, `events`, `event_inventory`, `bookings`, and `watchlists`.
+- The current migration baseline runs from `V1__create_users.sql` through `V4__create_watchlists.sql`.
 
-Migration rule:
-- do not modify already-applied migration versions
-- add a new versioned migration file for later schema changes
+### Temporary
+- `users.role` still exists in the schema, but it is not the active product-level permission contract in the current baseline.
+
+### Target
+- Strengthen constraints, indexes, and query support in ways that preserve the current feature set safely.
+- Add later schema changes through new versioned migrations instead of modifying already-applied ones.
+
+### Out Of Scope
+- waiting room queue tables
+- Kafka processing tables
+- async booking-attempt ledger
+- idempotency ledger beyond what the current booking implementation needs
+
+## Migration Rules
+- Do not modify migration versions that have already been applied.
+- Add all schema changes through new versioned migration files.
 
 ## Core Data Model
 
 ### users
 Purpose:
-- stores application users
-- supports authentication and current-user loading
-- supports both booking and event creation through the same authenticated user model
-- backs the current session login contract without a separate auth table
+- store application users
+- support authentication and current-user loading
+- support both booking and event creation through the same authenticated user model
+- back the current session login contract without a separate auth table
 
 Recommended columns:
 - `id`
@@ -43,12 +48,12 @@ Recommended columns:
 
 Rules:
 - `email` is unique
-- `password_hash` stores a one-way password hash suitable for BCrypt verification
-- `role` remains a legacy column in the current schema and is not the active product-level permission contract
+- `password_hash` stores a one-way hash suitable for BCrypt verification
+- `role` is a legacy column and is not the active product-level permission contract
 
 ### events
 Purpose:
-- stores joinable event listings shown on the home page, event detail page, and my-events page
+- store joinable event listings shown on the home page, event detail page, and my-events page
 
 Recommended columns:
 - `id`
@@ -72,7 +77,7 @@ Recommended enums:
 
 ### event_inventory
 Purpose:
-- stores current capacity state separate from event content fields
+- store current capacity state separately from event content fields
 
 Recommended columns:
 - `event_id`
@@ -87,7 +92,7 @@ Rules:
 
 ### bookings
 Purpose:
-- stores a user's confirmed reservation record for an event
+- store a user's confirmed reservation record for an event
 
 Recommended columns:
 - `id`
@@ -111,7 +116,7 @@ Recommended status values:
 
 ### watchlists
 Purpose:
-- persists per-user saved events
+- persist per-user saved events
 
 Recommended columns:
 - `id`
@@ -120,7 +125,7 @@ Recommended columns:
 - `created_at`
 
 Rules:
-- unique pair on `(user_id, event_id)`
+- keep `(user_id, event_id)` unique
 
 ## Relationships
 - `users 1:N events`
@@ -135,11 +140,11 @@ Rules:
 - `users.email` must be unique
 
 ### Watchlist Integrity
-- unique `(user_id, event_id)` on `watchlists`
+- `watchlists` requires unique `(user_id, event_id)`
 
 ### Booking Integrity
-- unique human-facing `booking_code`
-- duplicate-booking prevention policy should be enforced by application logic and, where product rules allow, a DB-level uniqueness strategy
+- human-facing `booking_code` must be unique
+- duplicate-booking prevention should be enforced through application logic and, where feasible, DB-backed uniqueness strategy
 
 ### Schedule Integrity
 - `reservation_open_datetime < event_datetime`
@@ -156,7 +161,7 @@ Recommended approaches:
 - pessimistic lock on `event_inventory`
 - conditional update on `reserved_slots`
 
-Current implemented approach:
+Current:
 - pessimistic locking on `event_inventory` during booking creation
 
 ### Duplicate Booking Prevention
@@ -175,9 +180,9 @@ The schema must support:
 - booking status counts
 
 Query-layer convention:
-- Keep simple primary-key and fixed-predicate lookups in standard Spring Data JPA repository methods
-- Prefer QueryDSL for dynamic filtering, optional predicates, join-heavy list queries, and section-specific ordering rules
-- Treat JPA Specification as legacy or exception-based within this repository unless a documented reason requires it
+- keep simple primary-key and fixed-predicate lookups in standard Spring Data JPA repository methods
+- prefer QueryDSL for dynamic filtering, optional predicates, join-heavy list queries, and section-specific ordering rules
+- treat JPA Specification as legacy or exception-based within this repository
 
 ## Recommended Indexes
 - `users(email)` unique
@@ -189,10 +194,3 @@ Query-layer convention:
 - `bookings(booking_code)` unique
 - `watchlists(user_id, created_at desc)`
 - `watchlists(user_id, event_id)` unique
-
-## Future-Only Persistence
-The following are future scope and should not be treated as current required tables:
-- waiting room queue tables
-- Kafka processing tables
-- async booking attempt ledger
-- idempotency ledger beyond what current booking implementation needs
