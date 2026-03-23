@@ -149,17 +149,34 @@ Examples:
 
 Do not move out-of-scope items into current scope without a visible product reason or explicit instruction.
 
+### 7.4 Approved Next-Phase Candidates
+These are approved follow-up directions after the current baseline is kept stable. They are not part of the already-implemented baseline definition.
+
+Examples:
+- EC2 semideploy packaging with Docker-based services
+- Reverse-proxy and external environment setup for lightweight deployment
+- Google OAuth added on top of the current session contract
+- Redis introduction for queue-ready reservation control
+
+Rules:
+- Preserve the current product routes and session-based protected-route contract while extending auth.
+- Treat queue work as readiness or MVP work first, not as justification for broad speculative platform scope.
+- Keep these items out of `Current` implementation claims until code and docs are updated together.
+
 ## 8. Current Priorities
 If implementation starts from this document, use this priority order:
 
-1. Residual validation and test hardening
-2. IA polish tied to real route or data changes
-3. Documentation follow-up tied to real UI or contract changes
+1. Local runtime stability and regression hardening for the verified baseline
+2. EC2 semideploy foundation with Docker-based packaging
+3. Google OAuth on top of the current session contract
+4. Redis foundation for queue-enabled reservation control
+5. IA or documentation follow-up tied to real route, auth, deployment, or queue changes
 
 Why this order:
 - Event discovery, event detail, booking flows, watchlist persistence, event creation, dashboard summary, and my-events listing are already part of the current baseline.
-- The temporary dev auth fallback has been removed from the current baseline.
-- Validation hardening is still more important than speculative IA expansion or documentation-only churn.
+- The temporary dev auth fallback has been removed from the current baseline and the core flows have been verified end to end.
+- The next delivery need is to make the baseline externally runnable in a lightweight environment before expanding auth or traffic-control behavior.
+- OAuth and queue work should extend the deployable session-based baseline rather than replace it with speculative architecture.
 
 ## 9. Baseline Snapshot
 
@@ -190,6 +207,9 @@ Do not document as confirmed:
 - JWT vs session as a final commitment
 - Forgot password
 - Email verification
+
+Approved next-phase extension:
+- Google OAuth may be added as an additional login entry point, but protected routes should continue to rely on the session-based runtime contract unless a later decision explicitly changes it.
 
 ## 11. Required Supporting Rules
 

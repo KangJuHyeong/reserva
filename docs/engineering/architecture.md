@@ -16,6 +16,8 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 
 ### Target
 - Keep the current route split where dashboard remains a summary workspace and my-events remains the created-events workspace.
+- Keep the current session-based protected-route contract even if new login providers are introduced.
+- Prepare the system for lightweight external deployment without changing the current product route model.
 
 ### Out Of Scope
 - Advanced authentication flows
@@ -23,6 +25,12 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - Notifications
 - Queue-based traffic control
 - Kafka-based asynchronous booking confirmation
+
+### Approved Next-Phase Candidates
+- EC2 semideploy packaging with containerized frontend and backend services
+- reverse-proxy setup suitable for lightweight external access
+- Google OAuth added as an additional login entry point
+- Redis added as infrastructure for queue-ready reservation control
 
 ## Logical Components
 
@@ -187,3 +195,5 @@ At minimum, the API must distinguish:
 - Prefer safe synchronous booking semantics over speculative async complexity.
 - Let the server own derived UI sections when business semantics matter.
 - Keep service ownership aligned to feature domains instead of temporary task groupings.
+- Extend auth through the existing session runtime contract before considering broader auth redesign.
+- Introduce queue infrastructure in narrow, replaceable seams before committing to a large visible waiting-room experience.

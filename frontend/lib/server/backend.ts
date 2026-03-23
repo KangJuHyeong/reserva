@@ -111,14 +111,22 @@ export async function proxyBackend(
   const headers = new Headers();
   const contentType = response.headers.get("Content-Type");
   const setCookie = response.headers.get("set-cookie");
+  const location = response.headers.get("location");
   if (contentType) {
     headers.set("Content-Type", contentType);
   }
   if (setCookie) {
     headers.set("set-cookie", setCookie);
   }
+  if (location) {
+    headers.set("location", location);
+  }
 
-  return new Response(response.body, {
+  const payload = response.status === 204 || response.status === 205
+    ? undefined
+    : await response.arrayBuffer();
+
+  return new Response(payload, {
     status: response.status,
     headers,
   });
