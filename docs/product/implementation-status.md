@@ -4,7 +4,11 @@
 - Current product mode: event reservation marketplace
 - Current implementation mode: full-stack feature slices on a live backend baseline
 - Current repository workflow: branch + PR + merge on a root monorepo
+<<<<<<< HEAD
 - Current implementation workflow: backend, frontend, docs, and verification move together per feature slice
+=======
+- Current documentation priority: align repo entry docs and engineering docs to the current codebase
+>>>>>>> docs/baseline-alignment
 
 ## Implemented Now
 - Backend project exists in `backend`
@@ -40,7 +44,10 @@
   - `/booking/[id]`
   - `/create`
   - `/login`
+<<<<<<< HEAD
   - `/dashboard`
+=======
+>>>>>>> docs/baseline-alignment
 - Implemented product behaviors:
   - event discovery with search, category filtering, derived sections, and pagination
   - event detail with watchlist state and direct booking action
@@ -49,7 +56,10 @@
   - watchlist save/remove on cards and event detail
   - persisted watchlist loading through `/?view=Watchlist`
   - creator-only event creation form and API
+<<<<<<< HEAD
   - personalized dashboard summary with stats, recent bookings, watchlist preview, opening-soon preview, and created-events preview
+=======
+>>>>>>> docs/baseline-alignment
 - Database baseline exists through:
   - `V1__create_users.sql`
   - `V2__create_events_and_event_inventory.sql`
@@ -57,7 +67,13 @@
   - `V4__create_watchlists.sql`
 
 ## Not Implemented Yet
+<<<<<<< HEAD
 - `GET /api/v1/me/events`
+=======
+- `GET /api/v1/me/dashboard-summary`
+- `GET /api/v1/me/events`
+- Live dashboard frontend backed by dashboard summary data
+>>>>>>> docs/baseline-alignment
 
 ## Temporary
 - Current auth in code uses server-managed sessions for the implemented login contract
@@ -87,7 +103,10 @@
   - `/booking/[id]`
   - `/create`
   - `/login`
+<<<<<<< HEAD
   - `/dashboard`
+=======
+>>>>>>> docs/baseline-alignment
 - Minimum interaction checks to verify once local servers are running:
   - discovery list render
   - filtered pagination
@@ -96,6 +115,7 @@
   - detail watchlist toggle
   - booking submission
   - login flow
+<<<<<<< HEAD
   - dashboard summary render
   - unauthenticated watchlist state
 
@@ -108,6 +128,21 @@ Priority rationale:
 - Core event, booking, watchlist, event creation, minimum auth, and dashboard flows are already implemented in the current baseline.
 - The largest remaining visible product gap is creator-owned event listing.
 - Auth cleanup and broader test hardening remain important, but they follow the missing creator feature.
+=======
+  - unauthenticated watchlist state
+
+## Next Priorities
+1. Documentation baseline alignment and contract consistency
+2. Dashboard aggregation and dashboard frontend activation
+3. Creator-owned event listing
+4. Auth temporary fallback cleanup
+5. Residual validation and test hardening
+
+Priority rationale:
+- Core event, booking, watchlist, event creation, and minimum auth flows are already implemented in the current baseline.
+- The highest immediate risk is drift between `agent.md`, product status, and engineering docs.
+- Dashboard and creator-owned event listing remain the largest visible product gaps.
+>>>>>>> docs/baseline-alignment
 
 ## Workflow Status
 - GitHub repository is connected

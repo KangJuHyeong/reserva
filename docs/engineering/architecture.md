@@ -81,7 +81,11 @@ Current baseline:
 
 ### Dashboard Aggregation
 Status:
+<<<<<<< HEAD
 - implemented in the current backend baseline
+=======
+- target capability only
+>>>>>>> docs/baseline-alignment
 
 Responsibilities:
 - aggregate counts and preview lists for dashboard overview
@@ -91,7 +95,11 @@ Responsibilities:
 
 ## Logical Components
 - Web frontend
+<<<<<<< HEAD
   - renders discovery, event detail, booking detail, dashboard, create, and login routes
+=======
+  - renders discovery, event detail, booking detail, create, login, and dashboard routes
+>>>>>>> docs/baseline-alignment
 - API application
   - handles auth, events, bookings, watchlists, dashboard, and creator actions
 - Relational database
@@ -110,14 +118,23 @@ Current backend baseline:
 
 Current frontend baseline:
 - Next.js App Router application in `frontend`
+<<<<<<< HEAD
 - live routes: discovery, event detail, booking detail, create, login, and dashboard
+=======
+- live routes: discovery, event detail, booking detail, create, and login
+- placeholder route: dashboard
+>>>>>>> docs/baseline-alignment
 - same-origin proxy routes for login, logout, current-user bootstrap, booking, and watchlist mutations
 
 ## Request Flow Overview
 
 ### Browse Events
 1. Frontend requests the event list with search, category, section, and page inputs.
+<<<<<<< HEAD
 2. API applies filters and derived-section rules through the event query layer.
+=======
+2. API applies filters and derived-section rules.
+>>>>>>> docs/baseline-alignment
 3. API returns event cards with inventory summary and watchlist state.
 
 ### View Event Detail
@@ -151,6 +168,9 @@ Current frontend baseline:
 1. Frontend requests current-user identity and dashboard summary data.
 2. API aggregates recent bookings, watchlist previews, opening-soon previews, and creator previews for the current user.
 3. Frontend renders the dashboard sections using those personalized summaries.
+
+Current note:
+- dashboard load remains a target request flow until `GET /me/dashboard-summary` and `GET /me/events` are implemented
 
 ## Inferred Backend Requirements
 

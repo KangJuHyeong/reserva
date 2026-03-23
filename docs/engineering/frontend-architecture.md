@@ -16,9 +16,15 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - live route: `/`
 - live route: `/reservation/[id]`
 - live route: `/booking/[id]`
+<<<<<<< HEAD
 - live route: `/dashboard`
 - live route: `/create`
 - live route: `/login`
+=======
+- live route: `/create`
+- live route: `/login`
+- placeholder route: `/dashboard`
+>>>>>>> docs/baseline-alignment
 
 ## Frontend Work Areas
 - `frontend/app`: route entry points
@@ -124,6 +130,7 @@ Current implementation keeps the reserve action as a direct API-backed booking s
 Current implementation status:
 - live route backed by dashboard summary data
 
+<<<<<<< HEAD
 Primary sections:
 - overview stats
 - recent bookings
@@ -137,6 +144,14 @@ Key UX states:
 - creator dashboard with created-event preview
 - non-creator dashboard with empty created-events section
 - unauthenticated access redirected to `/login`
+=======
+Target sections:
+- overview
+- my reservations
+- created reservations
+- watchlist
+- quick actions
+>>>>>>> docs/baseline-alignment
 
 ## Booking Detail Page
 Current implementation status:
@@ -232,12 +247,19 @@ Required empty states:
 - booking creation request
 - booking detail request
 - create event request
+<<<<<<< HEAD
 - dashboard summary request
+=======
+>>>>>>> docs/baseline-alignment
 - watchlist mutation requests
 - same-origin proxy routes for login, logout, current-user bootstrap, bookings, and watchlist mutations
 - a server-side wrapper that can still inject the temporary development auth fallback
 
 ### Still Needed For Remaining Product Gaps
+<<<<<<< HEAD
+=======
+- dashboard summary request
+>>>>>>> docs/baseline-alignment
 - creator events request
 
 ## Future Extension

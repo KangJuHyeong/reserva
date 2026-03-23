@@ -310,8 +310,13 @@ Response `200 OK`:
 
 ### GET /me/dashboard-summary
 Status:
+<<<<<<< HEAD
 - implemented now in the current backend baseline
 - current auth input is session-first, with the temporary development fallback when enabled
+=======
+- documented target contract
+- not yet implemented in the current backend baseline
+>>>>>>> docs/baseline-alignment
 
 Response `200 OK`:
 ```json
