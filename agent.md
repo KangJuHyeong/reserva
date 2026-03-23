@@ -168,6 +168,14 @@ Do not document as confirmed:
 - The server should own derived sections such as trending, ending soon, and opening soon
 - Filtering and sorting rules must be documented in the API contract, not inferred only from UI code
 
+### 8.4 Backend Query Conventions
+- Spring Data JPA remains the base persistence layer
+- For dynamic filtering, search, sorting, or multi-condition list queries, prefer QueryDSL over JPA Specification
+- Use derived query methods only for simple single-purpose lookups with stable predicates
+- Do not add new `JpaSpecificationExecutor` usage for feature work unless there is a documented exception
+- If an existing Specification-based query is being extended with more dynamic conditions, joins, projections, or section-specific ordering, refactor it to QueryDSL instead of growing the Specification chain
+- When a query approach changes, update the relevant engineering docs so the documented stack stays aligned with the implementation plan
+
 ## 9. Documentation Update Rules
 When scope or behavior changes:
 - Update `agent.md` if boundaries, priorities, terminology, or doc ownership change
@@ -191,6 +199,10 @@ For any feature in current scope, use this order:
 4. Implement the backend slice in the owning feature package.
 5. Implement the frontend route or UI integration for the same feature.
 6. Verify behavior end to end, then update `docs/product/implementation-status.md` if implementation coverage changed.
+
+Backend query design rule:
+- Before adding or extending a dynamic list/search query, document whether it stays a simple repository method or becomes a QueryDSL-backed repository query
+- If QueryDSL is introduced or expanded, document the repository ownership and query-building boundary in the engineering docs
 
 Default ownership rule:
 - Work is organized by feature task, but service ownership remains aligned to feature domains.

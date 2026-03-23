@@ -55,8 +55,13 @@ The standard mode is a full-stack vertical slice: complete one feature across do
 - controller endpoints
 - service methods
 - repository access
+- query approach for reads: derived repository method or QueryDSL-backed custom query
 - authorization and validation checks
 - error mapping
+
+Query implementation rule:
+- If a read use case needs optional filters, text search, conditional joins, or custom ordering, plan it as a QueryDSL-backed repository query instead of adding a new Specification chain
+- If the existing code still uses Specification, treat QueryDSL migration as part of the same refactor when the query complexity is increasing
 
 ### 4. Frontend Slice
 - route or component integration point
