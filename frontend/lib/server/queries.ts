@@ -48,3 +48,18 @@ export async function fetchDashboardSummary(options?: { includeDevAuth?: boolean
     includeIncomingCookies: true,
   });
 }
+
+export async function fetchMyEvents(params?: {
+  page?: number;
+  size?: number;
+  includeDevAuth?: boolean;
+}) {
+  const search = new URLSearchParams();
+  search.set("page", String(params?.page ?? 1));
+  search.set("size", String(params?.size ?? 12));
+
+  return fetchBackendJson<PageResponse<EventSummaryApi>>(`/api/v1/me/events?${search.toString()}`, undefined, {
+    includeDevAuth: params?.includeDevAuth ?? true,
+    includeIncomingCookies: true,
+  });
+}

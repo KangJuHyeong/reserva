@@ -14,7 +14,7 @@ Responsibilities:
 - handle `POST /auth/login`
 - return current user from `GET /me`
 - end session through `POST /auth/logout`
-- expose the current user's role and identity to the rest of the system
+- expose the current user's identity to the rest of the system
 
 Current documented default:
 - server-managed session authentication
@@ -23,7 +23,7 @@ Current temporary implementation:
 - `POST /auth/login` creates an HTTP session after email/password verification
 - `GET /me` returns the current authenticated user from the active session
 - `POST /auth/logout` invalidates the active session
-- protected routes can still resolve current-user from request headers `X-User-Id`, `X-User-Name`, `X-User-Role` only as a development fallback when enabled
+- protected routes can still resolve current-user from request headers `X-User-Id` and `X-User-Name` only as a development fallback when enabled
 - this header-based fallback is temporary and not the final auth contract
 
 ### Event Catalog Service
@@ -66,26 +66,21 @@ Responsibilities:
 - remove an event from a user's watchlist
 - support the homepage watchlist section and event-card watchlist toggles
 
-### Creator Event Management Service
+### Event Management Service
 Status:
-- partially implemented in the current backend baseline
+- implemented in the current backend baseline
 
 Responsibilities:
 - create events
-- validate creator-only access
-- list the current creator's events for dashboard use
+- list the current authenticated user's created events
 
 Current baseline:
 - event creation is implemented
-- creator-owned event listing remains a target capability
+- created-events listing is implemented through `GET /me/events`
 
 ### Dashboard Aggregation
 Status:
-<<<<<<< HEAD
 - implemented in the current backend baseline
-=======
-- target capability only
->>>>>>> docs/baseline-alignment
 
 Responsibilities:
 - aggregate counts and preview lists for dashboard overview
@@ -95,15 +90,11 @@ Responsibilities:
 
 ## Logical Components
 - Web frontend
-<<<<<<< HEAD
-  - renders discovery, event detail, booking detail, dashboard, create, and login routes
-=======
-  - renders discovery, event detail, booking detail, create, login, and dashboard routes
->>>>>>> docs/baseline-alignment
+  - renders discovery, event detail, booking detail, dashboard, my-events, create, and login routes
 - API application
-  - handles auth, events, bookings, watchlists, dashboard, and creator actions
+  - handles auth, events, bookings, watchlists, dashboard, and my-events actions
 - Relational database
-  - stores users, roles, events, inventory state, bookings, and watchlists
+  - stores users, events, inventory state, bookings, and watchlists
 - Optional media layer
   - stores or references uploaded event cover images
 
@@ -118,23 +109,14 @@ Current backend baseline:
 
 Current frontend baseline:
 - Next.js App Router application in `frontend`
-<<<<<<< HEAD
-- live routes: discovery, event detail, booking detail, create, login, and dashboard
-=======
-- live routes: discovery, event detail, booking detail, create, and login
-- placeholder route: dashboard
->>>>>>> docs/baseline-alignment
+- live routes: discovery, event detail, booking detail, dashboard, my-events, create, and login
 - same-origin proxy routes for login, logout, current-user bootstrap, booking, and watchlist mutations
 
 ## Request Flow Overview
 
 ### Browse Events
 1. Frontend requests the event list with search, category, section, and page inputs.
-<<<<<<< HEAD
 2. API applies filters and derived-section rules through the event query layer.
-=======
-2. API applies filters and derived-section rules.
->>>>>>> docs/baseline-alignment
 3. API returns event cards with inventory summary and watchlist state.
 
 ### View Event Detail
@@ -159,24 +141,25 @@ Current frontend baseline:
 3. Frontend updates watchlist state in place.
 
 ### Create Event
-1. Authenticated creator submits the create-event form.
+1. Authenticated user submits the create-event form.
 2. API validates required fields and schedule rules.
 3. API stores the new event and initial inventory.
 4. API returns the created event summary.
 
 ### Load Dashboard
 1. Frontend requests current-user identity and dashboard summary data.
-2. API aggregates recent bookings, watchlist previews, opening-soon previews, and creator previews for the current user.
+2. API aggregates recent bookings, watchlist previews, opening-soon previews, and created-events counts for the current user.
 3. Frontend renders the dashboard sections using those personalized summaries.
 
-Current note:
-- dashboard load remains a target request flow until `GET /me/dashboard-summary` and `GET /me/events` are implemented
+### Load My Events
+1. Authenticated user requests the created-events list.
+2. API loads only the current user's created events ordered by newest first.
+3. Frontend renders the paginated `/my-events` page.
 
 ## Inferred Backend Requirements
 
-### Role And Permission Model
-- A user account must carry enough information to determine creator access
-- Event creation and creator-event management must be creator-only actions
+### Auth And Access Model
+- Event creation and my-events listing require an authenticated user
 - Booking and watchlist actions require an authenticated user
 
 ### Validation Rules

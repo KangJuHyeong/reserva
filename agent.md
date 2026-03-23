@@ -55,7 +55,8 @@ Primary user-visible flows:
 - Save and remove watchlist items
 - View personal bookings and booking detail
 - View personal dashboard summary
-- Create an event as a creator
+- View personal created-events list
+- Create an event as an authenticated user
 - Log in with the minimum documented auth contract
 
 Current canonical routes:
@@ -63,13 +64,14 @@ Current canonical routes:
 - `/reservation/[id]`
 - `/booking/[id]`
 - `/dashboard`
+- `/my-events`
 - `/create`
 - `/login`
 
 Terminology:
 - `event`: a joinable listing shown in discovery and detail pages
 - `booking`: a user's confirmed reservation record for an event
-- `creator`: a user allowed to create and manage events
+- `creator`: the user who authored or hosts an event; not a separate auth role in the current product baseline
 - `watchlist`: a per-user saved-events collection
 
 ## 5. Repository / Feature Map
@@ -84,29 +86,21 @@ Use this section first when deciding where implementation work belongs.
 
 ### 5.2 Backend Feature Packages
 - `backend/src/main/java/com/reserva/backend/auth`: login, logout, current-user session contract
-- `backend/src/main/java/com/reserva/backend/event`: event discovery, event detail, event creation, inventory access
+- `backend/src/main/java/com/reserva/backend/event`: event discovery, event detail, event creation, my events, inventory access
 - `backend/src/main/java/com/reserva/backend/booking`: booking creation, my bookings list, booking detail
 - `backend/src/main/java/com/reserva/backend/watchlist`: watchlist persistence and mutations
-<<<<<<< HEAD
 - `backend/src/main/java/com/reserva/backend/dashboard`: dashboard summary aggregation
-=======
->>>>>>> docs/baseline-alignment
 - `backend/src/main/java/com/reserva/backend/common`: shared API, error, and security support
 
 ### 5.3 Frontend Work Areas
-- `frontend/app`: route entry points such as `/`, `/reservation/[id]`, `/booking/[id]`, `/create`, `/dashboard`, `/login`
+- `frontend/app`: route entry points such as `/`, `/reservation/[id]`, `/booking/[id]`, `/dashboard`, `/my-events`, `/create`, `/login`
 - `frontend/app/api`: same-origin proxy routes for auth and event mutations
 - `frontend/components`: page composition and interactive UI pieces
 - `frontend/lib/server`: backend fetch wrappers and server-side query helpers
 
 ### 5.4 Current Gaps
-<<<<<<< HEAD
-=======
-- Dashboard aggregation backend is not implemented yet
-- `/dashboard` remains a placeholder route
->>>>>>> docs/baseline-alignment
-- Creator-owned event listing `GET /me/events` is not implemented yet
 - Development auth header fallback is still temporary and not the final auth contract
+- Residual validation and test hardening remain
 
 ## 6. Scope Boundaries
 
@@ -118,6 +112,7 @@ Examples:
 - Event detail view
 - Booking creation and booking detail
 - Dashboard summary and dashboard sections
+- My events list
 - Event creation form
 - Minimal login flow
 - Watchlist behavior
@@ -126,7 +121,6 @@ Examples:
 Use for requirements not directly visible in the UI but necessary to implement it safely.
 
 Examples:
-- Role and permission model
 - Pagination for list endpoints
 - Validation rules
 - Error contracts
@@ -153,27 +147,14 @@ Do not move future scope into current scope without a visible product reason or 
 ## 7. Current Implementation Priorities
 If implementation starts from this document, use this priority order:
 
-<<<<<<< HEAD
-1. Creator-owned event listing `GET /me/events`
-2. Auth temporary fallback cleanup
-3. Residual validation and test hardening
+1. Auth temporary fallback cleanup
+2. Residual validation and test hardening
+3. Documentation consistency follow-up
 
 Why this order:
-- Event discovery, event detail, booking flows, watchlist persistence, event creation, minimum auth, and dashboard summary are already part of the current baseline.
-- The largest remaining visible product gap is creator-owned event listing.
-- Auth cleanup and broader test hardening remain important but are lower urgency than the missing creator flow.
-=======
-1. Documentation baseline alignment and contract consistency
-2. Dashboard aggregation and `/dashboard` activation
-3. Creator-owned event listing `GET /me/events`
-4. Auth temporary fallback cleanup
-5. Residual validation and test hardening
-
-Why this order:
-- Event discovery, event detail, booking flows, watchlist persistence, event creation, and the minimum auth contract are already part of the current baseline.
-- The highest current risk is document drift between repo entry docs and the actual codebase.
-- Dashboard and creator-owned event listing are the largest remaining visible product gaps.
->>>>>>> docs/baseline-alignment
+- Event discovery, event detail, booking flows, watchlist persistence, event creation, dashboard summary, and my-events listing are already part of the current baseline.
+- The largest remaining implementation risk is the temporary dev auth fallback.
+- Validation hardening and doc consistency remain important follow-up work after the current feature slice.
 
 ## 8. Current Baseline
 Use `docs/product/implementation-status.md` for quick current-state checks.
@@ -181,37 +162,26 @@ Use `docs/product/implementation-status.md` for quick current-state checks.
 Current backend baseline:
 - Backend project exists in `backend`
 - Datasource configuration is driven by `backend/.env`
-<<<<<<< HEAD
 - Spring Boot, MySQL, Flyway, JPA, and QueryDSL-backed repository queries are active
-=======
-- Spring Boot, MySQL, Flyway, and JPA are active
->>>>>>> docs/baseline-alignment
 - Implemented baseline features:
   - auth login, me, and logout
   - event discovery and filtering
   - event detail
   - event creation
+  - my events list
   - booking creation
   - my bookings list and booking detail
   - watchlist save and remove
-<<<<<<< HEAD
   - dashboard summary aggregation
 
 Current frontend baseline:
 - Frontend project exists in `frontend`
-- Live routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, `/create`, `/login`, and `/dashboard`
-=======
-
-Current frontend baseline:
-- Frontend project exists in `frontend`
-- Live routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, `/create`, and `/login`
-- `/dashboard` remains a placeholder route
->>>>>>> docs/baseline-alignment
+- Live routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, `/dashboard`, `/my-events`, `/create`, and `/login`
 - Same-origin proxy routes exist for login, logout, current-user bootstrap, bookings, and watchlist mutations
 
 Temporary implementation detail:
 - Current auth uses server-managed sessions for the documented minimum contract
-- Protected routes may still resolve request headers `X-User-Id`, `X-User-Name`, and `X-User-Role` as a development-only fallback when enabled
+- Protected routes may still resolve request headers `X-User-Id` and `X-User-Name` as a development-only fallback when enabled
 - This mechanism is temporary and not the final documented auth contract
 
 ## 9. Minimal Auth Contract
@@ -222,7 +192,7 @@ Current documented auth endpoints:
 
 Current assumptions:
 - Session-based auth is the documented default contract.
-- One user model can support creator capability through a role field.
+- One authenticated user model supports both booking and event creation in the current baseline.
 - Final auth implementation details beyond the minimum contract remain undecided.
 
 Do not document as confirmed:
@@ -239,7 +209,7 @@ Do not document as confirmed:
 - `price >= 0`
 - `totalSlots >= 1`
 - `reservationOpenDateTime < eventDateTime`
-- Only creators can create events
+- Any authenticated user can create events
 
 ### 10.2 Booking Integrity
 - A sold-out event must reject additional bookings
@@ -248,11 +218,10 @@ Do not document as confirmed:
 - Booking detail must preserve price context through snapshots or equivalent fields
 
 ### 10.3 List Behavior
-- Discovery, bookings, and creator lists must support pagination
+- Discovery, bookings, and my-events lists must support pagination
 - The server should own derived sections such as trending, ending soon, and opening soon
 - Filtering and sorting rules must be documented in the API contract, not inferred only from UI code
 
-<<<<<<< HEAD
 ### 10.4 Backend Query Conventions
 - Spring Data JPA remains the base persistence layer
 - For dynamic filtering, search, sorting, or multi-condition list queries, prefer QueryDSL over JPA Specification
@@ -260,8 +229,6 @@ Do not document as confirmed:
 - Do not add new `JpaSpecificationExecutor` usage for feature work unless there is a documented exception
 - If a query approach changes, update the relevant engineering docs so the documented stack stays aligned with the implementation plan
 
-=======
->>>>>>> docs/baseline-alignment
 ## 11. Documentation Update Rules
 When scope or behavior changes:
 - Update `agent.md` if boundaries, priorities, terminology, or doc ownership change
@@ -367,8 +334,4 @@ Before considering a docs update complete, verify:
 - Unconfirmed features are labeled future scope
 - No queue-first or Kafka-first framing appears as the current product story
 - No duplicate or contradictory sections remain
-<<<<<<< HEAD
-- New contributors can identify where auth, event, booking, watchlist, and dashboard work belongs from this document alone
-=======
-- New contributors can identify where auth, event, booking, and watchlist work belongs from this document alone
->>>>>>> docs/baseline-alignment
+- New contributors can identify where auth, event, booking, watchlist, dashboard, and my-events work belongs from this document alone

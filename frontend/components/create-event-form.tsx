@@ -10,7 +10,7 @@ import { ApiErrorResponse, EventCreateRequestApi, EventCreateResponseApi } from 
 const categoryOptions = ["Concert", "Restaurant", "Art & Design", "Sports"] as const;
 
 const errorMessages: Record<string, string> = {
-  FORBIDDEN: "Creator 권한이 필요합니다. 현재 개발용 사용자 역할 설정을 확인해 주세요.",
+  FORBIDDEN: "이벤트를 생성할 수 없습니다. 현재 로그인 상태를 다시 확인해 주세요.",
   UNAUTHENTICATED: "임시 인증 정보가 없습니다. 프론트 개발용 사용자 설정을 확인해 주세요.",
   INVALID_SCHEDULE: "예약 오픈 시간은 이벤트 시간보다 이전이어야 합니다.",
   VALIDATION_ERROR: "입력값을 다시 확인해 주세요.",
@@ -146,7 +146,7 @@ export function CreateEventForm() {
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
           <section className="rounded-[28px] border border-border/70 bg-card/95 p-6 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.35)] sm:p-8">
             <div className="mb-8">
-              <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">Creator Studio</p>
+              <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">Event Studio</p>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">새 이벤트를 게시하세요</h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
                 프로토타입 기준 최소 입력만으로 공개 이벤트를 생성합니다. 저장이 끝나면 홈으로 이동하며, 예약 오픈 시간은 이벤트 시작보다 이전이어야 합니다.
@@ -305,7 +305,7 @@ export function CreateEventForm() {
               <div className="mt-5 space-y-4 text-sm text-muted-foreground">
                 <div className="flex gap-3">
                   <UserRoundPlus className="mt-0.5 h-4 w-4 text-primary" />
-                  <p>현재 임시 인증에서 `creator` 역할이어야 저장할 수 있습니다.</p>
+                  <p>현재 임시 인증에서는 로그인된 사용자라면 누구나 저장할 수 있습니다.</p>
                 </div>
                 <div className="flex gap-3">
                   <CalendarClock className="mt-0.5 h-4 w-4 text-primary" />

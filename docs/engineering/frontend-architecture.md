@@ -9,6 +9,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - `/reservation/[id]`
 - `/booking/[id]`
 - `/dashboard`
+- `/my-events`
 - `/create`
 - `/login`
 
@@ -16,15 +17,10 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - live route: `/`
 - live route: `/reservation/[id]`
 - live route: `/booking/[id]`
-<<<<<<< HEAD
 - live route: `/dashboard`
+- live route: `/my-events`
 - live route: `/create`
 - live route: `/login`
-=======
-- live route: `/create`
-- live route: `/login`
-- placeholder route: `/dashboard`
->>>>>>> docs/baseline-alignment
 
 ## Frontend Work Areas
 - `frontend/app`: route entry points
@@ -67,7 +63,6 @@ Frontend-visible fields:
 - `id`
 - `name`
 - `email`
-- `role`
 - optional avatar image
 
 ## Homepage Information Architecture
@@ -130,28 +125,32 @@ Current implementation keeps the reserve action as a direct API-backed booking s
 Current implementation status:
 - live route backed by dashboard summary data
 
-<<<<<<< HEAD
 Primary sections:
 - overview stats
 - recent bookings
 - opening-soon preview
 - watchlist preview
-- created-events preview
+- my-events quick link
 - quick context / actions
 
 Key UX states:
 - authenticated dashboard summary
-- creator dashboard with created-event preview
-- non-creator dashboard with empty created-events section
 - unauthenticated access redirected to `/login`
-=======
-Target sections:
-- overview
-- my reservations
-- created reservations
-- watchlist
-- quick actions
->>>>>>> docs/baseline-alignment
+
+## My Events Page
+Current implementation status:
+- live route backed by the created-events API
+
+Primary sections:
+- page header and description
+- create-event CTA
+- created-event card grid
+- pagination controls
+
+Key UX states:
+- authenticated list state
+- empty created-events state
+- unauthenticated access redirected to `/login`
 
 ## Booking Detail Page
 Current implementation status:
@@ -247,20 +246,14 @@ Required empty states:
 - booking creation request
 - booking detail request
 - create event request
-<<<<<<< HEAD
 - dashboard summary request
-=======
->>>>>>> docs/baseline-alignment
+- my-events request
 - watchlist mutation requests
 - same-origin proxy routes for login, logout, current-user bootstrap, bookings, and watchlist mutations
 - a server-side wrapper that can still inject the temporary development auth fallback
 
 ### Still Needed For Remaining Product Gaps
-<<<<<<< HEAD
-=======
-- dashboard summary request
->>>>>>> docs/baseline-alignment
-- creator events request
+- no additional my-events endpoint gaps in the current baseline
 
 ## Future Extension
 Waiting-room or polling UX may be added later for high-demand events, but it is not the primary frontend contract today.

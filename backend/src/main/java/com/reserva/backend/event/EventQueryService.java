@@ -12,6 +12,8 @@ import com.reserva.backend.event.model.EventCategory;
 import com.reserva.backend.event.model.EventStatus;
 import com.reserva.backend.event.model.EventVisibility;
 import com.reserva.backend.watchlist.WatchlistRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -69,6 +71,20 @@ public class EventQueryService {
         return toDetailResponse(event, currentUserProvider.getCurrentUserOrNull());
     }
 
+    public PageResponse<EventSummaryResponse> getMyEvents(int page, int size) {
+        CurrentUser currentUser = currentUserProvider.getCurrentUserOrThrow();
+        LocalDateTime now = LocalDateTime.now();
+        Page<EventEntity> myEvents = eventRepository.findByCreator_IdOrderByCreatedAtDesc(
+                currentUser.id(),
+                PageRequest.of(page - 1, size)
+        );
+        Set<String> watchlistedEventIds = resolveWatchlistedEventIds(myEvents.getContent(), currentUser);
+        List<EventSummaryResponse> items = myEvents.getContent().stream()
+                .map(event -> toSummaryResponse(event, watchlistedEventIds, now))
+                .toList();
+        return new PageResponse<>(items, page, size, myEvents.getTotalElements());
+    }
+
     private DiscoverySection parseSection(String rawSection) {
         if (rawSection == null || rawSection.isBlank()) {
             return DiscoverySection.DEFAULT;
@@ -106,8 +122,11 @@ public class EventQueryService {
     }
 
     private EventSummaryResponse toSummaryResponse(EventEntity event, Set<String> watchlistedEventIds) {
+        return toSummaryResponse(event, watchlistedEventIds, LocalDateTime.now());
+    }
+
+    private EventSummaryResponse toSummaryResponse(EventEntity event, Set<String> watchlistedEventIds, LocalDateTime now) {
         boolean watchlisted = watchlistedEventIds.contains(event.getId());
-        LocalDateTime now = LocalDateTime.now();
         return new EventSummaryResponse(
                 event.getId(),
                 event.getTitle(),

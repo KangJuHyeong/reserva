@@ -28,7 +28,7 @@ Migration rule:
 Purpose:
 - stores application users
 - supports authentication and current-user loading
-- supports creator capability through a role field
+- supports both booking and event creation through the same authenticated user model
 - backs the current session login contract without a separate auth table
 
 Recommended columns:
@@ -44,10 +44,11 @@ Recommended columns:
 Rules:
 - `email` is unique
 - `password_hash` stores a one-way password hash suitable for BCrypt verification
+- `role` remains a legacy column in the current schema and is not the active product-level permission contract
 
 ### events
 Purpose:
-- stores joinable event listings shown on the home page and event detail page
+- stores joinable event listings shown on the home page, event detail page, and my-events page
 
 Recommended columns:
 - `id`
@@ -169,7 +170,7 @@ The schema must support:
 - text search on title and location, or a search-friendly alternative
 - published and public event listing
 - bookings by user
-- events by creator
+- created events by user
 - watchlist counts
 - booking status counts
 

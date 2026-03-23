@@ -6,7 +6,6 @@ import com.reserva.backend.booking.model.BookingStatus;
 import com.reserva.backend.common.api.PageResponse;
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
-import com.reserva.backend.common.model.UserRole;
 import com.reserva.backend.common.security.CurrentUser;
 import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.event.EventEntity;
@@ -58,7 +57,7 @@ class BookingQueryServiceTest {
 
     @Test
     void getMyBookingsReturnsPagedBookingSummaries() {
-        CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson", UserRole.USER);
+        CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson");
         BookingEntity booking = booking("BK-2026-ABC12345", "usr_1", "evt_1", BookingStatus.CONFIRMED);
         EventEntity event = event("evt_1");
 
@@ -81,7 +80,7 @@ class BookingQueryServiceTest {
 
     @Test
     void getMyBookingsAppliesStatusFilter() {
-        CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson", UserRole.USER);
+        CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson");
 
         when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(currentUser);
         when(bookingRepository.findByUserIdAndStatusOrderByBookedAtDesc("usr_1", BookingStatus.CANCELLED, PageRequest.of(0, 20)))
@@ -96,7 +95,7 @@ class BookingQueryServiceTest {
 
     @Test
     void getMyBookingsThrowsValidationErrorForUnsupportedStatus() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson", UserRole.USER));
+        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
 
         assertThatThrownBy(() -> bookingQueryService.getMyBookings("pending", 1, 20))
                 .isInstanceOf(ApiException.class)
@@ -120,7 +119,7 @@ class BookingQueryServiceTest {
 
     @Test
     void getMyBookingDetailReturnsCurrentUsersBooking() {
-        CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson", UserRole.USER);
+        CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson");
         BookingEntity booking = booking("BK-2026-ABC12345", "usr_1", "evt_1", BookingStatus.CONFIRMED);
         EventEntity event = event("evt_1");
 
@@ -138,7 +137,7 @@ class BookingQueryServiceTest {
 
     @Test
     void getMyBookingDetailThrowsWhenBookingDoesNotExist() {
-        CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson", UserRole.USER);
+        CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson");
 
         when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(currentUser);
         when(bookingRepository.findByBookingCodeAndUserId("BK-2026-MISSING", "usr_1")).thenReturn(Optional.empty());
@@ -154,7 +153,7 @@ class BookingQueryServiceTest {
 
     @Test
     void getMyBookingDetailHidesOtherUsersBooking() {
-        CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson", UserRole.USER);
+        CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson");
 
         when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(currentUser);
         when(bookingRepository.findByBookingCodeAndUserId("BK-2026-OTHER", "usr_1")).thenReturn(Optional.empty());
@@ -185,7 +184,7 @@ class BookingQueryServiceTest {
         ReflectionTestUtils.setField(creator, "id", "usr_creator");
         ReflectionTestUtils.setField(creator, "displayName", "Jazz Collective NYC");
         ReflectionTestUtils.setField(creator, "profileImageUrl", "https://example.com/avatar.jpg");
-        ReflectionTestUtils.setField(creator, "role", UserRole.CREATOR);
+        ReflectionTestUtils.setField(creator, "role", com.reserva.backend.common.model.UserRole.CREATOR);
 
         EventInventoryEntity inventory = new EventInventoryEntity();
         ReflectionTestUtils.setField(inventory, "eventId", eventId);

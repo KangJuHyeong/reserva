@@ -153,8 +153,7 @@ Response `200 OK`:
   "user": {
     "id": "usr_123",
     "name": "Alex Johnson",
-    "email": "alex@example.com",
-    "role": "creator"
+    "email": "alex@example.com"
   }
 }
 ```
@@ -169,8 +168,7 @@ Response `200 OK`:
 {
   "id": "usr_123",
   "name": "Alex Johnson",
-  "email": "alex@example.com",
-  "role": "creator"
+  "email": "alex@example.com"
 }
 ```
 
@@ -306,17 +304,12 @@ Status:
 Response `200 OK`:
 - returns the `Booking Detail` shape
 
-## Dashboard And Creator APIs
+## Dashboard And My Event APIs
 
 ### GET /me/dashboard-summary
 Status:
-<<<<<<< HEAD
 - implemented now in the current backend baseline
 - current auth input is session-first, with the temporary development fallback when enabled
-=======
-- documented target contract
-- not yet implemented in the current backend baseline
->>>>>>> docs/baseline-alignment
 
 Response `200 OK`:
 ```json
@@ -353,8 +346,50 @@ Notes:
 
 ### GET /me/events
 Status:
-- documented target contract
-- not yet implemented in the current backend baseline
+- implemented now in the current backend baseline
+- current auth input is session-first, with the temporary development fallback when enabled
+
+Query parameters:
+- `page`
+- `size`
+
+Response `200 OK`:
+```json
+{
+  "items": [
+    {
+      "id": "evt_123",
+      "title": "Summer Jazz Night",
+      "imageUrl": "https://example.com/image.jpg",
+      "category": "Concert",
+      "price": 45,
+      "location": "Blue Note Jazz Club, NYC",
+      "eventDateTime": "2026-03-15T20:00:00Z",
+      "reservationOpenDateTime": "2026-03-08T10:00:00Z",
+      "totalSlots": 100,
+      "reservedSlots": 87,
+      "remainingSlots": 13,
+      "isWatchlisted": false,
+      "isTrending": true,
+      "isEndingSoon": false,
+      "isOpeningSoon": false,
+      "host": {
+        "id": "usr_123",
+        "name": "Alex Johnson",
+        "avatarUrl": null
+      }
+    }
+  ],
+  "page": 1,
+  "size": 12,
+  "total": 3
+}
+```
+
+Notes:
+- reuses the `Event Summary` shape for each item
+- returns only the authenticated user's created events
+- default ordering is newest-created first
 
 ### POST /events
 Status:
@@ -383,6 +418,9 @@ Response `201 Created`:
   "title": "New Event"
 }
 ```
+
+Notes:
+- any authenticated user can create events in the current product baseline
 
 ## Unconfirmed Auth Features
 The following are intentionally not defined in the current API contract:

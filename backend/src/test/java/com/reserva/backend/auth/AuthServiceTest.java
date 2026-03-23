@@ -61,7 +61,6 @@ class AuthServiceTest {
         assertThat(session).isNotNull();
         assertThat(session.getAttribute("AUTH_USER_ID")).isEqualTo("usr_123");
         assertThat(session.getAttribute("AUTH_USER_NAME")).isEqualTo("Alex Johnson");
-        assertThat(session.getAttribute("AUTH_USER_ROLE")).isEqualTo(UserRole.USER);
     }
 
     @Test
@@ -82,13 +81,13 @@ class AuthServiceTest {
 
     @Test
     void getCurrentUserLoadsEmailFromPersistence() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_123", "Alex Johnson", UserRole.USER));
+        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_123", "Alex Johnson"));
         when(userRepository.findById("usr_123")).thenReturn(Optional.of(user("usr_123", "alex@example.com", "Alex Johnson", UserRole.USER, "encoded")));
 
         CurrentUserResponse response = authService.getCurrentUser();
 
         assertThat(response.email()).isEqualTo("alex@example.com");
-        assertThat(response.role()).isEqualTo("user");
+        assertThat(response.name()).isEqualTo("Alex Johnson");
     }
 
     @Test

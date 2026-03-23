@@ -68,6 +68,14 @@ export function Navbar({ searchQuery, currentUser }: NavbarProps) {
         </div>
 
         <div className="flex items-center gap-3">
+          {currentUser ? (
+            <Link href="/my-events">
+              <Button variant="outline" className="gap-2">
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">My Events</span>
+              </Button>
+            </Link>
+          ) : null}
           <Link href="/create">
             <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus className="h-4 w-4" />

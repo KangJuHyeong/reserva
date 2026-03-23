@@ -43,7 +43,6 @@ function authHeadersForMode(includeDevAuth: boolean): Record<string, string> {
   return {
     "X-User-Id": readEnv("DEV_USER_ID") ?? "usr_123",
     "X-User-Name": readEnv("DEV_USER_NAME") ?? "Alex Johnson",
-    "X-User-Role": readEnv("DEV_USER_ROLE") ?? "user",
   };
 }
 

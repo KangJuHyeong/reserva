@@ -13,6 +13,8 @@ import com.reserva.backend.event.model.EventStatus;
 import com.reserva.backend.event.model.EventVisibility;
 import com.reserva.backend.user.UserEntity;
 import com.reserva.backend.watchlist.WatchlistRepository;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,7 +61,7 @@ class EventQueryServiceTest {
         EventEntity first = event("evt_1", LocalDateTime.now().plusDays(1));
         EventEntity second = event("evt_2", LocalDateTime.now().plusDays(2));
 
-        when(currentUserProvider.getCurrentUserOrNull()).thenReturn(new CurrentUser("usr_1", "Alex Johnson", UserRole.USER));
+        when(currentUserProvider.getCurrentUserOrNull()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.searchDiscoverableEvents(nullable(String.class), nullable(EventCategory.class), eq(DiscoverySection.DEFAULT), eq("usr_1"), any(LocalDateTime.class), eq(1), eq(20)))
                 .thenReturn(new EventRepositoryCustom.SearchResult(List.of(first, second), 2));
         when(watchlistRepository.findEventIdsByUserIdAndEventIdIn("usr_1", List.of("evt_1", "evt_2"))).thenReturn(Set.of("evt_2"));
@@ -76,7 +78,7 @@ class EventQueryServiceTest {
         EventEntity first = event("evt_1", LocalDateTime.now().plusDays(1));
         EventEntity second = event("evt_2", LocalDateTime.now().plusDays(2));
 
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson", UserRole.USER));
+        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.searchDiscoverableEvents(nullable(String.class), nullable(EventCategory.class), eq(DiscoverySection.WATCHLIST), eq("usr_1"), any(LocalDateTime.class), eq(1), eq(20)))
                 .thenReturn(new EventRepositoryCustom.SearchResult(List.of(second), 1));
 
@@ -126,13 +128,32 @@ class EventQueryServiceTest {
 
         when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.of(event));
-        when(currentUserProvider.getCurrentUserOrNull()).thenReturn(new CurrentUser("usr_1", "Alex Johnson", UserRole.USER));
+        when(currentUserProvider.getCurrentUserOrNull()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(watchlistRepository.existsByUserIdAndEventId("usr_1", "evt_1")).thenReturn(true);
 
         EventDetailResponse response = eventQueryService.getEventDetail("evt_1");
 
         assertThat(response.isWatchlisted()).isTrue();
         verify(watchlistRepository).existsByUserIdAndEventId("usr_1", "evt_1");
+    }
+
+    @Test
+    void getMyEventsReturnsPagedCurrentUsersEvents() {
+        EventEntity first = event("evt_created_1", LocalDateTime.now().plusDays(4));
+        EventEntity second = event("evt_created_2", LocalDateTime.now().plusDays(8));
+
+        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
+        when(eventRepository.findByCreator_IdOrderByCreatedAtDesc("usr_1", PageRequest.of(0, 20)))
+                .thenReturn(new PageImpl<>(List.of(first, second), PageRequest.of(0, 20), 2));
+        when(watchlistRepository.findEventIdsByUserIdAndEventIdIn("usr_1", List.of("evt_created_1", "evt_created_2")))
+                .thenReturn(Set.of("evt_created_2"));
+
+        PageResponse<EventSummaryResponse> response = eventQueryService.getMyEvents(1, 20);
+
+        assertThat(response.items()).hasSize(2);
+        assertThat(response.total()).isEqualTo(2);
+        assertThat(response.items().getFirst().id()).isEqualTo("evt_created_1");
+        assertThat(response.items().get(1).isWatchlisted()).isTrue();
     }
 
     private EventEntity event(String eventId, LocalDateTime eventDateTime) {
