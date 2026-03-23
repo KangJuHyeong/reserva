@@ -20,7 +20,7 @@ When repository documents conflict, use this order:
 8. `README.md`
 
 Rules:
-- `agent.md` owns repository operating rules, scope boundaries, and documentation ownership.
+- `agent.md` owns repository operating rules, scope boundaries, implementation priorities, and documentation ownership.
 - Product and engineering docs should define minimum safe contracts, not speculative platform scope.
 - If a topic is not part of the current product baseline and not required for safe implementation, keep it out of current scope.
 
@@ -71,9 +71,38 @@ Terminology:
 - `creator`: a user allowed to create and manage events
 - `watchlist`: a per-user saved-events collection
 
-## 5. Scope Boundaries
+## 5. Repository / Feature Map
+Use this section first when deciding where implementation work belongs.
 
-### 5.1 Current Scope
+### 5.1 Repository Entry Points
+- `backend`: Spring Boot API, domain logic, persistence, and migrations
+- `frontend`: Next.js App Router frontend and same-origin proxy routes
+- `docs`: product, engineering, and operations references
+- `prototype`: legacy design reference directory
+- `infra`: infrastructure-related work
+
+### 5.2 Backend Feature Packages
+- `backend/src/main/java/com/reserva/backend/auth`: login, logout, current-user session contract
+- `backend/src/main/java/com/reserva/backend/event`: event discovery, event detail, event creation, inventory access
+- `backend/src/main/java/com/reserva/backend/booking`: booking creation, my bookings list, booking detail
+- `backend/src/main/java/com/reserva/backend/watchlist`: watchlist persistence and mutations
+- `backend/src/main/java/com/reserva/backend/common`: shared API, error, and security support
+
+### 5.3 Frontend Work Areas
+- `frontend/app`: route entry points such as `/`, `/reservation/[id]`, `/booking/[id]`, `/create`, `/dashboard`, `/login`
+- `frontend/app/api`: same-origin proxy routes for auth and event mutations
+- `frontend/components`: page composition and interactive UI pieces
+- `frontend/lib/server`: backend fetch wrappers and server-side query helpers
+
+### 5.4 Current Gaps
+- Dashboard aggregation backend is not implemented yet
+- `/dashboard` remains a placeholder route
+- Creator-owned event listing `GET /me/events` is not implemented yet
+- Development auth header fallback is still temporary and not the final auth contract
+
+## 6. Scope Boundaries
+
+### 6.1 Current Scope
 Use for behavior already part of the current product baseline or directly required by visible pages.
 
 Examples:
@@ -85,7 +114,7 @@ Examples:
 - Minimal login flow
 - Watchlist behavior
 
-### 5.2 Minimum Inferred Backend Requirements
+### 6.2 Minimum Inferred Backend Requirements
 Use for requirements not directly visible in the UI but necessary to implement it safely.
 
 Examples:
@@ -97,7 +126,7 @@ Examples:
 - Duplicate booking prevention
 - Booking and watchlist persistence
 
-### 5.3 Future Scope
+### 6.3 Future Scope
 Use for ideas not yet confirmed for the current product baseline.
 
 Examples:
@@ -113,24 +142,48 @@ Examples:
 
 Do not move future scope into current scope without a visible product reason or explicit instruction.
 
-## 6. Current Implementation Priorities
+## 7. Current Implementation Priorities
 If implementation starts from this document, use this priority order:
 
-1. Event catalog and filtering
-2. Event detail contract
-3. Booking creation and inventory integrity
-4. My bookings and booking detail
-5. Watchlist persistence
-6. Creator event creation and creator-owned event listing
-7. Minimal auth contract
-8. Dashboard aggregation
+1. Documentation baseline alignment and contract consistency
+2. Dashboard aggregation and `/dashboard` activation
+3. Creator-owned event listing `GET /me/events`
+4. Auth temporary fallback cleanup
+5. Residual validation and test hardening
 
 Why this order:
-- The homepage and detail flows define the product.
-- Booking integrity is more important than cosmetic completeness.
-- Creator and dashboard features depend on auth and persisted event and booking data.
+- Event discovery, event detail, booking flows, watchlist persistence, event creation, and the minimum auth contract are already part of the current baseline.
+- The highest current risk is document drift between repo entry docs and the actual codebase.
+- Dashboard and creator-owned event listing are the largest remaining visible product gaps.
 
-## 7. Minimal Auth Contract
+## 8. Current Baseline
+Use `docs/product/implementation-status.md` for quick current-state checks.
+
+Current backend baseline:
+- Backend project exists in `backend`
+- Datasource configuration is driven by `backend/.env`
+- Spring Boot, MySQL, Flyway, and JPA are active
+- Implemented baseline features:
+  - auth login, me, and logout
+  - event discovery and filtering
+  - event detail
+  - event creation
+  - booking creation
+  - my bookings list and booking detail
+  - watchlist save and remove
+
+Current frontend baseline:
+- Frontend project exists in `frontend`
+- Live routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, `/create`, and `/login`
+- `/dashboard` remains a placeholder route
+- Same-origin proxy routes exist for login, logout, current-user bootstrap, bookings, and watchlist mutations
+
+Temporary implementation detail:
+- Current auth uses server-managed sessions for the documented minimum contract
+- Protected routes may still resolve request headers `X-User-Id`, `X-User-Name`, and `X-User-Role` as a development-only fallback when enabled
+- This mechanism is temporary and not the final documented auth contract
+
+## 9. Minimal Auth Contract
 Current documented auth endpoints:
 - `POST /auth/login`
 - `GET /me`
@@ -148,27 +201,27 @@ Do not document as confirmed:
 - Forgot password
 - Email verification
 
-## 8. Required Supporting Rules
+## 10. Required Supporting Rules
 
-### 8.1 Validation
+### 10.1 Validation
 - Event title, category, location, and description are required
 - `price >= 0`
 - `totalSlots >= 1`
 - `reservationOpenDateTime < eventDateTime`
 - Only creators can create events
 
-### 8.2 Booking Integrity
+### 10.2 Booking Integrity
 - A sold-out event must reject additional bookings
 - Duplicate booking protection must exist at application and DB levels
 - Slot decrement and booking creation must be handled atomically
 - Booking detail must preserve price context through snapshots or equivalent fields
 
-### 8.3 List Behavior
+### 10.3 List Behavior
 - Discovery, bookings, and creator lists must support pagination
 - The server should own derived sections such as trending, ending soon, and opening soon
 - Filtering and sorting rules must be documented in the API contract, not inferred only from UI code
 
-## 9. Documentation Update Rules
+## 11. Documentation Update Rules
 When scope or behavior changes:
 - Update `agent.md` if boundaries, priorities, terminology, or doc ownership change
 - Update `README.md` if the public-facing product summary, stack summary, or repo shape changes
@@ -181,7 +234,7 @@ When scope or behavior changes:
 
 Temporary implementation details must be labeled as `temporary` and must not be described as final architecture decisions.
 
-## 10. Implementation Workflow
+## 12. Implementation Workflow
 Default implementation mode is a full-stack feature slice.
 
 For any feature in current scope, use this order:
@@ -202,24 +255,7 @@ Default ownership rule:
 Reference:
 - Use `docs/operations/implementation-workflow.md` for the detailed workflow template and the watchlist example.
 
-## 11. Current Baseline
-Use `docs/product/implementation-status.md` for quick current-state checks.
-
-Current backend baseline:
-- Backend project exists in `backend`
-- Datasource configuration is driven by `backend/.env`
-- Spring Boot, MySQL, Flyway, and JPA are active
-
-Current frontend baseline:
-- Frontend project exists in `frontend`
-- Connected routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, and `/create`
-- `/dashboard` and `/login` remain placeholder routes
-
-Temporary implementation detail:
-- Current auth in code uses request headers `X-User-Id`, `X-User-Name`, and `X-User-Role`
-- This mechanism is temporary and not the final documented auth contract
-
-## 12. Testing Expectations
+## 13. Testing Expectations
 When backend code changes:
 - Run `backend\\gradlew.bat test`
 - Confirm the application starts successfully
@@ -237,13 +273,15 @@ When docs change:
 - Verify root docs and engineering docs do not contradict each other
 - Verify links resolve after moves or deletions
 - Verify each retained document has one clear audience
+- Verify priorities in `agent.md` and `docs/product/implementation-status.md` match
+- Verify route states in `docs/engineering/frontend-architecture.md` match `frontend/app`
 
-## 13. Repository Policy
+## 14. Repository Policy
 - Manage the root folder as a single monorepo
 - Keep `backend`, `frontend`, `docs`, `prototype`, and `infra` in the same repository while `prototype` remains a legacy reference directory
 - Only consider separate repositories later if ownership or deployment boundaries clearly require it
 
-## 14. Git Workflow Rules
+## 15. Git Workflow Rules
 Branching:
 - Start new work from the latest `main`
 - Use one branch per task or fix
@@ -269,14 +307,15 @@ Git hygiene:
 - Prefer small, reviewable pushes over large unstructured pushes
 - If a change introduces temporary behavior, document it clearly before merge
 
-## 15. Working Principles
+## 16. Working Principles
 - Prefer current product alignment over legacy document assumptions
 - Prefer minimum safe contracts over speculative platform design
 - Keep current scope and future scope clearly separated
 - Do not present placeholders as final architecture decisions
 - Favor consistent naming across all docs
+- Prefer feature-package discovery over broad cross-domain service expansion
 
-## 16. Review Checklist
+## 17. Review Checklist
 Before considering a docs update complete, verify:
 - All docs use `event`, `booking`, `creator`, and `watchlist` consistently
 - The documented route set matches the current product baseline
@@ -284,3 +323,4 @@ Before considering a docs update complete, verify:
 - Unconfirmed features are labeled future scope
 - No queue-first or Kafka-first framing appears as the current product story
 - No duplicate or contradictory sections remain
+- New contributors can identify where auth, event, booking, and watchlist work belongs from this document alone

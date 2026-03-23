@@ -2,9 +2,9 @@
 
 ## Summary
 - Current product mode: event reservation marketplace
-- Current implementation mode: backend phase-1 baseline with docs-first contracts
+- Current implementation mode: full-stack feature slices on a live backend baseline
 - Current repository workflow: branch + PR + merge on a root monorepo
-- Current implementation workflow: full-stack feature slices across docs, backend, frontend, and verification
+- Current documentation priority: align repo entry docs and engineering docs to the current codebase
 
 ## Implemented Now
 - Backend project exists in `backend`
@@ -38,26 +38,29 @@
   - `/booking/[id]`
   - `/create`
   - `/login`
-- Watchlist save/remove UI is connected on discovery cards and event detail
-- `/?view=Watchlist` now loads persisted watchlist items
-- Filtered catalog views now support paginated result navigation through the homepage query state
-- Derived discovery sections now validate supported values and return only matching events for the selected section
-- Placeholder frontend routes preserved for later work:
-  - `/dashboard`
+- Implemented product behaviors:
+  - event discovery with search, category filtering, derived sections, and pagination
+  - event detail with watchlist state and direct booking action
+  - booking creation with capacity checks and duplicate-booking protection
+  - my bookings list and booking detail
+  - watchlist save/remove on cards and event detail
+  - persisted watchlist loading through `/?view=Watchlist`
+  - creator-only event creation form and API
 - Database baseline exists through:
   - `V1__create_users.sql`
   - `V2__create_events_and_event_inventory.sql`
   - `V3__create_bookings.sql`
   - `V4__create_watchlists.sql`
 
-## Documented But Not Implemented
-- Creator-owned event listing endpoints
-- Dashboard aggregation endpoints
+## Not Implemented Yet
+- `GET /api/v1/me/dashboard-summary`
+- `GET /api/v1/me/events`
+- Live dashboard frontend backed by dashboard summary data
 
 ## Temporary
 - Current auth in code uses server-managed sessions for the implemented login contract
 - Implemented auth routes are session-first and match the documented minimum login, me, and logout contract
-- Protected route fallback in local development can still use request headers:
+- Protected routes may still resolve users from request headers during local development when the fallback is enabled:
   - `X-User-Id`
   - `X-User-Name`
   - `X-User-Role`
@@ -79,22 +82,30 @@
   - `/`
   - `/?view=Watchlist`
   - `/reservation/[id]`
+  - `/booking/[id]`
+  - `/create`
+  - `/login`
 - Minimum interaction checks to verify once local servers are running:
   - discovery list render
+  - filtered pagination
   - watchlist filter entry
   - card watchlist toggle
   - detail watchlist toggle
+  - booking submission
+  - login flow
   - unauthenticated watchlist state
 
 ## Next Priorities
-- Dashboard aggregation and dashboard frontend activation
-- Creator-owned event listing
-- Auth hardening beyond the minimum contract
+1. Documentation baseline alignment and contract consistency
+2. Dashboard aggregation and dashboard frontend activation
+3. Creator-owned event listing
+4. Auth temporary fallback cleanup
+5. Residual validation and test hardening
 
 Priority rationale:
-- Dashboard follows because `/dashboard` is still a placeholder route and depends on authenticated user summary data
-- Creator-owned event listing follows dashboard because it will likely support dashboard and creator flows, but it is less urgent as a standalone user-visible gap
-- Auth hardening remains later because the minimum session contract is now implemented, but the development fallback is still temporary
+- Core event, booking, watchlist, event creation, and minimum auth flows are already implemented in the current baseline.
+- The highest immediate risk is drift between `agent.md`, product status, and engineering docs.
+- Dashboard and creator-owned event listing remain the largest visible product gaps.
 
 ## Workflow Status
 - GitHub repository is connected

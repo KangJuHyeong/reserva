@@ -7,6 +7,9 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 ## Current System Responsibilities
 
 ### Auth Service
+Status:
+- implemented in the current backend baseline
+
 Responsibilities:
 - handle `POST /auth/login`
 - return current user from `GET /me`
@@ -21,23 +24,32 @@ Current temporary implementation:
 - `GET /me` returns the current authenticated user from the active session
 - `POST /auth/logout` invalidates the active session
 - protected routes can still resolve current-user from request headers `X-User-Id`, `X-User-Name`, `X-User-Role` only as a development fallback when enabled
-- this header path is a development-only temporary mechanism, not the final auth contract
+- this header-based fallback is temporary and not the final auth contract
 
 ### Event Catalog Service
+Status:
+- implemented in the current backend baseline
+
 Responsibilities:
 - list events for the home page
 - support search and category filtering
 - support pagination
-- provide server-owned derived sections such as trending, ending soon, and opening soon
+- provide server-owned derived sections such as trending, ending soon, opening soon, and watchlist
 - return watchlist state for the current user when authenticated
 
 ### Event Detail Service
+Status:
+- implemented in the current backend baseline
+
 Responsibilities:
 - return a single event by id
 - include event, host, inventory, and watchlist state needed by the detail screen
 - provide the current reservation-open datetime and current fill state
 
 ### Booking Service
+Status:
+- implemented in the current backend baseline
+
 Responsibilities:
 - create bookings from an event detail action
 - protect slot integrity under concurrent access
@@ -46,18 +58,31 @@ Responsibilities:
 - preserve booking snapshots needed for the confirmation page
 
 ### Watchlist Service
+Status:
+- implemented in the current backend baseline
+
 Responsibilities:
 - add an event to a user's watchlist
 - remove an event from a user's watchlist
 - support the homepage watchlist section and event-card watchlist toggles
 
 ### Creator Event Management Service
+Status:
+- partially implemented in the current backend baseline
+
 Responsibilities:
 - create events
 - validate creator-only access
 - list the current creator's events for dashboard use
 
+Current baseline:
+- event creation is implemented
+- creator-owned event listing remains a target capability
+
 ### Dashboard Aggregation
+Status:
+- target capability only
+
 Responsibilities:
 - aggregate counts and preview lists for dashboard overview
 - return my bookings summary
@@ -66,7 +91,7 @@ Responsibilities:
 
 ## Logical Components
 - Web frontend
-  - renders discovery, event detail, booking detail, dashboard, create, and login pages
+  - renders discovery, event detail, booking detail, create, login, and dashboard routes
 - API application
   - handles auth, events, bookings, watchlists, and creator actions
 - Relational database
@@ -83,14 +108,14 @@ Current backend baseline:
 
 Current frontend baseline:
 - Next.js App Router application in `frontend`
-- current connected frontend slice: discovery, event detail, booking creation, booking detail, and minimal login
-- current placeholder frontend route: dashboard
-- current implemented create-event route: `/create`
+- live routes: discovery, event detail, booking detail, create, and login
+- placeholder route: dashboard
+- same-origin proxy routes for login, logout, current-user bootstrap, booking, and watchlist mutations
 
 ## Request Flow Overview
 
 ### Browse Events
-1. Frontend requests the event list with search, category, and page inputs.
+1. Frontend requests the event list with search, category, section, and page inputs.
 2. API applies filters and derived-section rules.
 3. API returns event cards with inventory summary and watchlist state.
 
@@ -105,12 +130,15 @@ Current frontend baseline:
 3. API atomically decrements capacity and creates the booking.
 4. API returns a booking confirmation payload.
 
-Implementation note:
-- event list, event detail, booking creation, event creation, and booking query flows are currently implemented in the backend baseline
-- the frontend now uses same-origin proxy routes for login, logout, and current-user bootstrap
-- the first real frontend slice still consumes event, booking, and watchlist flows through a Next.js server-side backend wrapper with development auth fallback available
-- watchlist save and remove flows now work against session auth or the development fallback
-- dashboard and creator event listing remain target contract areas beyond the current temporary auth mechanism
+### Query My Bookings
+1. Authenticated user requests booking list or booking detail.
+2. API loads the user's booking records and related event data.
+3. Frontend renders the booking summary or detail page.
+
+### Save Or Remove Watchlist
+1. Authenticated user toggles watchlist state from discovery or detail.
+2. API validates the event and persists or removes the watchlist entry.
+3. Frontend updates watchlist state in place.
 
 ### Create Event
 1. Authenticated creator submits the create-event form.
@@ -122,6 +150,9 @@ Implementation note:
 1. Frontend requests user summary and supporting lists.
 2. API aggregates stats, bookings, watchlist, and creator-owned event data.
 3. Frontend renders dashboard sections using those summaries.
+
+Current note:
+- dashboard load remains a target request flow until `GET /me/dashboard-summary` and `GET /me/events` are implemented
 
 ## Inferred Backend Requirements
 
@@ -164,6 +195,7 @@ At minimum, the API must distinguish:
 - Keep event and booking terminology distinct
 - Prefer current-safe synchronous booking semantics over speculative async booking complexity
 - Derived UI sections should be owned by the server when business semantics matter
+- Keep service ownership aligned to feature domains rather than temporary task groupings
 
 ## Future-Only Extensions
 The following are future scope and must not be described as the current architecture contract:
