@@ -27,9 +27,12 @@ public final class EventSpecifications {
                 return null;
             }
             String pattern = "%" + rawQuery.trim().toLowerCase() + "%";
+            var creator = root.join("creator");
             return builder.or(
                     builder.like(builder.lower(root.get("title")), pattern),
-                    builder.like(builder.lower(root.get("location")), pattern)
+                    builder.like(builder.lower(root.get("description")), pattern),
+                    builder.like(builder.lower(root.get("location")), pattern),
+                    builder.like(builder.lower(creator.get("displayName")), pattern)
             );
         };
     }

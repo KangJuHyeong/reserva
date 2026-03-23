@@ -41,25 +41,21 @@ public class EventQueryService {
     }
 
     public PageResponse<EventSummaryResponse> getEvents(String query, String category, String section, int page, int size) {
+        DiscoverySection requestedSection = parseSection(section);
         Specification<EventEntity> specification = Specification.allOf(
                 EventSpecifications.discoverable(),
                 EventSpecifications.matchesQuery(query),
                 EventSpecifications.hasCategory(parseCategory(category))
         );
 
-        CurrentUser currentUser = "watchlist".equalsIgnoreCase(section)
+        CurrentUser currentUser = requestedSection == DiscoverySection.WATCHLIST
                 ? currentUserProvider.getCurrentUserOrThrow()
                 : currentUserProvider.getCurrentUserOrNull();
         List<EventEntity> events = eventRepository.findAll(specification);
+        LocalDateTime now = LocalDateTime.now();
         Set<String> watchlistedEventIds = resolveWatchlistedEventIds(events, currentUser);
-
-        if ("watchlist".equalsIgnoreCase(section)) {
-            events = events.stream()
-                    .filter(event -> watchlistedEventIds.contains(event.getId()))
-                    .toList();
-        }
-
-        List<EventEntity> sorted = sortBySection(events, section);
+        List<EventEntity> filtered = filterBySection(events, requestedSection, watchlistedEventIds, now);
+        List<EventEntity> sorted = sortBySection(filtered, requestedSection);
         int start = Math.max((page - 1) * size, 0);
         if (start >= sorted.size()) {
             return new PageResponse<>(List.of(), page, size, sorted.size());
@@ -78,6 +74,20 @@ public class EventQueryService {
         return toDetailResponse(event, currentUserProvider.getCurrentUserOrNull());
     }
 
+    private DiscoverySection parseSection(String rawSection) {
+        if (rawSection == null || rawSection.isBlank()) {
+            return DiscoverySection.DEFAULT;
+        }
+
+        return switch (rawSection.trim().toLowerCase(Locale.ROOT)) {
+            case "trending" -> DiscoverySection.TRENDING;
+            case "endingsoon" -> DiscoverySection.ENDING_SOON;
+            case "openingsoon" -> DiscoverySection.OPENING_SOON;
+            case "watchlist" -> DiscoverySection.WATCHLIST;
+            default -> throw new ApiException(ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, "Unsupported section: " + rawSection);
+        };
+    }
+
     private EventCategory parseCategory(String rawCategory) {
         if (rawCategory == null || rawCategory.isBlank()) {
             return null;
@@ -89,29 +99,39 @@ public class EventQueryService {
         }
     }
 
-    private List<EventEntity> sortBySection(List<EventEntity> events, String section) {
-        if (section == null || section.isBlank()) {
-            return events.stream()
-                    .sorted(Comparator.comparing(EventEntity::getEventDateTime))
+    private List<EventEntity> filterBySection(List<EventEntity> events,
+                                              DiscoverySection section,
+                                              Set<String> watchlistedEventIds,
+                                              LocalDateTime now) {
+        return switch (section) {
+            case TRENDING -> events.stream()
+                    .filter(this::isTrending)
                     .toList();
-        }
+            case ENDING_SOON -> events.stream()
+                    .filter(this::isEndingSoon)
+                    .toList();
+            case OPENING_SOON -> events.stream()
+                    .filter(event -> isOpeningSoon(event, now))
+                    .toList();
+            case WATCHLIST -> events.stream()
+                    .filter(event -> watchlistedEventIds.contains(event.getId()))
+                    .toList();
+            case DEFAULT -> events;
+        };
+    }
 
-        String normalized = section.toLowerCase(Locale.ROOT);
-        LocalDateTime now = LocalDateTime.now();
-
-        return switch (normalized) {
-            case "trending" -> events.stream()
+    private List<EventEntity> sortBySection(List<EventEntity> events, DiscoverySection section) {
+        return switch (section) {
+            case TRENDING -> events.stream()
                     .sorted(Comparator.comparingDouble(this::fillRate).reversed().thenComparing(EventEntity::getEventDateTime))
                     .toList();
-            case "endingsoon" -> events.stream()
+            case ENDING_SOON -> events.stream()
                     .sorted(Comparator.comparingInt(this::remainingSlots).thenComparing(EventEntity::getEventDateTime))
                     .toList();
-            case "openingsoon" -> events.stream()
-                    .filter(event -> event.getReservationOpenDateTime().isAfter(now))
+            case OPENING_SOON -> events.stream()
                     .sorted(Comparator.comparing(EventEntity::getReservationOpenDateTime))
                     .toList();
-            case "watchlist" -> events;
-            default -> events.stream()
+            case WATCHLIST, DEFAULT -> events.stream()
                     .sorted(Comparator.comparing(EventEntity::getEventDateTime))
                     .toList();
         };
@@ -130,6 +150,7 @@ public class EventQueryService {
 
     private EventSummaryResponse toSummaryResponse(EventEntity event, Set<String> watchlistedEventIds) {
         boolean watchlisted = watchlistedEventIds.contains(event.getId());
+        LocalDateTime now = LocalDateTime.now();
         return new EventSummaryResponse(
                 event.getId(),
                 event.getTitle(),
@@ -143,9 +164,9 @@ public class EventQueryService {
                 event.getInventory().getReservedSlots(),
                 remainingSlots(event),
                 watchlisted,
-                fillRate(event) >= 0.7,
-                remainingSlots(event) <= Math.max(5, (int) Math.ceil(event.getInventory().getTotalSlots() * 0.2)),
-                event.getReservationOpenDateTime().isAfter(LocalDateTime.now()),
+                isTrending(event),
+                isEndingSoon(event),
+                isOpeningSoon(event, now),
                 toHost(event)
         );
     }
@@ -186,7 +207,27 @@ public class EventQueryService {
         return (double) event.getInventory().getReservedSlots() / event.getInventory().getTotalSlots();
     }
 
+    private boolean isTrending(EventEntity event) {
+        return fillRate(event) >= 0.7;
+    }
+
+    private boolean isEndingSoon(EventEntity event) {
+        return remainingSlots(event) <= Math.max(5, (int) Math.ceil(event.getInventory().getTotalSlots() * 0.2));
+    }
+
+    private boolean isOpeningSoon(EventEntity event, LocalDateTime now) {
+        return event.getReservationOpenDateTime().isAfter(now);
+    }
+
     private OffsetDateTime toOffsetDateTime(LocalDateTime localDateTime) {
         return localDateTime.atOffset(ZoneOffset.UTC);
+    }
+
+    private enum DiscoverySection {
+        DEFAULT,
+        TRENDING,
+        ENDING_SOON,
+        OPENING_SOON,
+        WATCHLIST
     }
 }

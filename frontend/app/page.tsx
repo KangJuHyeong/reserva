@@ -32,15 +32,24 @@ function toEventQuery(category: Category) {
   }
 }
 
+function parsePage(value?: string) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    return 1;
+  }
+  return parsed;
+}
+
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; view?: string }>;
+  searchParams: Promise<{ q?: string; view?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const searchQuery = params.q?.trim() ?? "";
   const selectedCategory = parseCategory(params.view);
   const shouldUseDefaultSections = selectedCategory === "All" && !searchQuery;
+  const page = shouldUseDefaultSections ? 1 : parsePage(params.page);
   let currentUser = null;
 
   try {
@@ -52,13 +61,25 @@ export default async function Home({
   }
 
   if (selectedCategory === "Watchlist" && !devAuthEnabled()) {
-    return <HomePage searchQuery={searchQuery} selectedCategory={selectedCategory} items={[]} currentUser={currentUser} mode="watchlist_unauthenticated" />;
+    return (
+      <HomePage
+        searchQuery={searchQuery}
+        selectedCategory={selectedCategory}
+        items={[]}
+        currentUser={currentUser}
+        mode="watchlist_unauthenticated"
+        currentPage={1}
+        pageSize={20}
+        totalItems={0}
+      />
+    );
   }
 
   try {
     const response = await fetchEvents({
       q: searchQuery || undefined,
       ...toEventQuery(selectedCategory),
+      page,
       size: shouldUseDefaultSections ? 60 : 20,
     });
 
@@ -71,11 +92,25 @@ export default async function Home({
         items={items}
         currentUser={currentUser}
         mode={shouldUseDefaultSections ? "default" : "filtered"}
+        currentPage={response.page}
+        pageSize={response.size}
+        totalItems={response.total}
       />
     );
   } catch (error) {
     if (error instanceof BackendApiError && error.code === "UNAUTHENTICATED" && selectedCategory === "Watchlist") {
-      return <HomePage searchQuery={searchQuery} selectedCategory={selectedCategory} items={[]} currentUser={currentUser} mode="watchlist_unauthenticated" />;
+      return (
+        <HomePage
+          searchQuery={searchQuery}
+          selectedCategory={selectedCategory}
+          items={[]}
+          currentUser={currentUser}
+          mode="watchlist_unauthenticated"
+          currentPage={1}
+          pageSize={20}
+          totalItems={0}
+        />
+      );
     }
 
     throw error;

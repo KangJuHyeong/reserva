@@ -193,6 +193,12 @@ Query parameters:
 - `page`
 - `size`
 
+Query behavior:
+- `q` matches event title, description, location, and host name
+- `category` must be one of `Concert`, `Restaurant`, `Art & Design`, or `Sports`
+- `section` must be one of `trending`, `endingSoon`, `openingSoon`, or `watchlist`
+- invalid `category` or `section` values return `VALIDATION_ERROR`
+
 Response `200 OK`:
 ```json
 {
@@ -228,6 +234,7 @@ Response `200 OK`:
 
 Notes:
 - The server may compute `isTrending`, `isEndingSoon`, and `isOpeningSoon`.
+- `section=trending`, `section=endingSoon`, and `section=openingSoon` return only items that belong to that derived section.
 - The `watchlist` section requires authentication.
 
 ### GET /events/{eventId}
