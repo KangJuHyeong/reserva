@@ -18,8 +18,7 @@
 
 ## Auth Decisions
 - `Current target contract`: session-based auth remains the documented direction
-- `Current implementation`: backend auth is session-first for the documented login, me, and logout endpoints
-- `Temporary`: protected routes can still resolve users from request headers during local development when the fallback is enabled
+- `Current implementation`: backend auth uses the same session-first contract for login, me, logout, and protected routes
 - `Future / Not finalized`: final auth implementation details beyond the minimum contract remain undecided
 
 ## Documentation Decisions

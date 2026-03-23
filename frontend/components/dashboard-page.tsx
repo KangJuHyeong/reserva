@@ -174,7 +174,7 @@ export function DashboardPage({
               </div>
               <div className="mt-4 space-y-3 text-sm text-muted-foreground">
                 <p>This dashboard is session-aware and uses the same authenticated backend context as bookings and watchlist flows.</p>
-                <p>If development auth fallback is enabled locally, the dashboard can still bootstrap through the temporary user headers.</p>
+                <p>Protected data on this page now depends on the same session contract used by login, current-user bootstrap, and logout.</p>
               </div>
             </section>
           </div>

@@ -4,7 +4,6 @@ import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -15,12 +14,6 @@ public class CurrentUserProvider {
 
     static final String SESSION_USER_ID = "AUTH_USER_ID";
     static final String SESSION_USER_NAME = "AUTH_USER_NAME";
-
-    private final boolean devAuthHeadersEnabled;
-
-    public CurrentUserProvider(@Value("${app.dev.auth-headers-enabled:true}") boolean devAuthHeadersEnabled) {
-        this.devAuthHeadersEnabled = devAuthHeadersEnabled;
-    }
 
     public CurrentUser getCurrentUserOrThrow() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -40,17 +33,7 @@ public class CurrentUserProvider {
                 );
             }
         }
-
-        if (!devAuthHeadersEnabled) {
-            throw unauthenticated();
-        }
-
-        String userId = request.getHeader("X-User-Id");
-        if (userId == null || userId.isBlank()) {
-            throw unauthenticated();
-        }
-        String userName = request.getHeader("X-User-Name");
-        return new CurrentUser(userId, userName == null || userName.isBlank() ? "Guest User" : userName);
+        throw unauthenticated();
     }
 
     public CurrentUser getCurrentUserOrNull() {

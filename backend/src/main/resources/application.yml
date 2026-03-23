@@ -27,5 +27,4 @@ app:
   cors:
     allowed-origin: ${FRONTEND_ORIGIN:http://localhost:3000}
   dev:
-    auth-headers-enabled: ${DEV_AUTH_ENABLED:true}
     seed-demo-data: ${SEED_DEMO_DATA:false}

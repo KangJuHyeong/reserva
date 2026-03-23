@@ -50,6 +50,10 @@ public class BookingService {
     public BookingCreateResponse createBooking(String eventId, BookingCreateRequest request) {
         CurrentUser currentUser = currentUserProvider.getCurrentUserOrThrow();
 
+        if (request.ticketCount() < 1) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, "ticketCount must be at least 1");
+        }
+
         EventEntity event = eventRepository.findByIdAndStatusAndVisibility(eventId, EventStatus.PUBLISHED, EventVisibility.PUBLIC)
                 .orElseThrow(() -> new ApiException(ErrorCode.EVENT_NOT_FOUND, HttpStatus.NOT_FOUND, "The event was not found."));
 

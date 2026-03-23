@@ -152,14 +152,14 @@ Do not move out-of-scope items into current scope without a visible product reas
 ## 8. Current Priorities
 If implementation starts from this document, use this priority order:
 
-1. Auth temporary fallback cleanup
-2. Residual validation and test hardening
-3. IA polish and documentation follow-up tied to real UI changes
+1. Residual validation and test hardening
+2. IA polish tied to real route or data changes
+3. Documentation follow-up tied to real UI or contract changes
 
 Why this order:
 - Event discovery, event detail, booking flows, watchlist persistence, event creation, dashboard summary, and my-events listing are already part of the current baseline.
-- The largest remaining implementation risk is the temporary dev auth fallback.
-- Validation hardening is still more important than speculative IA expansion.
+- The temporary dev auth fallback has been removed from the current baseline.
+- Validation hardening is still more important than speculative IA expansion or documentation-only churn.
 
 ## 9. Baseline Snapshot
 
@@ -171,9 +171,7 @@ Why this order:
 - Live frontend routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, `/dashboard`, `/my-events`, `/create`, and `/login`
 
 ### 9.2 Temporary
-- Current auth uses server-managed sessions for the documented minimum contract
-- Protected routes may still resolve request headers `X-User-Id` and `X-User-Name` as a development-only fallback when enabled
-- This header fallback is temporary and not the final documented auth contract
+- No temporary auth fallback remains in the current baseline.
 
 ## 10. Minimal Auth Contract
 Current documented auth endpoints:

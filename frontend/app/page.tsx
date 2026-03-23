@@ -1,6 +1,6 @@
 import { HomePage } from "@/components/home-page";
 import { toEventSummaryViewModel } from "@/lib/mappers";
-import { BackendApiError, devAuthEnabled } from "@/lib/server/backend";
+import { BackendApiError } from "@/lib/server/backend";
 import { fetchCurrentUser, fetchEvents } from "@/lib/server/queries";
 import { Category } from "@/lib/types";
 
@@ -53,14 +53,14 @@ export default async function Home({
   let currentUser = null;
 
   try {
-    currentUser = await fetchCurrentUser({ includeDevAuth: false });
+    currentUser = await fetchCurrentUser();
   } catch (error) {
     if (!(error instanceof BackendApiError) || error.code !== "UNAUTHENTICATED") {
       throw error;
     }
   }
 
-  if (selectedCategory === "Watchlist" && !devAuthEnabled()) {
+  if (selectedCategory === "Watchlist" && currentUser == null) {
     return (
       <HomePage
         searchQuery={searchQuery}

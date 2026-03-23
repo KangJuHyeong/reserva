@@ -35,16 +35,14 @@ export async function fetchBookingDetail(bookingId: string) {
   return fetchBackendJson<BookingDetailApi>(`/api/v1/me/bookings/${bookingId}`);
 }
 
-export async function fetchCurrentUser(options?: { includeDevAuth?: boolean }) {
+export async function fetchCurrentUser() {
   return fetchBackendJson<CurrentUserApi>("/api/v1/me", undefined, {
-    includeDevAuth: options?.includeDevAuth ?? true,
     includeIncomingCookies: true,
   });
 }
 
-export async function fetchDashboardSummary(options?: { includeDevAuth?: boolean }) {
+export async function fetchDashboardSummary() {
   return fetchBackendJson<DashboardSummaryApi>("/api/v1/me/dashboard-summary", undefined, {
-    includeDevAuth: options?.includeDevAuth ?? true,
     includeIncomingCookies: true,
   });
 }
@@ -52,14 +50,12 @@ export async function fetchDashboardSummary(options?: { includeDevAuth?: boolean
 export async function fetchMyEvents(params?: {
   page?: number;
   size?: number;
-  includeDevAuth?: boolean;
 }) {
   const search = new URLSearchParams();
   search.set("page", String(params?.page ?? 1));
   search.set("size", String(params?.size ?? 12));
 
   return fetchBackendJson<PageResponse<EventSummaryApi>>(`/api/v1/me/events?${search.toString()}`, undefined, {
-    includeDevAuth: params?.includeDevAuth ?? true,
     includeIncomingCookies: true,
   });
 }

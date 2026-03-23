@@ -9,12 +9,12 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 ### Current
 - The system currently runs around `frontend`, `backend`, and a relational database.
 - The main user-visible flows in scope are discovery, event detail, booking, watchlist, dashboard, my-events, create, and login.
+- Authentication uses the same session-first contract across login, me, logout, and protected routes.
 
 ### Temporary
-- Authentication is session-first, but a request-header-based fallback still remains in some protected flows during local development.
+- No temporary auth fallback remains in the current baseline.
 
 ### Target
-- Converge all authenticated flows on the same session contract and remove the development-only fallback.
 - Keep the current route split where dashboard remains a summary workspace and my-events remains the created-events workspace.
 
 ### Out Of Scope
@@ -71,9 +71,6 @@ Current:
 - `GET /me`
 - `POST /auth/logout`
 - expose the current user identity to the rest of the system
-
-Temporary:
-- `X-User-Id` and `X-User-Name` fallback still exists in local development
 
 ### Event Catalog
 Current:

@@ -5,7 +5,7 @@ import { fetchCurrentUser } from "@/lib/server/queries";
 
 export default async function LoginPage() {
   try {
-    await fetchCurrentUser({ includeDevAuth: false });
+    await fetchCurrentUser();
     redirect("/");
   } catch (error) {
     if (!(error instanceof BackendApiError) || error.code !== "UNAUTHENTICATED") {
