@@ -10,7 +10,7 @@ Use `docs/product/implementation-status.md` for implementation coverage and `age
 - The auth, event, booking, watchlist, dashboard, my-events, and create APIs documented here are part of the current baseline.
 
 ### Temporary
-- Authentication is session-first, but protected routes may still use the development-only header fallback when `DEV_AUTH_ENABLED=true` in local development.
+- No temporary auth fallback remains in the current baseline.
 
 ### Target
 - Converge protected API authentication on the session contract only.
@@ -33,10 +33,9 @@ Use `docs/product/implementation-status.md` for implementation coverage and `age
 Current:
 - session-based authentication
 
-Temporary:
+Current:
 - the backend authenticates documented auth endpoints through server-managed sessions
-- during local development, protected routes may resolve the user from request headers when `DEV_AUTH_ENABLED=true`
-- this header-based fallback is temporary and must not be treated as the final auth design
+- protected routes use the same session contract as login, me, and logout
 
 ### Common Error Shape
 ```json

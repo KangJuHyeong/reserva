@@ -104,7 +104,7 @@ export function LoginForm() {
               <h2 className="text-lg font-semibold text-foreground">현재 동작</h2>
               <div className="mt-5 space-y-4 text-sm text-muted-foreground">
                 <p>로그인 성공 시 백엔드 세션이 생성되고 이후 보호 API는 세션을 우선 사용합니다.</p>
-                <p>개발 환경에서는 필요할 때만 임시 헤더 fallback이 유지됩니다.</p>
+                <p>보호된 API는 개발 환경에서도 세션 기준으로만 인증됩니다.</p>
                 <p>로그아웃하면 세션이 무효화되고 `GET /me`는 다시 미인증 상태를 반환합니다.</p>
               </div>
             </div>

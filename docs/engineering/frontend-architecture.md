@@ -32,7 +32,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - Category and mode changes are query-string driven through `view`.
 
 ### Temporary
-- The frontend server wrapper can still inject development auth headers when `DEV_AUTH_ENABLED=true`.
+- No temporary auth fallback remains in the current frontend baseline.
 
 ### Target
 - Keep the current split between discovery shell and account workspace pages.
@@ -335,7 +335,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - same-origin proxy routes for login, logout, current-user bootstrap, bookings, and watchlist mutations
 
 ### Temporary
-- the server-side backend wrapper can still inject the temporary development auth fallback
+- no temporary development auth headers are injected by the server-side backend wrapper
 
 ### Target
 - keep route-to-data ownership simple and page-local

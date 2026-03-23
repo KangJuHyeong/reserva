@@ -19,31 +19,8 @@ function backendBaseUrl() {
   return readEnv("BACKEND_BASE_URL") ?? DEFAULT_BACKEND_BASE_URL;
 }
 
-export function devAuthEnabled() {
-  return readEnv("DEV_AUTH_ENABLED") !== "false";
-}
-
 function readEnv(name: string) {
   return Reflect.get(process.env, name) as string | undefined;
-}
-
-function authHeaders(): Record<string, string> {
-  return authHeadersForMode(true);
-}
-
-function authHeadersForMode(includeDevAuth: boolean): Record<string, string> {
-  if (!includeDevAuth) {
-    return {};
-  }
-
-  if (!devAuthEnabled()) {
-    return {};
-  }
-
-  return {
-    "X-User-Id": readEnv("DEV_USER_ID") ?? "usr_123",
-    "X-User-Name": readEnv("DEV_USER_NAME") ?? "Alex Johnson",
-  };
 }
 
 async function incomingCookiesHeader() {
@@ -56,11 +33,10 @@ async function mergeHeaders(
   headers?: HeadersInit,
   includeJsonContentType = false,
   options?: {
-    includeDevAuth?: boolean;
     includeIncomingCookies?: boolean;
   }
 ) {
-  const merged = new Headers(authHeadersForMode(options?.includeDevAuth ?? true));
+  const merged = new Headers();
 
   if (options?.includeIncomingCookies) {
     const cookieHeader = await incomingCookiesHeader();
@@ -85,7 +61,6 @@ export async function fetchBackendJson<T>(
   path: string,
   init?: RequestInit,
   options?: {
-    includeDevAuth?: boolean;
     includeIncomingCookies?: boolean;
   }
 ): Promise<T> {
@@ -104,7 +79,7 @@ export async function fetchBackendJson<T>(
       errorCode = payload.code;
       message = payload.message;
     } catch {
-      // Keep fallback error.
+      // Preserve the generic transport error when the response body is not JSON.
     }
 
     throw new BackendApiError(response.status, errorCode, message);
@@ -116,16 +91,11 @@ export async function fetchBackendJson<T>(
 export async function proxyBackend(
   request: Request,
   path: string,
-  method: string,
-  options?: {
-    includeDevAuth?: boolean;
-  }
+  method: string
 ) {
   const body = method === "GET" || method === "HEAD" ? undefined : await request.text();
   const requestHeaders = new Headers(request.headers);
-  const mergedHeaders = await mergeHeaders(undefined, !!body, {
-    includeDevAuth: options?.includeDevAuth ?? true,
-  });
+  const mergedHeaders = await mergeHeaders(undefined, !!body);
   const cookieHeader = requestHeaders.get("cookie");
   if (cookieHeader) {
     mergedHeaders.set("Cookie", cookieHeader);

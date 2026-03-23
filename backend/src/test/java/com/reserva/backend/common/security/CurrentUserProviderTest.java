@@ -19,13 +19,11 @@ class CurrentUserProviderTest {
     }
 
     @Test
-    void sessionUserTakesPrecedenceOverHeaderFallback() {
-        CurrentUserProvider provider = new CurrentUserProvider(true);
+    void sessionUserIsReturnedWithoutHeaders() {
+        CurrentUserProvider provider = new CurrentUserProvider();
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.getSession(true).setAttribute("AUTH_USER_ID", "usr_session");
         request.getSession().setAttribute("AUTH_USER_NAME", "Session User");
-        request.addHeader("X-User-Id", "usr_header");
-        request.addHeader("X-User-Name", "Header User");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
         CurrentUser currentUser = provider.getCurrentUserOrThrow();
@@ -35,24 +33,20 @@ class CurrentUserProviderTest {
     }
 
     @Test
-    void headerFallbackWorksWhenEnabledAndSessionMissing() {
-        CurrentUserProvider provider = new CurrentUserProvider(true);
+    void getCurrentUserOrNullReturnsNullWhenSessionIsMissing() {
+        CurrentUserProvider provider = new CurrentUserProvider();
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.addHeader("X-User-Id", "usr_header");
-        request.addHeader("X-User-Name", "Header User");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
-        CurrentUser currentUser = provider.getCurrentUserOrThrow();
-
-        assertThat(currentUser.id()).isEqualTo("usr_header");
-        assertThat(currentUser.name()).isEqualTo("Header User");
+        assertThat(provider.getCurrentUserOrNull()).isNull();
     }
 
     @Test
-    void missingSessionAndDisabledHeadersIsUnauthenticated() {
-        CurrentUserProvider provider = new CurrentUserProvider(false);
+    void missingSessionIsUnauthenticatedEvenWhenHeadersExist() {
+        CurrentUserProvider provider = new CurrentUserProvider();
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("X-User-Id", "usr_header");
+        request.addHeader("X-User-Name", "Header User");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
         assertThatThrownBy(provider::getCurrentUserOrThrow)

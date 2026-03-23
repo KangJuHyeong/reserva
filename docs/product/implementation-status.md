@@ -61,17 +61,9 @@
   - `V4__create_watchlists.sql`
 
 ## Temporary
-- Current auth uses server-managed sessions for the implemented login contract.
-- Implemented auth routes are session-first and match the documented minimum login, me, and logout contract.
-- Protected routes may still resolve users from request headers during local development when the fallback is enabled:
-  - `X-User-Id`
-  - `X-User-Name`
-- This header-based path is a temporary local-development mechanism, not the final auth contract.
-- The frontend server-side backend wrapper can still inject the same temporary development headers when `DEV_AUTH_ENABLED=true`.
-- Backend local CORS allowed origin defaults to `http://localhost:3000`.
+- No temporary auth fallback remains in the current baseline.
 
 ## Target
-- Remove the development auth header fallback so authenticated pages depend on the same session contract in every environment.
 - Keep `/dashboard` as a summary page and `/my-events` as the dedicated created-events workspace instead of collapsing both responsibilities into one route.
 - Continue using `prototype` only as comparison input and promote only the parts that improve clarity, hierarchy, or task flow over the live UI.
 - Keep page documentation in a fixed IA format:
@@ -95,9 +87,8 @@
 ## Verification Readiness
 - Playwright E2E is runnable once local frontend and backend are started with the expected dev settings.
 - Backend demo seed can be enabled with `SEED_DEMO_DATA=true`.
-- Frontend development auth header injection can be disabled with `DEV_AUTH_ENABLED=false`.
 - Minimal session login can be verified with `alex@example.com / dev-password` and `creator@example.com / dev-password` when demo seed is enabled.
-- When frontend dev auth is disabled, `/?view=Watchlist` should render the explicit unauthenticated state instead of attempting authenticated watchlist loading.
+- When no authenticated session exists, `/?view=Watchlist` should render the explicit unauthenticated state instead of attempting authenticated watchlist loading.
 - Stable demo event ids when demo data is enabled:
   - `evt_demo_jazz`
   - `evt_demo_art`
@@ -112,11 +103,11 @@
   - `/login`
 
 ## Next Priorities
-1. Auth temporary fallback cleanup
-2. Residual validation and test hardening
-3. IA polish tied to real route or data changes
+1. Residual validation and test hardening
+2. IA polish tied to real route or data changes
+3. Documentation follow-up tied to real UI or contract changes
 
 Priority rationale:
 - Core event, booking, watchlist, dashboard, event creation, and my-events flows are already implemented in the current baseline.
-- The highest remaining implementation risk is the temporary development auth fallback.
-- IA follow-up work should stay attached to real UI changes instead of drifting into speculative redesign.
+- The temporary development auth fallback has been removed, so the remaining implementation risk is concentrated in validation and regression hardening.
+- IA and documentation follow-up should stay attached to real UI or contract changes instead of drifting into speculative redesign.
