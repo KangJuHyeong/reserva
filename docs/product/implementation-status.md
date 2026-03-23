@@ -74,6 +74,7 @@
 - Seeded stable demo event ids when demo data is enabled:
   - `evt_demo_jazz`
   - `evt_demo_art`
+- Demo seed now expands the catalog with additional themed events across concert, restaurant, art & design, and sports
 - Minimum routes to verify once local servers are running:
   - `/`
   - `/?view=Watchlist`
