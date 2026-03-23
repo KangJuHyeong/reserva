@@ -12,14 +12,12 @@ import com.reserva.backend.event.model.EventCategory;
 import com.reserva.backend.event.model.EventStatus;
 import com.reserva.backend.event.model.EventVisibility;
 import com.reserva.backend.watchlist.WatchlistRepository;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -42,30 +40,27 @@ public class EventQueryService {
 
     public PageResponse<EventSummaryResponse> getEvents(String query, String category, String section, int page, int size) {
         DiscoverySection requestedSection = parseSection(section);
-        Specification<EventEntity> specification = Specification.allOf(
-                EventSpecifications.discoverable(),
-                EventSpecifications.matchesQuery(query),
-                EventSpecifications.hasCategory(parseCategory(category))
-        );
-
         CurrentUser currentUser = requestedSection == DiscoverySection.WATCHLIST
                 ? currentUserProvider.getCurrentUserOrThrow()
                 : currentUserProvider.getCurrentUserOrNull();
-        List<EventEntity> events = eventRepository.findAll(specification);
         LocalDateTime now = LocalDateTime.now();
-        Set<String> watchlistedEventIds = resolveWatchlistedEventIds(events, currentUser);
-        List<EventEntity> filtered = filterBySection(events, requestedSection, watchlistedEventIds, now);
-        List<EventEntity> sorted = sortBySection(filtered, requestedSection);
-        int start = Math.max((page - 1) * size, 0);
-        if (start >= sorted.size()) {
-            return new PageResponse<>(List.of(), page, size, sorted.size());
-        }
-
-        int end = Math.min(start + size, sorted.size());
-        List<EventSummaryResponse> items = sorted.subList(start, end).stream()
+        EventRepositoryCustom.SearchResult searchResult = eventRepository.searchDiscoverableEvents(
+                query,
+                parseCategory(category),
+                requestedSection,
+                currentUser == null ? null : currentUser.id(),
+                now,
+                page,
+                size
+        );
+        List<EventEntity> events = searchResult.events();
+        Set<String> watchlistedEventIds = requestedSection == DiscoverySection.WATCHLIST
+                ? events.stream().map(EventEntity::getId).collect(java.util.stream.Collectors.toSet())
+                : resolveWatchlistedEventIds(events, currentUser);
+        List<EventSummaryResponse> items = events.stream()
                 .map(event -> toSummaryResponse(event, watchlistedEventIds))
                 .toList();
-        return new PageResponse<>(items, page, size, sorted.size());
+        return new PageResponse<>(items, page, size, searchResult.total());
     }
 
     public EventDetailResponse getEventDetail(String eventId) {
@@ -97,44 +92,6 @@ public class EventQueryService {
         } catch (IllegalArgumentException exception) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, "Unsupported category: " + rawCategory);
         }
-    }
-
-    private List<EventEntity> filterBySection(List<EventEntity> events,
-                                              DiscoverySection section,
-                                              Set<String> watchlistedEventIds,
-                                              LocalDateTime now) {
-        return switch (section) {
-            case TRENDING -> events.stream()
-                    .filter(this::isTrending)
-                    .toList();
-            case ENDING_SOON -> events.stream()
-                    .filter(this::isEndingSoon)
-                    .toList();
-            case OPENING_SOON -> events.stream()
-                    .filter(event -> isOpeningSoon(event, now))
-                    .toList();
-            case WATCHLIST -> events.stream()
-                    .filter(event -> watchlistedEventIds.contains(event.getId()))
-                    .toList();
-            case DEFAULT -> events;
-        };
-    }
-
-    private List<EventEntity> sortBySection(List<EventEntity> events, DiscoverySection section) {
-        return switch (section) {
-            case TRENDING -> events.stream()
-                    .sorted(Comparator.comparingDouble(this::fillRate).reversed().thenComparing(EventEntity::getEventDateTime))
-                    .toList();
-            case ENDING_SOON -> events.stream()
-                    .sorted(Comparator.comparingInt(this::remainingSlots).thenComparing(EventEntity::getEventDateTime))
-                    .toList();
-            case OPENING_SOON -> events.stream()
-                    .sorted(Comparator.comparing(EventEntity::getReservationOpenDateTime))
-                    .toList();
-            case WATCHLIST, DEFAULT -> events.stream()
-                    .sorted(Comparator.comparing(EventEntity::getEventDateTime))
-                    .toList();
-        };
     }
 
     private Set<String> resolveWatchlistedEventIds(List<EventEntity> events, CurrentUser currentUser) {
@@ -223,11 +180,4 @@ public class EventQueryService {
         return localDateTime.atOffset(ZoneOffset.UTC);
     }
 
-    private enum DiscoverySection {
-        DEFAULT,
-        TRENDING,
-        ENDING_SOON,
-        OPENING_SOON,
-        WATCHLIST
-    }
 }

@@ -6,7 +6,10 @@ The repository contains the frontend, backend, and supporting documentation for 
 
 ## Stack
 - Frontend: Next.js App Router, React, TypeScript, Tailwind CSS
-- Backend: Spring Boot, MySQL, Flyway, JPA
+- Backend: Spring Boot, MySQL, Flyway, Spring Data JPA
+
+Backend query convention:
+- Dynamic query composition is documented to move toward QueryDSL for new or refactored multi-condition read queries
 
 ## Repository Layout
 - `frontend`: Next.js application

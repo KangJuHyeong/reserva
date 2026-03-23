@@ -76,6 +76,8 @@ Responsibilities:
 
 Current backend baseline:
 - Spring Boot API application
+- Spring Data JPA for persistence
+- QueryDSL as the preferred dynamic-query direction for repository query composition
 - MySQL relational database
 - Flyway-managed schema migrations
 - `backend/.env`-driven datasource configuration
@@ -91,8 +93,12 @@ Current frontend baseline:
 
 ### Browse Events
 1. Frontend requests the event list with search, category, and page inputs.
-2. API applies filters and derived-section rules.
+2. API applies filters and derived-section rules through the event query layer.
 3. API returns event cards with inventory summary and watchlist state.
+
+Implementation note:
+- The current event catalog query still uses JPA Specification in code.
+- For new or expanded dynamic query composition, the preferred repository direction is QueryDSL-backed query code rather than adding more Specification chains.
 
 ### View Event Detail
 1. Frontend requests an event by id.

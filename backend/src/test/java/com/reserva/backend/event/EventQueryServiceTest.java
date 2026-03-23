@@ -29,6 +29,9 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -57,8 +60,8 @@ class EventQueryServiceTest {
         EventEntity second = event("evt_2", LocalDateTime.now().plusDays(2));
 
         when(currentUserProvider.getCurrentUserOrNull()).thenReturn(new CurrentUser("usr_1", "Alex Johnson", UserRole.USER));
-        when(eventRepository.findAll(org.mockito.ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<EventEntity>>any()))
-                .thenReturn(List.of(first, second));
+        when(eventRepository.searchDiscoverableEvents(nullable(String.class), nullable(EventCategory.class), eq(DiscoverySection.DEFAULT), eq("usr_1"), any(LocalDateTime.class), eq(1), eq(20)))
+                .thenReturn(new EventRepositoryCustom.SearchResult(List.of(first, second), 2));
         when(watchlistRepository.findEventIdsByUserIdAndEventIdIn("usr_1", List.of("evt_1", "evt_2"))).thenReturn(Set.of("evt_2"));
 
         PageResponse<EventSummaryResponse> response = eventQueryService.getEvents(null, null, null, 1, 20);
@@ -74,9 +77,8 @@ class EventQueryServiceTest {
         EventEntity second = event("evt_2", LocalDateTime.now().plusDays(2));
 
         when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson", UserRole.USER));
-        when(eventRepository.findAll(org.mockito.ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<EventEntity>>any()))
-                .thenReturn(List.of(first, second));
-        when(watchlistRepository.findEventIdsByUserIdAndEventIdIn("usr_1", List.of("evt_1", "evt_2"))).thenReturn(Set.of("evt_2"));
+        when(eventRepository.searchDiscoverableEvents(nullable(String.class), nullable(EventCategory.class), eq(DiscoverySection.WATCHLIST), eq("usr_1"), any(LocalDateTime.class), eq(1), eq(20)))
+                .thenReturn(new EventRepositoryCustom.SearchResult(List.of(second), 1));
 
         PageResponse<EventSummaryResponse> response = eventQueryService.getEvents(null, null, "watchlist", 1, 20);
 
@@ -88,11 +90,10 @@ class EventQueryServiceTest {
     @Test
     void getEventsReturnsOnlyTrendingSectionItems() {
         EventEntity first = event("evt_1", LocalDateTime.now().plusDays(1), 100, 75, LocalDateTime.now().minusDays(1), "Creator One");
-        EventEntity second = event("evt_2", LocalDateTime.now().plusDays(2), 100, 20, LocalDateTime.now().minusDays(1), "Creator Two");
 
         when(currentUserProvider.getCurrentUserOrNull()).thenReturn(null);
-        when(eventRepository.findAll(org.mockito.ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<EventEntity>>any()))
-                .thenReturn(List.of(first, second));
+        when(eventRepository.searchDiscoverableEvents(nullable(String.class), nullable(EventCategory.class), eq(DiscoverySection.TRENDING), nullable(String.class), any(LocalDateTime.class), eq(1), eq(20)))
+                .thenReturn(new EventRepositoryCustom.SearchResult(List.of(first), 1));
 
         PageResponse<EventSummaryResponse> response = eventQueryService.getEvents(null, null, "trending", 1, 20);
 
@@ -119,6 +120,7 @@ class EventQueryServiceTest {
                 .satisfies(exception -> assertThat(((ApiException) exception).getErrorCode()).isEqualTo(ErrorCode.VALIDATION_ERROR));
     }
 
+    @Test
     void getEventDetailReflectsWatchlistState() {
         EventEntity event = event("evt_1", LocalDateTime.now().plusDays(1));
 

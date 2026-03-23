@@ -15,6 +15,7 @@
   - MySQL
   - Flyway
   - JPA
+  - QueryDSL not yet configured in the current build
 - Current frontend stack in use:
   - Next.js App Router
   - React
@@ -64,6 +65,8 @@
 - This header path is a temporary local-development mechanism, not the final auth contract
 - Current frontend server-side backend wrapper can still inject the same temporary development headers when `DEV_AUTH_ENABLED=true`
 - Current backend local CORS allowed origin defaults to `http://localhost:3000`
+- Current event discovery dynamic filtering is implemented with JPA Specification
+- Dynamic query work is expected to move toward QueryDSL for future refactors and new multi-condition queries
 
 ## Playwright Readiness
 - Playwright E2E is runnable once local frontend and backend are started with the expected dev settings

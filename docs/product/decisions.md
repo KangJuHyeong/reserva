@@ -10,6 +10,9 @@
 - `Current`: MySQL is the relational database baseline
 - `Current`: Flyway manages schema versioning
 - `Current`: JPA is the current persistence approach
+- `Current`: simple fixed-condition lookups may use standard Spring Data JPA repository methods
+- `Current target`: QueryDSL is the preferred approach for new or refactored dynamic query composition
+- `Temporary`: some current dynamic event discovery queries still use JPA Specification and are candidates for QueryDSL migration
 - `Current`: datasource configuration is driven by `backend/.env`
 - `Current`: local backend CORS allowed origin defaults to `http://localhost:3000`
 

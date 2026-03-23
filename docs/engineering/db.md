@@ -173,6 +173,11 @@ The schema must support:
 - watchlist counts
 - booking status counts
 
+Query-layer convention:
+- Keep simple primary-key and fixed-predicate lookups in standard Spring Data JPA repository methods
+- Prefer QueryDSL for dynamic filtering, optional predicates, join-heavy list queries, and section-specific ordering rules
+- Treat JPA Specification as legacy or exception-based within this repository unless a documented reason requires it
+
 ## Recommended Indexes
 - `users(email)` unique
 - `events(creator_id, created_at desc)`
