@@ -1,19 +1,24 @@
 # Implementation Workflow
 
-This document defines the default execution workflow for feature implementation in this repository.
+This document defines the repository's default implementation procedure.
 
-The standard mode is a full-stack vertical slice: complete one feature across docs, API, backend, frontend, and verification before moving on.
+Use `docs/product/implementation-status.md` for status, `agent.md` for scope, and the engineering documents for technical contracts.
+
+## Purpose
+- keep feature implementation order consistent
+- keep docs, backend, frontend, and verification inside the same feature slice
+- prevent service ownership from drifting around temporary task grouping
 
 ## Core Rule
 - Organize work by feature task.
 - Keep service ownership aligned to feature domains.
-- Do not create broad cross-domain services just because one task touches multiple areas.
+- Do not create broad cross-domain services just because a task touches multiple areas.
 
-## Default Feature Workflow
-1. Confirm the feature belongs to current scope in `agent.md`.
-2. Check its current priority in `agent.md` and current status in `docs/product/implementation-status.md`.
-3. Confirm whether `docs/engineering/api-spec.md` needs request, response, validation, or error updates.
-4. Confirm whether `docs/engineering/db.md` needs schema, constraint, or query-support updates.
+## Default Workflow
+1. Confirm that the feature belongs to current scope in `agent.md`.
+2. Check its priority in `agent.md` and its current state in `docs/product/implementation-status.md`.
+3. Check whether `docs/engineering/api-spec.md` needs updates.
+4. Check whether `docs/engineering/db.md` needs updates.
 5. Implement the backend slice in the owning feature package.
 6. Implement the frontend route or UI integration for the same feature.
 7. Verify success and failure cases end to end.
@@ -21,30 +26,30 @@ The standard mode is a full-stack vertical slice: complete one feature across do
 
 ## Service Ownership Rules
 - A feature package should own its controller, service, repository access, DTOs, and domain rules.
-- If a feature already uses separate command and query services, keep that split.
-- Add a new orchestration service only when one use case must coordinate multiple feature domains and would otherwise overgrow an existing service.
-- Do not move unrelated booking, event, dashboard, and auth logic into one service.
+- If a feature already uses command/query separation, keep that structure.
+- Add an orchestration service only when a single use case must coordinate multiple domains and would otherwise overgrow an existing service.
+- Do not merge unrelated booking, event, dashboard, and auth logic into one service.
 
-## When To Extend vs Add A Service
+## Extend vs Add
 
 ### Extend an existing service when
 - the behavior belongs to the same feature package
-- the behavior fits the existing service responsibility
-- adding the use case does not blur command vs query boundaries
+- the behavior fits the current service responsibility
+- the change does not blur command/query boundaries
 
 ### Add a new service when
-- the use case has a distinct responsibility inside the same feature
+- the use case has a clearly separate responsibility inside the same feature
 - the current service is becoming too broad
 - the flow coordinates multiple domains and needs explicit orchestration
 
-## Feature Task Template
+## Execution Checklist
 
-### 1. Capability Definition
-- What user-visible problem is being solved
-- Whether it is in current scope
-- Which route or screen it affects
+### 1. Capability
+- what user-visible problem is being solved
+- whether it belongs to current scope
+- which route or screen it affects
 
-### 2. Contract Check
+### 2. Contract
 - API endpoints to add or update
 - request and response shapes
 - validation and error cases
@@ -52,16 +57,15 @@ The standard mode is a full-stack vertical slice: complete one feature across do
 
 ### 3. Backend Slice
 - owning package
-- controller endpoints
-- service methods
+- controller endpoint
+- service method
 - repository access
-- query approach for reads: derived repository method or QueryDSL-backed custom query
+- read-query approach: derived method or QueryDSL
 - authorization and validation checks
 - error mapping
 
-Query implementation rule:
-- If a read use case needs optional filters, text search, conditional joins, or custom ordering, plan it as a QueryDSL-backed repository query instead of adding a new Specification chain
-- If the existing code still uses Specification, treat QueryDSL migration as part of the same refactor when the query complexity is increasing
+Query rule:
+- if the read use case needs optional filters, text search, conditional joins, or custom ordering, prefer a QueryDSL-backed query over a new Specification chain
 
 ### 4. Frontend Slice
 - route or component integration point
@@ -79,13 +83,13 @@ Query implementation rule:
 - `docs/product/implementation-status.md`
 - any changed engineering contract docs
 
-## Workflow Example: Watchlist Persistence
-1. Confirm in `agent.md` that watchlist behavior is current scope.
-2. Confirm in `docs/engineering/api-spec.md` that `POST /events/{eventId}/watchlist` and `DELETE /events/{eventId}/watchlist` are the target contracts.
+## Example: Watchlist Persistence
+1. Confirm in `agent.md` that watchlist is current scope.
+2. Confirm in `docs/engineering/api-spec.md` that `POST /events/{eventId}/watchlist` and `DELETE /events/{eventId}/watchlist` are the intended contracts.
 3. Confirm in `docs/engineering/db.md` that watchlist persistence requires unique `(user_id, event_id)`.
 4. Implement backend behavior in the `watchlist` feature package.
 5. Keep watchlist mutation logic inside the watchlist feature, not inside `EventCommandService`.
 6. Update event query responses only as needed to expose `isWatchlisted`.
-7. Wire the frontend card and detail actions and remove the disabled placeholder behavior.
+7. Wire the frontend card and detail actions and remove disabled placeholder behavior.
 8. Verify save, remove, unauthenticated, event-not-found, and duplicate-save behavior.
 9. Mark the feature as implemented in `docs/product/implementation-status.md` once complete.

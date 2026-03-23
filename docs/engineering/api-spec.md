@@ -2,7 +2,25 @@
 
 This document defines the minimum API contract for the current product baseline.
 
-Use `docs/product/implementation-status.md` for current implementation coverage and `agent.md` for scope boundaries.
+Use `docs/product/implementation-status.md` for implementation coverage and `agent.md` for scope boundaries.
+
+## Status Frame
+
+### Current
+- The auth, event, booking, watchlist, dashboard, my-events, and create APIs documented here are part of the current baseline.
+
+### Temporary
+- Authentication is session-first, but protected routes may still use the development-only header fallback when `DEV_AUTH_ENABLED=true` in local development.
+
+### Target
+- Converge protected API authentication on the session contract only.
+
+### Out Of Scope
+- Signup
+- OAuth
+- Password reset
+- Payments
+- Notifications
 
 ## Common Rules
 
@@ -12,12 +30,12 @@ Use `docs/product/implementation-status.md` for current implementation coverage 
 ```
 
 ### Auth Model
-Current documented default:
+Current:
 - session-based authentication
 
-Temporary implementation note:
-- the backend authenticates through server-managed sessions for the documented auth endpoints
-- protected routes may still resolve the user from request headers during local development only when `DEV_AUTH_ENABLED=true`
+Temporary:
+- the backend authenticates documented auth endpoints through server-managed sessions
+- during local development, protected routes may resolve the user from request headers when `DEV_AUTH_ENABLED=true`
 - this header-based fallback is temporary and must not be treated as the final auth design
 
 ### Common Error Shape
@@ -135,10 +153,11 @@ Common error codes:
 ```
 
 ## Auth APIs
-Status:
-- implemented in the current backend baseline
 
 ### POST /auth/login
+Current:
+- implemented
+
 Request:
 ```json
 {
@@ -163,6 +182,9 @@ Errors:
 - `VALIDATION_ERROR` for malformed request fields
 
 ### GET /me
+Current:
+- implemented
+
 Response `200 OK`:
 ```json
 {
@@ -176,16 +198,19 @@ Errors:
 - `UNAUTHENTICATED`
 
 ### POST /auth/logout
+Current:
+- implemented
+
 Response `204 No Content`
 
-Notes:
+Note:
 - invalidating a missing session is still treated as success
 
 ## Event Discovery APIs
 
 ### GET /events
-Status:
-- implemented now in the current backend baseline
+Current:
+- implemented
 
 Query parameters:
 - `q`
@@ -196,9 +221,9 @@ Query parameters:
 
 Query behavior:
 - `q` matches event title, description, location, and host name
-- `category` must be one of `Concert`, `Restaurant`, `Art & Design`, or `Sports`
-- `section` must be one of `trending`, `endingSoon`, `openingSoon`, or `watchlist`
-- invalid `category` or `section` values return `VALIDATION_ERROR`
+- `category` must be one of `Concert`, `Restaurant`, `Art & Design`, `Sports`
+- `section` must be one of `trending`, `endingSoon`, `openingSoon`, `watchlist`
+- invalid `category` or `section` returns `VALIDATION_ERROR`
 
 Response `200 OK`:
 ```json
@@ -235,12 +260,12 @@ Response `200 OK`:
 
 Notes:
 - the server may compute `isTrending`, `isEndingSoon`, and `isOpeningSoon`
-- `section=trending`, `section=endingSoon`, and `section=openingSoon` return only items that belong to that derived section
+- `section=trending`, `section=endingSoon`, and `section=openingSoon` return only items in that derived section
 - `section=watchlist` requires authentication
 
 ### GET /events/{eventId}
-Status:
-- implemented now in the current backend baseline
+Current:
+- implemented
 
 Response `200 OK`:
 - returns the `Event Detail` shape
@@ -249,22 +274,24 @@ Errors:
 - `EVENT_NOT_FOUND`
 
 ## Watchlist APIs
-Status:
-- implemented now in the current backend baseline
-- current auth input is session-first, with the temporary development fallback when enabled
 
 ### POST /events/{eventId}/watchlist
+Current:
+- implemented
+
 Response `204 No Content`
 
 ### DELETE /events/{eventId}/watchlist
+Current:
+- implemented
+
 Response `204 No Content`
 
 ## Booking APIs
 
 ### POST /events/{eventId}/bookings
-Status:
-- implemented now in the current backend baseline
-- current auth input is session-first, with the temporary development fallback when enabled
+Current:
+- implemented
 
 Request:
 ```json
@@ -286,30 +313,41 @@ Response `201 Created`:
 }
 ```
 
+Errors:
+- `UNAUTHENTICATED`
+- `EVENT_NOT_FOUND`
+- `EVENT_SOLD_OUT`
+- `ALREADY_BOOKED`
+- `VALIDATION_ERROR`
+
 ### GET /me/bookings
-Status:
-- implemented now in the current backend baseline
-- current auth input is session-first, with the temporary development fallback when enabled
+Current:
+- implemented
 
 Query parameters:
 - `status`
 - `page`
 - `size`
 
+Notes:
+- returns paginated booking summary items for the authenticated user
+
 ### GET /me/bookings/{bookingId}
-Status:
-- implemented now in the current backend baseline
-- current auth input is session-first, with the temporary development fallback when enabled
+Current:
+- implemented
 
 Response `200 OK`:
 - returns the `Booking Detail` shape
 
+Errors:
+- `UNAUTHENTICATED`
+- `BOOKING_NOT_FOUND`
+
 ## Dashboard And My Event APIs
 
 ### GET /me/dashboard-summary
-Status:
-- implemented now in the current backend baseline
-- current auth input is session-first, with the temporary development fallback when enabled
+Current:
+- implemented
 
 Response `200 OK`:
 ```json
@@ -341,13 +379,12 @@ Response `200 OK`:
 ```
 
 Notes:
-- `recentBookings` reuses the `Booking Summary` shape
-- `upcomingOpenEvents`, `watchlistPreview`, and `createdEventsPreview` reuse the `Event Summary` shape
+- `recentBookings` reuses `Booking Summary`
+- `upcomingOpenEvents`, `watchlistPreview`, and `createdEventsPreview` reuse `Event Summary`
 
 ### GET /me/events
-Status:
-- implemented now in the current backend baseline
-- current auth input is session-first, with the temporary development fallback when enabled
+Current:
+- implemented
 
 Query parameters:
 - `page`
@@ -387,14 +424,15 @@ Response `200 OK`:
 ```
 
 Notes:
-- reuses the `Event Summary` shape for each item
+- reuses `Event Summary`
 - returns only the authenticated user's created events
 - default ordering is newest-created first
 
+## Event Management API
+
 ### POST /events
-Status:
-- implemented now in the current backend baseline
-- current auth input is session-first, with the temporary development fallback when enabled
+Current:
+- implemented
 
 Request:
 ```json
@@ -419,14 +457,7 @@ Response `201 Created`:
 }
 ```
 
-Notes:
-- any authenticated user can create events in the current product baseline
-
-## Unconfirmed Auth Features
-The following are intentionally not defined in the current API contract:
-- signup
-- OAuth
-- forgot password
-- email verification
-- MFA
-- final token strategy beyond the current session-based default
+Errors:
+- `UNAUTHENTICATED`
+- `VALIDATION_ERROR`
+- `INVALID_SCHEDULE`

@@ -1,8 +1,8 @@
 # Frontend Architecture
 
-This document describes the frontend structure and UX states for the current product baseline.
+This document describes the route IA, UX states, and target improvements for the current frontend baseline.
 
-Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` for current implementation coverage.
+Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` for repository-wide status.
 
 ## Route Map
 - `/`
@@ -22,16 +22,28 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - live route: `/create`
 - live route: `/login`
 
-## Frontend Work Areas
-- `frontend/app`: route entry points
-- `frontend/app/api`: same-origin proxy routes for auth and event mutations
-- `frontend/components`: interactive UI and page composition
-- `frontend/lib/server`: backend wrappers and server-side queries
+## Shared Shell
+
+### Current
+- Discovery pages use a shared top `Navbar`.
+- Home uses desktop `Sidebar` and `MobileNav` for category and quick-link navigation.
+- Authenticated navigation exposes quick entry to `/dashboard`, `/my-events`, and `/create`.
+- Search is query-string driven through `q`.
+- Category and mode changes are query-string driven through `view`.
+
+### Temporary
+- The frontend server wrapper can still inject development auth headers when `DEV_AUTH_ENABLED=true`.
+
+### Target
+- Keep the current split between discovery shell and account workspace pages.
+- Preserve dedicated `/my-events` access in navigation instead of burying created-event management inside dashboard-only tabs.
+
+### Out Of Scope
+- Global notification center behavior behind the bell icon
 
 ## Core Frontend Data Model
 
 ### Event Shape
-Frontend-visible fields:
 - `id`
 - `title`
 - `imageUrl`
@@ -45,10 +57,9 @@ Frontend-visible fields:
 - `description`
 - `host`
 - `isWatchlisted`
-- optional server-derived flags such as `isTrending`, `isEndingSoon`, `isOpeningSoon`
+- optional derived flags such as `isTrending`, `isEndingSoon`, and `isOpeningSoon`
 
 ### Booking Shape
-Frontend-visible fields:
 - `bookingId`
 - `eventId`
 - `status`
@@ -59,169 +70,243 @@ Frontend-visible fields:
 - `totalAmount`
 
 ### Current User Shape
-Frontend-visible fields:
 - `id`
 - `name`
 - `email`
 - optional avatar image
 
-## Homepage Information Architecture
-Primary behaviors:
-- global search
-- category switching
-- discovery sections
-- navigation into event detail
-- watchlist save and remove actions on event cards
-- watchlist filtered view through `/?view=Watchlist`
+## Route IA
 
-Primary sections:
-- trending
-- almost full
-- ending soon
-- opening soon
-- watchlist
-- filtered search results
+### `/`
 
-UX expectations:
-- the default view should feel like curated discovery
-- filtered state should feel like a list view
-- empty results should be handled with an explicit empty state
+#### Purpose
+- Main discovery surface for browsing, filtering, and entering reservation detail
 
-Current implementation:
-- discovery sections are backed by live API data
-- filtered discovery states support pagination through the homepage query state
-- watchlist view shows explicit unauthenticated and empty states when needed
+#### Current Structure
+- sticky `Navbar`
+- desktop `Sidebar`
+- mobile `MobileNav`
+- default curated sections:
+  - `Trending Now`
+  - `Almost Full`
+  - `Ending Soon`
+  - `Opening Soon`
+- filtered/search list mode
+- filtered pagination controls
 
-## Event Detail Page
-Current implementation status:
-- live route backed by real API data
+#### Current States
+- default curated discovery state
+- filtered category state
+- search result state
+- watchlist unauthenticated state
+- watchlist empty state
+- generic no-results state
 
-Required sections:
-- cover image
-- category badge
-- title
-- location
-- date and time
-- host info
+#### Current Data Dependencies
+- `GET /me` for optional current-user bootstrap
+- `GET /events` for discovery, filtered lists, watchlist view, and pagination
+- watchlist mutations through same-origin proxy routes
+
+#### Target Improvements
+- Keep the current server-driven curated sections instead of copying the prototype's heavier client-only page-state model.
+- Keep watchlist as an explicit filtered mode instead of a default home section to reduce feed clutter.
+- Improve workspace handoff through stronger quick links rather than by adding more home sections.
+
+### `/reservation/[id]`
+
+#### Purpose
+- Event detail and booking entry point
+
+#### Current Structure
+- event hero image
+- category badge and title
+- location, date, and host info
 - description
-- price
-- slot progress
-- remaining slots
+- price and slot status
+- remaining slots and reservation-open timestamp
+- ticket-count input
 - reserve CTA
-- ticket count input
-- reservation-open datetime
 - watchlist action
 - share action
 
-Key UX states:
+#### Current States
 - available to reserve
 - sold out
-- still opening soon
+- opening soon
 - not found
 
-Current implementation keeps the reserve action as a direct API-backed booking submission.
+#### Current Data Dependencies
+- `GET /events/{eventId}`
+- `POST /events/{eventId}/bookings`
+- watchlist mutation routes
 
-## Dashboard
-Current implementation status:
-- live route backed by dashboard summary data
+#### Target Improvements
+- Keep the current direct booking action.
+- Only add richer urgency or wait-state messaging if backend contract changes justify it.
 
-Primary sections:
-- overview stats
-- recent bookings
-- opening-soon preview
-- watchlist preview
-- my-events quick link
-- quick context / actions
+### `/booking/[id]`
 
-Key UX states:
-- authenticated dashboard summary
-- unauthenticated access redirected to `/login`
+#### Purpose
+- Booking confirmation and booking detail review
 
-## My Events Page
-Current implementation status:
-- live route backed by the created-events API
-
-Primary sections:
-- page header and description
-- create-event CTA
-- created-event card grid
-- pagination controls
-
-Key UX states:
-- authenticated list state
-- empty created-events state
-- unauthenticated access redirected to `/login`
-
-## Booking Detail Page
-Current implementation status:
-- live route backed by real API data
-
-Required sections:
+#### Current Structure
 - booking status banner
-- event summary and cover image
+- event summary with cover image
 - booking information
 - participant details
 - payment summary
 - host information
-- optional cancel action placeholder
+- navigation back to discovery
 
-Key UX states:
+#### Current States
 - confirmed
 - completed
 - cancelled
 - not found
 
-## Create Event Page
-Current implementation status:
-- implemented as a live create form in the current frontend slice
+#### Current Data Dependencies
+- `GET /me/bookings/{bookingId}`
 
-Current visible inputs:
-- cover image
+#### Target Improvements
+- Keep booking detail as a focused read view.
+- Do not add speculative payment or cancel flows until backend support exists.
+
+### `/dashboard`
+
+#### Purpose
+- Personal summary page for recent activity and next actions
+
+#### Current Structure
+- hero summary block
+- stats card grid
+- recent bookings section
+- watchlist preview section
+- opening-soon preview section
+- created-events preview with CTA into `/my-events`
+- quick context block
+
+#### Current States
+- authenticated dashboard summary
+- empty preview sections
+- unauthenticated redirect to `/login`
+
+#### Current Data Dependencies
+- `GET /me`
+- `GET /me/dashboard-summary`
+
+#### Target Improvements
+- Keep dashboard as a summary page.
+- Keep created-event management in `/my-events` instead of reverting to the prototype's multi-tab dashboard workspace.
+- If creator tooling grows later, expand through summary-level entry points instead of turning dashboard into an all-in-one control panel.
+
+### `/my-events`
+
+#### Purpose
+- Dedicated workspace for the current user's created events
+
+#### Current Structure
+- page header and description
+- back link to `/dashboard`
+- create-event CTA
+- created-event card grid
+- pagination controls
+
+#### Current States
+- authenticated list state
+- empty created-events state
+- unauthenticated redirect to `/login`
+
+#### Current Data Dependencies
+- `GET /me`
+- `GET /me/events`
+
+#### Target Improvements
+- Keep this route separate from dashboard because it creates a clearer IA boundary between "my summary" and "my published inventory."
+- Add edit/manage affordances only when the backend exposes matching update or management APIs.
+
+### `/create`
+
+#### Purpose
+- Event creation flow for an authenticated user
+
+#### Current Structure
+- cover image input
 - title
 - category
 - description
 - price
 - total slots
 - location
-- event date
-- event time
-- reservation open date
-- reservation open time
+- event date and time
+- reservation open date and time
+- validation and submit CTA
 
-Required frontend behavior:
-- submit disabled or loading state while saving
-- field validation feedback
-- schedule validation
-- redirect or success transition after creation
+#### Current States
+- idle form state
+- validation error state
+- saving state
+- post-submit redirect or success transition
 
-## Login Page
-Current implementation status:
-- implemented as a live session-login route in the current frontend slice
+#### Current Data Dependencies
+- `POST /events`
 
-Visible elements:
-- email input
-- password input
-- sign in CTA
+#### Target Improvements
+- Keep the current explicit scheduling fields.
+- Do not add richer media or draft behavior until product scope expands.
+
+### `/login`
+
+#### Purpose
+- Minimal session-login entry point
+
+#### Current Structure
+- back-to-home link
+- email field
+- password field
+- sign-in CTA
+- error message area
 - demo credential guidance
+- side explanation panel for current auth behavior
 
-Do not treat the page as confirmation of:
-- signup flow
-- OAuth provider support
-- password reset flow
+#### Current States
+- idle form state
+- submitting state
+- login error state
+
+#### Current Data Dependencies
+- `POST /auth/login`
+- post-login bootstrap through `GET /me`
+
+#### Target Improvements
+- Keep login focused on the minimum session contract.
+- Do not add signup, OAuth, or password-recovery IA until those flows enter scope.
+
+## Prototype Comparison Notes
+
+### Current
+- The `prototype` directory and `docs/prototype.pdf` are reference artifacts only.
+- The live app already diverges from the prototype in meaningful ways, especially around dashboard and created-events flow.
+
+### Target
+- Keep current improvements where they are structurally better than the prototype:
+  - separate `/my-events` workspace instead of crowding created items into dashboard tabs
+  - server-driven discovery states instead of a heavier client-only homepage state model
+  - dedicated summary-style dashboard instead of an overloaded all-purpose dashboard
+- Reuse prototype ideas only when they improve hierarchy or task flow without blurring route responsibility.
 
 ## State And UX Rules
 
 ### Search And Filtering
-- search should update event list results
-- category changes should update the visible list or sectioned feed
+- search updates event list results through query state
+- category changes update the visible list or curated/feed mode
 - opening soon can be a dedicated filtered mode
-- filtered discovery states should support pagination
-- changing search or category should reset filtered pagination back to page 1
+- filtered discovery states support pagination
+- changing search or category resets filtered pagination to page 1
 
 ### Watchlist
-- target behavior: toggling should update card and detail state immediately
-- current implementation: watchlist toggles are connected on discovery cards, opening-soon cards, and event detail
-- current implementation: the watchlist filtered view loads persisted items and shows an explicit unauthenticated or empty state when needed
+- toggling should update card and detail state immediately
+- current implementation connects watchlist actions on discovery cards, opening-soon cards, and event detail
+- the watchlist filtered view shows explicit unauthenticated and empty states when needed
 
 ### Booking Action
 - reserve CTA should show loading while submitting
@@ -229,17 +314,15 @@ Do not treat the page as confirmation of:
 - sold-out state should disable the CTA
 
 ### Empty States
-Required empty states:
 - no search results
-- no bookings
-- no opening-soon items
 - no watchlist items
+- no opening-soon items
 - no created events
 - not-found routes
 
 ## Frontend Data Fetching
 
-### Currently Used
+### Current
 - current-user bootstrap from `GET /me`
 - paginated event discovery requests
 - event detail request
@@ -250,10 +333,13 @@ Required empty states:
 - my-events request
 - watchlist mutation requests
 - same-origin proxy routes for login, logout, current-user bootstrap, bookings, and watchlist mutations
-- a server-side wrapper that can still inject the temporary development auth fallback
 
-### Still Needed For Remaining Product Gaps
-- no additional my-events endpoint gaps in the current baseline
+### Temporary
+- the server-side backend wrapper can still inject the temporary development auth fallback
 
-## Future Extension
-Waiting-room or polling UX may be added later for high-demand events, but it is not the primary frontend contract today.
+### Target
+- keep route-to-data ownership simple and page-local
+- avoid adding extra frontend-only state layers when the server contract already expresses the needed filtered state
+
+### Out Of Scope
+- waiting-room or polling UX for high-demand events
