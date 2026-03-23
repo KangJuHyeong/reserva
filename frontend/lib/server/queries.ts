@@ -24,15 +24,21 @@ export async function fetchEvents(params: {
   search.set("page", String(params.page ?? 1));
   search.set("size", String(params.size ?? 20));
 
-  return fetchBackendJson<PageResponse<EventSummaryApi>>(`/api/v1/events?${search.toString()}`);
+  return fetchBackendJson<PageResponse<EventSummaryApi>>(`/api/v1/events?${search.toString()}`, undefined, {
+    includeIncomingCookies: true,
+  });
 }
 
 export async function fetchEventDetail(eventId: string) {
-  return fetchBackendJson<EventDetailApi>(`/api/v1/events/${eventId}`);
+  return fetchBackendJson<EventDetailApi>(`/api/v1/events/${eventId}`, undefined, {
+    includeIncomingCookies: true,
+  });
 }
 
 export async function fetchBookingDetail(bookingId: string) {
-  return fetchBackendJson<BookingDetailApi>(`/api/v1/me/bookings/${bookingId}`);
+  return fetchBackendJson<BookingDetailApi>(`/api/v1/me/bookings/${bookingId}`, undefined, {
+    includeIncomingCookies: true,
+  });
 }
 
 export async function fetchCurrentUser() {

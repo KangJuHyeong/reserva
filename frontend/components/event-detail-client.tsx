@@ -22,7 +22,7 @@ const categoryColors: Record<string, string> = {
 };
 
 const errorMessages: Record<string, string> = {
-  UNAUTHENTICATED: "Temporary authentication is missing. Check the frontend development user settings.",
+  UNAUTHENTICATED: "Sign in first to reserve this event.",
   EVENT_SOLD_OUT: "This event no longer has enough remaining slots.",
   ALREADY_BOOKED: "You already have an active booking for this event.",
   VALIDATION_ERROR: "This reservation request is invalid right now.",

@@ -36,7 +36,6 @@ public class EventInventoryEntity {
     public static EventInventoryEntity create(EventEntity event, int totalSlots, LocalDateTime now) {
         EventInventoryEntity inventory = new EventInventoryEntity();
         inventory.event = event;
-        inventory.eventId = event.getId();
         inventory.totalSlots = totalSlots;
         inventory.reservedSlots = 0;
         inventory.updatedAt = now;

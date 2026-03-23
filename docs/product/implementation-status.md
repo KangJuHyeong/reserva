@@ -49,7 +49,7 @@
   - my bookings list and booking detail
   - watchlist save/remove on cards and event detail
   - persisted watchlist loading through `/?view=Watchlist`
-  - authenticated event creation form and API
+  - authenticated event creation page, form, and API
   - personalized dashboard summary with stats, recent bookings, opening-soon preview, watchlist preview, and quick access to my-events
   - dedicated `/my-events` page for the current user's created events with pagination
 
@@ -72,20 +72,25 @@
   - current states
   - current data dependencies
   - target improvements
+- Keep the current session-based protected-route contract as the baseline even if new login methods are added.
+
+## Approved Next-Phase Candidates
+- EC2 semideploy packaging with Docker-based services
+- reverse proxy and environment setup suitable for lightweight external access
+- Google OAuth as the first additional login option
+- Redis introduction for queue-ready reservation control
 
 ## Out Of Scope
 - Signup
-- OAuth providers
 - Password reset
 - Email verification
 - Payments
 - Notifications
-- Queue-based access
 - Kafka-based async processing
-- Redis waiting room
 
 ## Verification Readiness
-- Playwright E2E is runnable once local frontend and backend are started with the expected dev settings.
+- Browser-based E2E verification has been executed against the local seeded environment and recorded in `docs/operations/e2e-test-report-2026-03-23.md`.
+- No Playwright project configuration is currently committed in-repo.
 - Backend demo seed can be enabled with `SEED_DEMO_DATA=true`.
 - Minimal session login can be verified with `alex@example.com / dev-password` and `creator@example.com / dev-password` when demo seed is enabled.
 - When no authenticated session exists, `/?view=Watchlist` should render the explicit unauthenticated state instead of attempting authenticated watchlist loading.
@@ -103,11 +108,15 @@
   - `/login`
 
 ## Next Priorities
-1. Residual validation and test hardening
-2. IA polish tied to real route or data changes
-3. Documentation follow-up tied to real UI or contract changes
+1. Frontend local runtime stability hardening for repeated `next dev` and `next start` restarts
+2. EC2 semideploy foundation with Docker-based packaging and reverse proxy setup
+3. Google OAuth on top of the current session contract
+4. Redis foundation for queue-ready reservation control
+5. Residual validation and regression hardening around auth/session, booking, watchlist, and create flows
 
 Priority rationale:
-- Core event, booking, watchlist, dashboard, event creation, and my-events flows are already implemented in the current baseline.
-- The temporary development auth fallback has been removed, so the remaining implementation risk is concentrated in validation and regression hardening.
-- IA and documentation follow-up should stay attached to real UI or contract changes instead of drifting into speculative redesign.
+- Core event, booking, watchlist, dashboard, event creation, and my-events flows are working in the current baseline after runtime bug fixes and end-to-end verification.
+- The highest remaining delivery risk observed during this run was local frontend process instability during repeated restarts, not a missing baseline user flow.
+- The next approved product step is semideploy readiness, so packaging, environment boundaries, and reverse-proxy setup now outrank speculative UI expansion.
+- Google OAuth should extend the current session model after deployment boundaries are clear.
+- Redis should be introduced first as infrastructure for queue-ready reservation control, with broad waiting-room behavior deferred until a narrower MVP is defined.

@@ -31,7 +31,6 @@ Backend query convention:
 ## Local Environment
 - Backend local config lives in `backend/.env`
 - Frontend local config lives in `frontend/.env`
-- Example frontend values live in `frontend/.env.example`
 
 ## Working Rule
 Use `agent.md` as the source of truth for development and agent-driven implementation sessions.

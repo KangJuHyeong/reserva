@@ -246,8 +246,10 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - validation error state
 - saving state
 - post-submit redirect or success transition
+- unauthenticated redirect to `/login`
 
 #### Current Data Dependencies
+- `GET /me`
 - `POST /events`
 
 #### Target Improvements

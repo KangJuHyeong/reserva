@@ -15,11 +15,16 @@
 - `Temporary`: some current dynamic event discovery queries still use JPA Specification and are candidates for QueryDSL migration
 - `Current`: datasource configuration is driven by `backend/.env`
 - `Current`: local backend CORS allowed origin defaults to `http://localhost:3000`
+- `Approved next phase`: lightweight semideploy should target EC2 with Docker-based packaging
+- `Approved next phase`: prefer keeping the application services containerized even if the database deployment choice changes later
+- `Approved next phase`: Redis is the first infrastructure addition for queue-ready reservation control
 
 ## Auth Decisions
 - `Current target contract`: session-based auth remains the documented direction
 - `Current implementation`: backend auth uses the same session-first contract for login, me, logout, and protected routes
 - `Future / Not finalized`: final auth implementation details beyond the minimum contract remain undecided
+- `Approved next phase`: Google is the first OAuth provider to add
+- `Approved next phase`: OAuth should extend the existing session-based runtime contract rather than replace it with JWT-only auth
 
 ## Documentation Decisions
 - `Current`: `agent.md` is the operating guide and rule hub
@@ -33,4 +38,5 @@
 ## Scope Decisions
 - `Current`: prioritize current product flows first
 - `Current`: keep minimum safe backend requirements in scope
-- `Future / Not finalized`: signup, OAuth, payments, notifications, queueing, Redis, and Kafka-based flows
+- `Approved next phase`: semideploy, Google OAuth, and Redis-backed queue readiness are the next follow-up scope after baseline stability
+- `Future / Not finalized`: signup, payments, notifications, broad user-visible queueing, and Kafka-based flows
