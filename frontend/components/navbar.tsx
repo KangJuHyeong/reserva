@@ -27,9 +27,11 @@ export function Navbar({ searchQuery, currentUser }: NavbarProps) {
     } else {
       params.delete("q");
     }
+    params.delete("page");
 
     startTransition(() => {
-      router.replace(`${pathname}?${params.toString()}`);
+      const nextQuery = params.toString();
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname);
     });
   }
 

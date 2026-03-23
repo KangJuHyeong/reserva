@@ -170,6 +170,8 @@ Do not treat the page as confirmation of:
 - search should update event list results
 - category changes should update the visible list or sectioned feed
 - opening soon can be a dedicated filtered mode
+- filtered discovery states should support pagination
+- changing search or category should reset filtered pagination back to page 1
 
 ### Watchlist
 - target behavior: toggling should update card and detail state immediately

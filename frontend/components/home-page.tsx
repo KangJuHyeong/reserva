@@ -16,9 +16,12 @@ interface HomePageProps {
   items: EventSummaryViewModel[];
   currentUser: CurrentUserApi | null;
   mode: "default" | "filtered" | "watchlist_unauthenticated";
+  currentPage: number;
+  pageSize: number;
+  totalItems: number;
 }
 
-export function HomePage({ searchQuery, selectedCategory, items, currentUser, mode }: HomePageProps) {
+export function HomePage({ searchQuery, selectedCategory, items, currentUser, mode, currentPage, pageSize, totalItems }: HomePageProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -33,12 +36,15 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
   const almostFullReservations = visibleItems.filter((item) => item.remainingSlots <= Math.max(5, Math.ceil(item.totalSlots * 0.2)));
   const endingSoonReservations = visibleItems.filter((item) => item.isEndingSoon);
   const upcomingReservations = visibleItems.filter((item) => item.isOpeningSoon);
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
   function clearView() {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("view");
+    params.delete("page");
     startTransition(() => {
-      router.replace(`${pathname}?${params.toString()}`);
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname);
     });
   }
 
@@ -49,6 +55,20 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
       }
 
       return current.map((item) => (item.id === eventId ? { ...item, isWatchlisted: nextValue } : item));
+    });
+  }
+
+  function changePage(nextPage: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (nextPage <= 1) {
+      params.delete("page");
+    } else {
+      params.set("page", String(nextPage));
+    }
+
+    startTransition(() => {
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname);
     });
   }
 
@@ -135,25 +155,53 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
             <div>
               <h2 className="mb-4 text-xl font-semibold text-foreground">
                 {selectedCategory === "All" ? "Search Results" : selectedCategory}
-                <span className="ml-2 text-sm font-normal text-muted-foreground">({visibleItems.length} results)</span>
+                <span className="ml-2 text-sm font-normal text-muted-foreground">({totalItems} results)</span>
               </h2>
               {visibleItems.length > 0 ? (
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-                  {visibleItems.map((reservation) =>
-                    reservation.isOpeningSoon ? (
-                      <UpcomingCard
-                        key={reservation.id}
-                        reservation={reservation}
-                        onWatchlistChange={(nextValue) => updateWatchlist(reservation.id, nextValue)}
-                      />
-                    ) : (
-                      <ReservationCard
-                        key={reservation.id}
-                        reservation={reservation}
-                        onWatchlistChange={(nextValue) => updateWatchlist(reservation.id, nextValue)}
-                      />
-                    )
-                  )}
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    {visibleItems.map((reservation) =>
+                      reservation.isOpeningSoon ? (
+                        <UpcomingCard
+                          key={reservation.id}
+                          reservation={reservation}
+                          onWatchlistChange={(nextValue) => updateWatchlist(reservation.id, nextValue)}
+                        />
+                      ) : (
+                        <ReservationCard
+                          key={reservation.id}
+                          reservation={reservation}
+                          onWatchlistChange={(nextValue) => updateWatchlist(reservation.id, nextValue)}
+                        />
+                      )
+                    )}
+                  </div>
+
+                  {totalPages > 1 ? (
+                    <div className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
+                      <p className="text-sm text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={isPending || currentPage <= 1}
+                          onClick={() => changePage(currentPage - 1)}
+                          className="rounded-lg border border-border px-3 py-2 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isPending || currentPage >= totalPages}
+                          onClick={() => changePage(currentPage + 1)}
+                          className="rounded-lg border border-border px-3 py-2 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-20 text-center">

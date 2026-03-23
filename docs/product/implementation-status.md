@@ -40,6 +40,8 @@
   - `/login`
 - Watchlist save/remove UI is connected on discovery cards and event detail
 - `/?view=Watchlist` now loads persisted watchlist items
+- Filtered catalog views now support paginated result navigation through the homepage query state
+- Derived discovery sections now validate supported values and return only matching events for the selected section
 - Placeholder frontend routes preserved for later work:
   - `/dashboard`
 - Database baseline exists through:
@@ -54,6 +56,7 @@
 
 ## Temporary
 - Current auth in code uses server-managed sessions for the implemented login contract
+- Implemented auth routes are session-first and match the documented minimum login, me, and logout contract
 - Protected route fallback in local development can still use request headers:
   - `X-User-Id`
   - `X-User-Name`
@@ -71,6 +74,7 @@
 - Seeded stable demo event ids when demo data is enabled:
   - `evt_demo_jazz`
   - `evt_demo_art`
+- Demo seed now expands the catalog with additional themed events across concert, restaurant, art & design, and sports
 - Minimum routes to verify once local servers are running:
   - `/`
   - `/?view=Watchlist`

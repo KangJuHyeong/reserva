@@ -48,9 +48,11 @@ export function Sidebar({ selectedCategory }: SidebarProps) {
     } else {
       params.set("view", category);
     }
+    params.delete("page");
 
     startTransition(() => {
-      router.replace(`${pathname}?${params.toString()}`);
+      const nextQuery = params.toString();
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname);
     });
   }
 
