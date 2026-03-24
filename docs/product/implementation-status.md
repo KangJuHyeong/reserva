@@ -17,6 +17,7 @@
   - Flyway
   - JPA
   - QueryDSL
+  - Docker packaging for EC2 semideploy
 - Implemented APIs:
   - `POST /api/v1/auth/login`
   - `GET /api/v1/me`
@@ -34,6 +35,7 @@
 
 ### Frontend
 - Frontend Next.js app exists in `frontend`.
+- Frontend runtime can be built into a Docker image for EC2 semideploy.
 - Live routes backed by real API data:
   - `/`
   - `/reservation/[id]`
@@ -60,6 +62,12 @@
   - `V3__create_bookings.sql`
   - `V4__create_watchlists.sql`
 
+### Deployment
+- Deployment assets exist in `infra/deploy`.
+- The semideploy baseline uses Docker Compose with `nginx`, `frontend`, `backend`, and profile-gated `mysql` services.
+- GitHub Actions workflow exists for GHCR image build/push and EC2 SSH-based redeploy.
+- Production env files are expected to remain on the target server instead of in the repository.
+
 ## Temporary
 - No temporary auth fallback remains in the current baseline.
 
@@ -73,6 +81,7 @@
   - current data dependencies
   - target improvements
 - Keep the current session-based protected-route contract as the baseline even if new login methods are added.
+- Keep EC2 semideploy lightweight, with same-host MySQL as the default baseline and external DB fallback available through env-only changes.
 
 ## Approved Next-Phase Candidates
 - EC2 semideploy packaging with Docker-based services
@@ -109,7 +118,7 @@
 
 ## Next Priorities
 1. Frontend local runtime stability hardening for repeated `next dev` and `next start` restarts
-2. EC2 semideploy foundation with Docker-based packaging and reverse proxy setup
+2. EC2 semideploy verification and environment hardening on the Docker-based baseline
 3. Google OAuth on top of the current session contract
 4. Redis foundation for queue-ready reservation control
 5. Residual validation and regression hardening around auth/session, booking, watchlist, and create flows
@@ -117,6 +126,6 @@
 Priority rationale:
 - Core event, booking, watchlist, dashboard, event creation, and my-events flows are working in the current baseline after runtime bug fixes and end-to-end verification.
 - The highest remaining delivery risk observed during this run was local frontend process instability during repeated restarts, not a missing baseline user flow.
-- The next approved product step is semideploy readiness, so packaging, environment boundaries, and reverse-proxy setup now outrank speculative UI expansion.
+- Docker packaging, reverse-proxy setup, and server-side env conventions are now present, so the next approved deployment step is verification against a real EC2 target and hardening of environment boundaries.
 - Google OAuth should extend the current session model after deployment boundaries are clear.
 - Redis should be introduced first as infrastructure for queue-ready reservation control, with broad waiting-room behavior deferred until a narrower MVP is defined.

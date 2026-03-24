@@ -167,7 +167,7 @@ Rules:
 If implementation starts from this document, use this priority order:
 
 1. Local runtime stability and regression hardening for the verified baseline
-2. EC2 semideploy foundation with Docker-based packaging
+2. EC2 semideploy verification and environment hardening for the Docker-based baseline
 3. Google OAuth on top of the current session contract
 4. Redis foundation for queue-enabled reservation control
 5. IA or documentation follow-up tied to real route, auth, deployment, or queue changes
@@ -175,7 +175,7 @@ If implementation starts from this document, use this priority order:
 Why this order:
 - Event discovery, event detail, booking flows, watchlist persistence, event creation, dashboard summary, and my-events listing are already part of the current baseline.
 - The temporary dev auth fallback has been removed from the current baseline and the core flows have been verified end to end.
-- The next delivery need is to make the baseline externally runnable in a lightweight environment before expanding auth or traffic-control behavior.
+- Docker, compose, nginx, and CI deployment assets now define the lightweight external deployment baseline, so the next delivery need is deployment verification and environment hardening before expanding auth or traffic-control behavior.
 - OAuth and queue work should extend the deployable session-based baseline rather than replace it with speculative architecture.
 
 ## 9. Baseline Snapshot
@@ -186,6 +186,9 @@ Why this order:
 - Datasource configuration is driven by `backend/.env`
 - Spring Boot, MySQL, Flyway, JPA, and QueryDSL-backed repository queries are active
 - Live frontend routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, `/dashboard`, `/my-events`, `/create`, and `/login`
+- EC2 semideploy assets exist in `infra/deploy`
+- Frontend and backend Dockerfiles exist for container image builds
+- GitHub Actions workflow exists for GHCR image publication and EC2 SSH-based redeploy
 
 ### 9.2 Temporary
 - No temporary auth fallback remains in the current baseline.

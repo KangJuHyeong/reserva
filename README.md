@@ -18,6 +18,11 @@ Backend query convention:
 - `prototype`: legacy design reference assets
 - `infra`: infrastructure-related work
 
+## Deployment Baseline
+- EC2 semideploy assets live under `infra/deploy`
+- `backend/Dockerfile` and `frontend/Dockerfile` define container images for GHCR-based deployment
+- the target external entrypoint is an nginx reverse proxy in front of the frontend and backend services
+
 ## Documentation
 - `agent.md`: canonical internal operating guide for implementation work
 - `docs/product/implementation-status.md`: current implementation status and next priorities
@@ -31,6 +36,7 @@ Backend query convention:
 ## Local Environment
 - Backend local config lives in `backend/.env`
 - Frontend local config lives in `frontend/.env`
+- Production env files are expected to live on the target server and are not committed to the repo
 
 ## Working Rule
 Use `agent.md` as the source of truth for development and agent-driven implementation sessions.

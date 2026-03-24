@@ -32,6 +32,20 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - Google OAuth added as an additional login entry point
 - Redis added as infrastructure for queue-ready reservation control
 
+## Deployment Topology
+
+### Current
+- Deployment assets exist for a single-host EC2 semideploy baseline.
+- `nginx` is the public entrypoint.
+- `frontend` and `backend` run as separate containers behind the proxy.
+- `mysql` can run as a container on the same host for the default lightweight deployment.
+
+### Target
+- CI builds and publishes versioned frontend and backend images to GHCR.
+- EC2 pulls the published images and restarts the stack through Docker Compose.
+- Runtime env files remain on the server and are mounted or referenced at deploy time instead of being stored in Git.
+- The semideploy layout should keep backend and database access private to the internal Docker network even when the database moves off-host later.
+
 ## Logical Components
 
 ### Frontend Web App
@@ -39,6 +53,7 @@ Responsibilities:
 - render discovery, event detail, booking detail, dashboard, my-events, create, and login routes
 - connect auth, booking, and watchlist mutations through same-origin API routes
 - manage query-string-based search, filter, and pagination state
+- read `BACKEND_BASE_URL` from runtime env so the same build can target the internal backend service in semideploy
 
 Current baseline:
 - Next.js App Router application
@@ -117,6 +132,12 @@ Current:
 - return recent bookings, watchlist summary, created-events summary, and opening-soon preview
 
 ## Request Flow Overview
+
+### External Request Routing
+1. The browser connects to the EC2 host through nginx.
+2. nginx routes `/api/v1/*` traffic to the backend container.
+3. nginx routes all page and non-`/api/v1/*` traffic to the frontend container.
+4. The frontend container continues to use the backend base URL from runtime env for server-side fetches and proxy routes.
 
 ### Browse Events
 1. The frontend requests the event list with search, category, section, and page inputs.

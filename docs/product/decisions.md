@@ -17,6 +17,11 @@
 - `Current`: local backend CORS allowed origin defaults to `http://localhost:3000`
 - `Approved next phase`: lightweight semideploy should target EC2 with Docker-based packaging
 - `Approved next phase`: prefer keeping the application services containerized even if the database deployment choice changes later
+- `Current`: semideploy packaging assets live under `infra/deploy`
+- `Current`: CI builds frontend and backend container images and publishes them to GHCR
+- `Current`: the EC2 semideploy baseline uses nginx as the external reverse proxy in front of the frontend and backend containers
+- `Current`: production env files stay on the target server instead of being committed to the repository
+- `Current`: the default semideploy baseline includes MySQL in Docker on the EC2 host, with external DB connection kept available through backend env values
 - `Approved next phase`: Redis is the first infrastructure addition for queue-ready reservation control
 
 ## Auth Decisions

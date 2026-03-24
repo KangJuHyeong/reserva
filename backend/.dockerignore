@@ -1,0 +1,7 @@
+.env
+.gradle
+.gradle-home
+build
+out
+bin
+
