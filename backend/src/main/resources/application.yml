@@ -25,6 +25,7 @@ app:
   booking:
     code-prefix: BK
   cors:
-    allowed-origin: ${FRONTEND_ORIGIN:http://localhost:3000}
+    allowed-origins: ${FRONTEND_ORIGIN:http://localhost:3000}
+    allowed-origin-patterns: ${FRONTEND_ORIGIN_PATTERNS:}
   dev:
     seed-demo-data: ${SEED_DEMO_DATA:false}

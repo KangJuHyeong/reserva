@@ -13,6 +13,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 
 ### Temporary
 - No temporary auth fallback remains in the current baseline.
+- Frontend hosting is temporarily shifting from EC2 semideploy to Vercel while backend and MySQL continue on EC2.
 
 ### Target
 - Keep the current route split where dashboard remains a summary workspace and my-events remains the created-events workspace.
@@ -27,7 +28,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - Kafka-based asynchronous booking confirmation
 
 ### Approved Next-Phase Candidates
-- EC2 semideploy packaging with containerized frontend and backend services
+- EC2 semideploy packaging with containerized backend services and optional containerized database
 - reverse-proxy setup suitable for lightweight external access
 - Google OAuth added as an additional login entry point
 - Redis added as infrastructure for queue-ready reservation control
@@ -37,14 +38,16 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 ### Current
 - Deployment assets exist for a single-host EC2 semideploy baseline.
 - `nginx` is the public entrypoint.
-- `frontend` and `backend` run as separate containers behind the proxy.
+- `backend` runs behind the proxy.
 - `mysql` can run as a container on the same host for the default lightweight deployment.
+- The frontend is expected to run on Vercel and reach the backend through the public nginx origin.
 
 ### Target
-- CI builds and publishes versioned frontend and backend images to GHCR.
-- EC2 pulls the published images and restarts the stack through Docker Compose.
+- CI builds and publishes the versioned backend image used by EC2.
+- EC2 pulls the published image and restarts the stack through Docker Compose.
 - Runtime env files remain on the server and are mounted or referenced at deploy time instead of being stored in Git.
 - The semideploy layout should keep backend and database access private to the internal Docker network even when the database moves off-host later.
+- The frontend host should keep browser traffic same-origin and use its server runtime and route handlers to forward cookies to the backend.
 
 ## Logical Components
 
@@ -53,11 +56,12 @@ Responsibilities:
 - render discovery, event detail, booking detail, dashboard, my-events, create, and login routes
 - connect auth, booking, and watchlist mutations through same-origin API routes
 - manage query-string-based search, filter, and pagination state
-- read `BACKEND_BASE_URL` from runtime env so the same build can target the internal backend service in semideploy
+- read `BACKEND_BASE_URL` from runtime env so the same build can target either local backend, EC2 backend, or other environments without code changes
 
 Current baseline:
 - Next.js App Router application
 - `frontend/app` and `frontend/components` centered structure
+- Vercel-friendly runtime because protected mutations already flow through same-origin Next.js route handlers
 
 ### Backend API Application
 Responsibilities:
@@ -134,10 +138,10 @@ Current:
 ## Request Flow Overview
 
 ### External Request Routing
-1. The browser connects to the EC2 host through nginx.
-2. nginx routes `/api/v1/*` traffic to the backend container.
-3. nginx routes all page and non-`/api/v1/*` traffic to the frontend container.
-4. The frontend container continues to use the backend base URL from runtime env for server-side fetches and proxy routes.
+1. The browser connects to the frontend host, expected to be Vercel.
+2. The frontend host serves pages and same-origin route handlers such as `/api/auth/*`, `/api/me`, and mutation proxies.
+3. The frontend server runtime calls the EC2 backend through `BACKEND_BASE_URL` and forwards incoming cookies.
+4. The EC2 nginx host routes `/api/v1/*` traffic to the backend container and keeps MySQL private on the internal Docker network.
 
 ### Browse Events
 1. The frontend requests the event list with search, category, section, and page inputs.

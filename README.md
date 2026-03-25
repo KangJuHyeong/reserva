@@ -20,8 +20,9 @@ Backend query convention:
 
 ## Deployment Baseline
 - EC2 semideploy assets live under `infra/deploy`
-- `backend/Dockerfile` and `frontend/Dockerfile` define container images for GHCR-based deployment
-- the target external entrypoint is an nginx reverse proxy in front of the frontend and backend services
+- `backend/Dockerfile` defines the EC2 semideploy image published to GHCR
+- `frontend/Dockerfile` remains available, but the current lightweight deployment direction is Vercel for frontend hosting
+- the current EC2 entrypoint is an nginx reverse proxy in front of the backend service
 
 ## Documentation
 - `agent.md`: canonical internal operating guide for implementation work
@@ -35,7 +36,7 @@ Backend query convention:
 
 ## Local Environment
 - Backend local config lives in `backend/.env`
-- Frontend local config lives in `frontend/.env`
+- Frontend local or Vercel runtime config uses `frontend/.env.example` as the reference for `BACKEND_BASE_URL`
 - Production env files are expected to live on the target server and are not committed to the repo
 
 ## Working Rule

@@ -155,6 +155,7 @@ These are approved follow-up directions after the current baseline is kept stabl
 Examples:
 - EC2 semideploy packaging with Docker-based services
 - Reverse-proxy and external environment setup for lightweight deployment
+- Vercel frontend hosting paired with EC2 backend deployment
 - Google OAuth added on top of the current session contract
 - Redis introduction for queue-ready reservation control
 
@@ -167,7 +168,7 @@ Rules:
 If implementation starts from this document, use this priority order:
 
 1. Local runtime stability and regression hardening for the verified baseline
-2. EC2 semideploy verification and environment hardening for the Docker-based baseline
+2. Vercel frontend plus EC2 backend and MySQL verification and environment hardening
 3. Google OAuth on top of the current session contract
 4. Redis foundation for queue-enabled reservation control
 5. IA or documentation follow-up tied to real route, auth, deployment, or queue changes
@@ -175,7 +176,7 @@ If implementation starts from this document, use this priority order:
 Why this order:
 - Event discovery, event detail, booking flows, watchlist persistence, event creation, dashboard summary, and my-events listing are already part of the current baseline.
 - The temporary dev auth fallback has been removed from the current baseline and the core flows have been verified end to end.
-- Docker, compose, nginx, and CI deployment assets now define the lightweight external deployment baseline, so the next delivery need is deployment verification and environment hardening before expanding auth or traffic-control behavior.
+- Docker, compose, nginx, and CI deployment assets now define the lightweight backend deployment baseline, and the next delivery need is verification and environment hardening for a Vercel frontend plus EC2 backend/MySQL split before expanding auth or traffic-control behavior.
 - OAuth and queue work should extend the deployable session-based baseline rather than replace it with speculative architecture.
 
 ## 9. Baseline Snapshot
@@ -188,10 +189,11 @@ Why this order:
 - Live frontend routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, `/dashboard`, `/my-events`, `/create`, and `/login`
 - EC2 semideploy assets exist in `infra/deploy`
 - Frontend and backend Dockerfiles exist for container image builds
-- GitHub Actions workflow exists for GHCR image publication and EC2 SSH-based redeploy
+- GitHub Actions workflow exists for backend GHCR image publication and EC2 SSH-based redeploy
 
 ### 9.2 Temporary
 - No temporary auth fallback remains in the current baseline.
+- Frontend hosting is temporarily moving to Vercel while backend and MySQL remain on EC2 for deployment validation.
 
 ## 10. Minimal Auth Contract
 Current documented auth endpoints:

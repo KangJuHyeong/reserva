@@ -8,7 +8,6 @@ on:
     paths:
       - ".github/workflows/deploy-ec2-semideploy.yml"
       - "backend/**"
-      - "frontend/**"
       - "infra/deploy/**"
 
 env:
@@ -29,7 +28,6 @@ jobs:
         id: image_names
         run: |
           owner="$(printf '%s' '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
-          echo "frontend_image_name=${owner}/reserva-frontend" >> "$GITHUB_OUTPUT"
           echo "backend_image_name=${owner}/reserva-backend" >> "$GITHUB_OUTPUT"
 
       - name: Set image tag
@@ -42,16 +40,6 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image_name }}:${{ steps.meta.outputs.image_tag }}
-            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image_name }}:latest
 
       - name: Build and push backend image
         uses: docker/build-push-action@v6
@@ -72,7 +60,6 @@ jobs:
         id: image_names
         run: |
           owner="$(printf '%s' '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
-          echo "frontend_image_name=${owner}/reserva-frontend" >> "$GITHUB_OUTPUT"
           echo "backend_image_name=${owner}/reserva-backend" >> "$GITHUB_OUTPUT"
 
       - name: Configure SSH key
@@ -88,7 +75,6 @@ jobs:
         env:
           IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
           REGISTRY: ${{ env.REGISTRY }}
-          FRONTEND_IMAGE_NAME: ${{ steps.image_names.outputs.frontend_image_name }}
           BACKEND_IMAGE_NAME: ${{ steps.image_names.outputs.backend_image_name }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_PORT: ${{ secrets.EC2_PORT || 22 }}
@@ -101,11 +87,9 @@ jobs:
             set -eu
             cd '$DEPLOY_PATH'
             printf '%s' '$GHCR_TOKEN' | docker login '$REGISTRY' -u '$GHCR_USERNAME' --password-stdin
-            FRONTEND_IMAGE='$REGISTRY/$FRONTEND_IMAGE_NAME' \
             BACKEND_IMAGE='$REGISTRY/$BACKEND_IMAGE_NAME' \
             IMAGE_TAG='$IMAGE_TAG' \
             docker compose --env-file .env -f compose.yml pull
-            FRONTEND_IMAGE='$REGISTRY/$FRONTEND_IMAGE_NAME' \
             BACKEND_IMAGE='$REGISTRY/$BACKEND_IMAGE_NAME' \
             IMAGE_TAG='$IMAGE_TAG' \
             docker compose --env-file .env -f compose.yml up -d --remove-orphans

@@ -18,10 +18,13 @@
 - `Approved next phase`: lightweight semideploy should target EC2 with Docker-based packaging
 - `Approved next phase`: prefer keeping the application services containerized even if the database deployment choice changes later
 - `Current`: semideploy packaging assets live under `infra/deploy`
-- `Current`: CI builds frontend and backend container images and publishes them to GHCR
-- `Current`: the EC2 semideploy baseline uses nginx as the external reverse proxy in front of the frontend and backend containers
+- `Current`: CI builds and publishes the backend container image used by the EC2 semideploy flow
+- `Temporary`: frontend delivery is moving to Vercel while backend and MySQL remain on EC2 for validation
+- `Current`: the EC2 semideploy baseline uses nginx as the external reverse proxy in front of the backend container
 - `Current`: production env files stay on the target server instead of being committed to the repository
 - `Current`: the default semideploy baseline includes MySQL in Docker on the EC2 host, with external DB connection kept available through backend env values
+- `Current`: frontend server runtime should talk to the backend through `BACKEND_BASE_URL` and forward session cookies instead of relying on direct browser-to-backend cookie handling
+- `Current`: backend CORS should allow the configured frontend origin and optional Vercel preview-origin patterns
 - `Approved next phase`: Redis is the first infrastructure addition for queue-ready reservation control
 
 ## Auth Decisions

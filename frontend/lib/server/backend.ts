@@ -16,7 +16,8 @@ export class BackendApiError extends Error {
 }
 
 function backendBaseUrl() {
-  return readEnv("BACKEND_BASE_URL") ?? DEFAULT_BACKEND_BASE_URL;
+  const configured = readEnv("BACKEND_BASE_URL") ?? DEFAULT_BACKEND_BASE_URL;
+  return configured.endsWith("/") ? configured.slice(0, -1) : configured;
 }
 
 function readEnv(name: string) {
