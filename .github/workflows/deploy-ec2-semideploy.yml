@@ -86,11 +86,11 @@ jobs:
           ssh -p "$EC2_PORT" "$EC2_USER@$EC2_HOST" "
             set -eu
             cd '$DEPLOY_PATH'
-            printf '%s' '$GHCR_TOKEN' | docker login '$REGISTRY' -u '$GHCR_USERNAME' --password-stdin
+            printf '%s' '$GHCR_TOKEN' | sudo docker login '$REGISTRY' -u '$GHCR_USERNAME' --password-stdin
             BACKEND_IMAGE='$REGISTRY/$BACKEND_IMAGE_NAME' \
             IMAGE_TAG='$IMAGE_TAG' \
-            docker compose --env-file .env -f compose.yml pull
+            sudo docker compose --env-file .env -f compose.yml pull
             BACKEND_IMAGE='$REGISTRY/$BACKEND_IMAGE_NAME' \
             IMAGE_TAG='$IMAGE_TAG' \
-            docker compose --env-file .env -f compose.yml up -d --remove-orphans
+            sudo docker compose --env-file .env -f compose.yml up -d --remove-orphans
           "
