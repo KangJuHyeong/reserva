@@ -101,6 +101,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - watchlist unauthenticated state
 - watchlist empty state
 - generic no-results state
+- backend unavailable fallback state
 
 #### Current Data Dependencies
 - `GET /me` for optional current-user bootstrap
@@ -189,6 +190,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - authenticated dashboard summary
 - empty preview sections
 - unauthenticated redirect to `/login`
+- backend unavailable fallback state
 
 #### Current Data Dependencies
 - `GET /me`
@@ -215,6 +217,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - authenticated list state
 - empty created-events state
 - unauthenticated redirect to `/login`
+- backend unavailable fallback state
 
 #### Current Data Dependencies
 - `GET /me`
@@ -247,6 +250,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - saving state
 - post-submit redirect or success transition
 - unauthenticated redirect to `/login`
+- backend unavailable fallback state
 
 #### Current Data Dependencies
 - `GET /me`
@@ -274,6 +278,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - idle form state
 - submitting state
 - login error state
+- backend unavailable fallback state
 
 #### Current Data Dependencies
 - `POST /auth/login`
@@ -335,6 +340,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - my-events request
 - watchlist mutation requests
 - same-origin proxy routes for login, logout, current-user bootstrap, bookings, and watchlist mutations
+- same-origin proxy routes convert backend transport failures into explicit unavailable responses for the UI
 
 ### Temporary
 - no temporary development auth headers are injected by the server-side backend wrapper

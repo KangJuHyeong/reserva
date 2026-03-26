@@ -36,6 +36,7 @@
 ### Frontend
 - Frontend Next.js app exists in `frontend`.
 - Frontend runtime can be built into a Docker image, but the current lightweight deployment direction is Vercel hosting.
+- Server-rendered frontend routes and same-origin proxy routes now surface explicit backend-unavailable fallback states when the backend origin cannot be reached.
 - Live routes backed by real API data:
   - `/`
   - `/reservation/[id]`

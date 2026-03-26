@@ -57,6 +57,7 @@ Responsibilities:
 - connect auth, booking, and watchlist mutations through same-origin API routes
 - manage query-string-based search, filter, and pagination state
 - read `BACKEND_BASE_URL` from runtime env so the same build can target either local backend, EC2 backend, or other environments without code changes
+- surface explicit backend-unavailable fallback states when the frontend runtime cannot reach the backend
 
 Current baseline:
 - Next.js App Router application
@@ -141,7 +142,8 @@ Current:
 1. The browser connects to the frontend host, expected to be Vercel.
 2. The frontend host serves pages and same-origin route handlers such as `/api/auth/*`, `/api/me`, and mutation proxies.
 3. The frontend server runtime calls the EC2 backend through `BACKEND_BASE_URL` and forwards incoming cookies.
-4. The EC2 nginx host routes `/api/v1/*` traffic to the backend container and keeps MySQL private on the internal Docker network.
+4. If the frontend runtime cannot reach the backend, server-rendered pages and same-origin proxy routes should fail with an explicit backend-unavailable state instead of an opaque runtime crash.
+5. The EC2 nginx host routes `/api/v1/*` traffic to the backend container and keeps MySQL private on the internal Docker network.
 
 ### Browse Events
 1. The frontend requests the event list with search, category, section, and page inputs.

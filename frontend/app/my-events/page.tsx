@@ -1,7 +1,8 @@
+import { BackendUnavailablePage } from "@/components/backend-unavailable-page";
 import { redirect } from "next/navigation";
 import { MyEventsPage } from "@/components/my-events-page";
 import { toEventSummaryViewModel } from "@/lib/mappers";
-import { BackendApiError } from "@/lib/server/backend";
+import { BACKEND_UNAVAILABLE_CODE, BackendApiError } from "@/lib/server/backend";
 import { fetchCurrentUser, fetchMyEvents } from "@/lib/server/queries";
 
 function parsePage(value?: string) {
@@ -36,6 +37,15 @@ export default async function MyEvents({
       />
     );
   } catch (error) {
+    if (error instanceof BackendApiError && error.code === BACKEND_UNAVAILABLE_CODE) {
+      return (
+        <BackendUnavailablePage
+          title="Unable to load my events"
+          description="The published-events workspace could not reach the backend service."
+        />
+      );
+    }
+
     if (error instanceof BackendApiError && error.code === "UNAUTHENTICATED") {
       redirect("/login");
     }
