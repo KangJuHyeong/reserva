@@ -2,34 +2,26 @@ package com.reserva.backend.common.security;
 
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
-import com.reserva.backend.auth.JwtService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Component
 public class CurrentUserProvider {
 
-    private final JwtService jwtService;
-
-    public CurrentUserProvider(JwtService jwtService) {
-        this.jwtService = jwtService;
-    }
-
     public CurrentUser getCurrentUserOrThrow() {
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attributes == null) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
             throw unauthenticated();
         }
 
-        HttpServletRequest request = attributes.getRequest();
-        String authorizationHeader = request.getHeader("Authorization");
-        if (StringUtils.hasText(authorizationHeader) && authorizationHeader.startsWith("Bearer ")) {
-            return jwtService.parseCurrentUser(authorizationHeader.substring(7));
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CurrentUser currentUser) {
+            return currentUser;
         }
+
         throw unauthenticated();
     }
 

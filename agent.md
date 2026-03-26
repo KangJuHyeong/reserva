@@ -62,6 +62,7 @@ Primary user-visible flows:
 - Browse and filter events
 - View event detail
 - Reserve a spot
+- Sign up with the minimum documented auth contract
 - Save and remove watchlist items
 - View personal bookings and booking detail
 - View personal dashboard summary
@@ -77,6 +78,7 @@ Current canonical routes:
 - `/my-events`
 - `/create`
 - `/login`
+- `/signup`
 
 Terminology:
 - `event`: a joinable listing shown in discovery and detail pages
@@ -120,6 +122,7 @@ Examples:
 - My events list
 - Event creation form
 - Minimal login flow
+- Minimal signup flow
 - Watchlist behavior
 
 ### 7.2 Minimum Inferred Backend Requirements
@@ -137,7 +140,6 @@ Examples:
 Use for ideas not yet confirmed for the current product baseline.
 
 Examples:
-- Signup
 - Password reset
 - Email verification
 - Payments
@@ -175,6 +177,7 @@ Why this order:
 - Event discovery, event detail, booking flows, watchlist persistence, event creation, dashboard summary, and my-events listing are already part of the current baseline.
 - The temporary dev auth fallback has been removed from the current baseline and the core flows have been verified end to end.
 - The next auth baseline is JWT-protected APIs with Google as the first OAuth provider, implemented without changing the current route model.
+- The protected-route baseline should run through Spring Security filter-chain authentication instead of request-scope manual header parsing.
 - Docker, compose, nginx, and CI deployment assets now define the lightweight backend deployment baseline, and deployment hardening should continue after the auth-baseline transition.
 
 ## 9. Baseline Snapshot
@@ -185,6 +188,7 @@ Why this order:
 - Datasource configuration is driven by `backend/.env`
 - Spring Boot, MySQL, Flyway, JPA, and QueryDSL-backed repository queries are active
 - Live frontend routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, `/dashboard`, `/my-events`, `/create`, and `/login`
+- Live frontend routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, `/dashboard`, `/my-events`, `/create`, `/login`, and `/signup`
 - EC2 semideploy assets exist in `infra/deploy`
 - Frontend and backend Dockerfiles exist for container image builds
 - GitHub Actions workflow exists for backend GHCR image publication and EC2 SSH-based redeploy
@@ -196,6 +200,7 @@ Why this order:
 
 ## 10. Minimal Auth Contract
 Current documented auth endpoints:
+- `POST /auth/signup`
 - `POST /auth/login`
 - `GET /me`
 - `POST /auth/logout`
@@ -208,7 +213,6 @@ Current assumptions:
 - Google is the first OAuth provider in scope.
 
 Do not document as confirmed:
-- Signup API
 - Forgot password
 - Email verification
 

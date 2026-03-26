@@ -188,7 +188,9 @@ public class EventQueryService {
     }
 
     private boolean isEndingSoon(EventEntity event) {
-        return remainingSlots(event) <= Math.max(5, (int) Math.ceil(event.getInventory().getTotalSlots() * 0.2));
+        LocalDateTime now = LocalDateTime.now();
+        return !event.getEventDateTime().isBefore(now)
+                && !event.getEventDateTime().isAfter(now.plusHours(72));
     }
 
     private boolean isOpeningSoon(EventEntity event, LocalDateTime now) {

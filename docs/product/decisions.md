@@ -30,6 +30,8 @@
 ## Auth Decisions
 - `Current target contract`: JWT bearer auth is the documented protected-route direction
 - `Current implementation`: frontend owns the auth cookie boundary and forwards JWT bearer auth to the backend
+- `Current`: backend protected routes are enforced through Spring Security's stateless filter chain with JWT-backed `SecurityContext`
+- `Current`: local signup may coexist with local email/password login and Google OAuth while local signup/login continue issuing the same JWT contract
 - `Current`: Google is the first OAuth provider in scope
 - `Current`: local email/password login may coexist with Google OAuth while both issue the same JWT contract
 - `Future / Not finalized`: refresh-token rotation and multi-provider account linking beyond Google are not finalized
@@ -47,4 +49,4 @@
 - `Current`: prioritize current product flows first
 - `Current`: keep minimum safe backend requirements in scope
 - `Approved next phase`: semideploy hardening and Redis-backed queue readiness follow after the JWT + Google OAuth auth baseline is stable
-- `Future / Not finalized`: signup, payments, notifications, broad user-visible queueing, and Kafka-based flows
+- `Future / Not finalized`: payments, notifications, broad user-visible queueing, and Kafka-based flows

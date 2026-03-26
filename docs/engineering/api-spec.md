@@ -16,7 +16,6 @@ Use `docs/product/implementation-status.md` for implementation coverage and `age
 - Converge protected API authentication on the JWT bearer contract only.
 
 ### Out Of Scope
-- Signup
 - Password reset
 - Payments
 - Notifications
@@ -35,6 +34,7 @@ Current:
 Current:
 - the backend authenticates protected routes through `Authorization: Bearer <token>`
 - the frontend host stores the issued token in an httpOnly cookie and attaches it when calling the backend
+- the backend enforces protected routes through Spring Security's stateless filter chain before controller logic runs
 
 ### Common Error Shape
 ```json
@@ -152,6 +152,35 @@ Common error codes:
 
 ## Auth APIs
 
+### POST /auth/signup
+Current:
+- implemented
+
+Request:
+```json
+{
+  "name": "Alex Johnson",
+  "email": "alex@example.com",
+  "password": "dev-password"
+}
+```
+
+Response `200 OK`:
+```json
+{
+  "accessToken": "jwt-token",
+  "user": {
+    "id": "usr_123",
+    "name": "Alex Johnson",
+    "email": "alex@example.com"
+  }
+}
+```
+
+Errors:
+- `EMAIL_ALREADY_IN_USE` when the email already exists
+- `VALIDATION_ERROR` for malformed request fields
+- same JWT contract as local login and Google OAuth
 ### POST /auth/login
 Current:
 - implemented
@@ -289,6 +318,7 @@ Notes:
 - the server may compute `isTrending`, `isEndingSoon`, and `isOpeningSoon`
 - `section=trending`, `section=endingSoon`, and `section=openingSoon` return only items in that derived section
 - `section=watchlist` requires authentication
+- `isEndingSoon` and `section=endingSoon` are time-based and represent events happening within the next 72 hours
 
 ### GET /events/{eventId}
 Current:

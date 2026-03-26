@@ -2,6 +2,7 @@ package com.reserva.backend.common.error;
 
 public enum ErrorCode {
     UNAUTHENTICATED,
+    EMAIL_ALREADY_IN_USE,
     FORBIDDEN,
     VALIDATION_ERROR,
     EVENT_NOT_FOUND,

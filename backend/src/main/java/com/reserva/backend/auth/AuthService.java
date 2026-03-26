@@ -3,6 +3,7 @@ package com.reserva.backend.auth;
 import com.reserva.backend.auth.api.CurrentUserResponse;
 import com.reserva.backend.auth.api.LoginRequest;
 import com.reserva.backend.auth.api.LoginResponse;
+import com.reserva.backend.auth.api.SignupRequest;
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.security.CurrentUser;
@@ -43,10 +44,32 @@ public class AuthService {
         UserEntity user = userRepository.findByEmail(request.email())
                 .filter(found -> found.getPasswordHash() != null && passwordEncoder.matches(request.password(), found.getPasswordHash()))
                 .orElseThrow(this::invalidCredentials);
-        return new LoginResponse(
-                jwtService.issueToken(user.getId(), user.getDisplayName()),
-                toCurrentUserResponse(user)
+        return issueLoginResponse(user);
+    }
+
+    public LoginResponse signup(SignupRequest request) {
+        String normalizedEmail = request.email().trim().toLowerCase();
+        if (userRepository.findByEmail(normalizedEmail).isPresent()) {
+            throw new ApiException(
+                    ErrorCode.EMAIL_ALREADY_IN_USE,
+                    HttpStatus.CONFLICT,
+                    "An account with that email already exists."
+            );
+        }
+
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        UserEntity user = UserEntity.create(
+                UUID.randomUUID().toString(),
+                normalizedEmail,
+                passwordEncoder.encode(request.password()),
+                null,
+                request.name().trim(),
+                UserRole.USER,
+                null,
+                now
         );
+
+        return issueLoginResponse(userRepository.save(user));
     }
 
     public CurrentUserResponse getCurrentUser() {
@@ -81,9 +104,13 @@ public class AuthService {
                 ));
 
         UserEntity savedUser = userRepository.save(user);
+        return issueLoginResponse(savedUser);
+    }
+
+    private LoginResponse issueLoginResponse(UserEntity user) {
         return new LoginResponse(
-                jwtService.issueToken(savedUser.getId(), savedUser.getDisplayName()),
-                toCurrentUserResponse(savedUser)
+                jwtService.issueToken(user.getId(), user.getDisplayName()),
+                toCurrentUserResponse(user)
         );
     }
 
