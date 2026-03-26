@@ -29,9 +29,9 @@ export function LoginForm() {
       if (!response.ok) {
         try {
           const payload = (await response.json()) as { message?: string };
-          setErrorMessage(payload.message ?? "로그인에 실패했습니다.");
+          setErrorMessage(payload.message ?? "Login failed.");
         } catch {
-          setErrorMessage("로그인에 실패했습니다.");
+          setErrorMessage("Login failed.");
         }
         return;
       }
@@ -51,10 +51,10 @@ export function LoginForm() {
 
         <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
           <section className="rounded-[28px] border border-border/70 bg-card/95 p-6 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.35)] sm:p-8">
-            <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">Session Access</p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Reserva에 로그인</h1>
+            <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">Auth Access</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Sign in to Reserva</h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
-              현재 최소 인증 계약은 이메일과 비밀번호로 세션을 생성합니다. 로그인 후 예약, 워치리스트, 크리에이터 기능이 같은 사용자 컨텍스트로 연결됩니다.
+              Use local email/password sign-in or continue with Google. Both paths issue the same JWT-based auth contract used by protected pages and API mutations.
             </p>
 
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -90,22 +90,29 @@ export function LoginForm() {
 
               {errorMessage ? <div className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">{errorMessage}</div> : null}
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Button type="submit" size="lg" className="h-12 rounded-xl px-6 text-base" disabled={isPending}>
-                  {isPending ? "Signing in..." : "Sign In"}
-                </Button>
-                <p className="text-sm text-muted-foreground">시드가 켜져 있으면 `alex@example.com / dev-password` 또는 `creator@example.com / dev-password`를 사용할 수 있습니다. 두 계정 모두 이벤트 생성과 예약이 가능합니다.</p>
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Button type="submit" size="lg" className="h-12 rounded-xl px-6 text-base" disabled={isPending}>
+                    {isPending ? "Signing in..." : "Sign In"}
+                  </Button>
+                  <Button type="button" variant="outline" size="lg" className="h-12 rounded-xl px-6 text-base" onClick={() => router.push("/api/auth/google/start")}>
+                    Continue with Google
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  When demo seed is enabled, use `alex@example.com / dev-password` or `creator@example.com / dev-password`.
+                </p>
               </div>
             </form>
           </section>
 
           <aside className="space-y-4">
             <div className="rounded-[28px] border border-border/70 bg-card/90 p-6">
-              <h2 className="text-lg font-semibold text-foreground">현재 동작</h2>
+              <h2 className="text-lg font-semibold text-foreground">How it works</h2>
               <div className="mt-5 space-y-4 text-sm text-muted-foreground">
-                <p>로그인 성공 시 백엔드 세션이 생성되고 이후 보호 API는 세션을 우선 사용합니다.</p>
-                <p>보호된 API는 개발 환경에서도 세션 기준으로만 인증됩니다.</p>
-                <p>로그아웃하면 세션이 무효화되고 `GET /me`는 다시 미인증 상태를 반환합니다.</p>
+                <p>After sign-in, the frontend stores an httpOnly auth cookie and forwards a JWT bearer token to the backend.</p>
+                <p>Protected API routes use the same JWT contract for local login and Google OAuth.</p>
+                <p>Signing out clears the frontend auth cookie, and `GET /me` returns to the unauthenticated state.</p>
               </div>
             </div>
 

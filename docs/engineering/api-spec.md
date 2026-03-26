@@ -13,11 +13,10 @@ Use `docs/product/implementation-status.md` for implementation coverage and `age
 - No temporary auth fallback remains in the current baseline.
 
 ### Target
-- Converge protected API authentication on the session contract only.
+- Converge protected API authentication on the JWT bearer contract only.
 
 ### Out Of Scope
 - Signup
-- OAuth
 - Password reset
 - Payments
 - Notifications
@@ -31,11 +30,11 @@ Use `docs/product/implementation-status.md` for implementation coverage and `age
 
 ### Auth Model
 Current:
-- session-based authentication
+- JWT bearer authentication
 
 Current:
-- the backend authenticates documented auth endpoints through server-managed sessions
-- protected routes use the same session contract as login, me, and logout
+- the backend authenticates protected routes through `Authorization: Bearer <token>`
+- the frontend host stores the issued token in an httpOnly cookie and attaches it when calling the backend
 
 ### Common Error Shape
 ```json
@@ -168,6 +167,7 @@ Request:
 Response `200 OK`:
 ```json
 {
+  "accessToken": "jwt-token",
   "user": {
     "id": "usr_123",
     "name": "Alex Johnson",
@@ -178,6 +178,34 @@ Response `200 OK`:
 
 Errors:
 - `UNAUTHENTICATED` for invalid email or password
+- `VALIDATION_ERROR` for malformed request fields
+
+### POST /auth/oauth/google/exchange
+Current:
+- implemented
+
+Request:
+```json
+{
+  "code": "google-auth-code",
+  "redirectUri": "http://localhost:3000/auth/callback/google"
+}
+```
+
+Response `200 OK`:
+```json
+{
+  "accessToken": "jwt-token",
+  "user": {
+    "id": "usr_123",
+    "name": "Alex Johnson",
+    "email": "alex@example.com"
+  }
+}
+```
+
+Errors:
+- `UNAUTHENTICATED` for invalid Google identity or failed token exchange
 - `VALIDATION_ERROR` for malformed request fields
 
 ### GET /me
@@ -203,7 +231,7 @@ Current:
 Response `204 No Content`
 
 Note:
-- invalidating a missing session is still treated as success
+- stateless logout succeeds even when no token is currently stored by the frontend
 
 ## Event Discovery APIs
 

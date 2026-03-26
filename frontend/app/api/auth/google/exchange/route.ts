@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
   let response: Response;
   try {
-    response = await fetch(`${backendBaseUrl()}/api/v1/auth/login`, {
+    response = await fetch(`${backendBaseUrl()}/api/v1/auth/oauth/google/exchange`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

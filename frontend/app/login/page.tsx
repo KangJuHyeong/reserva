@@ -13,7 +13,7 @@ export default async function LoginPage() {
       return (
         <BackendUnavailablePage
           title="Unable to load login"
-          description="The login page could not confirm backend session availability."
+          description="The login page could not confirm backend auth availability."
         />
       );
     }

@@ -1,7 +1,6 @@
 package com.reserva.backend.auth.api;
 
 import com.reserva.backend.auth.AuthService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,14 +19,19 @@ public class AuthController {
     }
 
     @PostMapping("/api/v1/auth/login")
-    public LoginResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
-        return authService.login(request, httpRequest);
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
+        return authService.login(request);
+    }
+
+    @PostMapping("/api/v1/auth/oauth/google/exchange")
+    public LoginResponse exchangeGoogleCode(@Valid @RequestBody GoogleExchangeRequest request) {
+        return authService.exchangeGoogleCode(request.code(), request.redirectUri());
     }
 
     @PostMapping("/api/v1/auth/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void logout(HttpServletRequest httpRequest) {
-        authService.logout(httpRequest);
+    public void logout() {
+        authService.logout();
     }
 
     @GetMapping("/api/v1/me")

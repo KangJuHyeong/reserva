@@ -7,41 +7,46 @@ import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.security.CurrentUser;
 import com.reserva.backend.common.security.CurrentUserProvider;
+import com.reserva.backend.common.model.UserRole;
 import com.reserva.backend.user.UserEntity;
 import com.reserva.backend.user.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.UUID;
+
 @Service
 public class AuthService {
 
-    private static final String SESSION_USER_ID = "AUTH_USER_ID";
-    private static final String SESSION_USER_NAME = "AUTH_USER_NAME";
     private final UserRepository userRepository;
     private final CurrentUserProvider currentUserProvider;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final GoogleOAuthClient googleOAuthClient;
 
     public AuthService(UserRepository userRepository,
                        CurrentUserProvider currentUserProvider,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService,
+                       GoogleOAuthClient googleOAuthClient) {
         this.userRepository = userRepository;
         this.currentUserProvider = currentUserProvider;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+        this.googleOAuthClient = googleOAuthClient;
     }
 
-    public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest) {
+    public LoginResponse login(LoginRequest request) {
         UserEntity user = userRepository.findByEmail(request.email())
-                .filter(found -> passwordEncoder.matches(request.password(), found.getPasswordHash()))
+                .filter(found -> found.getPasswordHash() != null && passwordEncoder.matches(request.password(), found.getPasswordHash()))
                 .orElseThrow(this::invalidCredentials);
-
-        HttpSession session = httpRequest.getSession(true);
-        session.setAttribute(SESSION_USER_ID, user.getId());
-        session.setAttribute(SESSION_USER_NAME, user.getDisplayName());
-
-        return new LoginResponse(toCurrentUserResponse(user));
+        return new LoginResponse(
+                jwtService.issueToken(user.getId(), user.getDisplayName()),
+                toCurrentUserResponse(user)
+        );
     }
 
     public CurrentUserResponse getCurrentUser() {
@@ -51,11 +56,35 @@ public class AuthService {
         return toCurrentUserResponse(user);
     }
 
-    public void logout(HttpServletRequest httpRequest) {
-        HttpSession session = httpRequest.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
+    public void logout() {
+    }
+
+    public LoginResponse exchangeGoogleCode(String code, String redirectUri) {
+        GoogleOAuthClient.GoogleUserProfile googleUser = googleOAuthClient.exchangeCode(code, redirectUri);
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+
+        UserEntity user = userRepository.findByGoogleSubject(googleUser.subject())
+                .or(() -> userRepository.findByEmail(googleUser.email())
+                        .map(existing -> {
+                            existing.linkGoogleSubject(googleUser.subject(), now);
+                            return existing;
+                        }))
+                .orElseGet(() -> UserEntity.create(
+                        UUID.randomUUID().toString(),
+                        googleUser.email(),
+                        null,
+                        googleUser.subject(),
+                        googleUser.name(),
+                        UserRole.USER,
+                        googleUser.picture(),
+                        now
+                ));
+
+        UserEntity savedUser = userRepository.save(user);
+        return new LoginResponse(
+                jwtService.issueToken(savedUser.getId(), savedUser.getDisplayName()),
+                toCurrentUserResponse(savedUser)
+        );
     }
 
     private CurrentUserResponse toCurrentUserResponse(UserEntity user) {

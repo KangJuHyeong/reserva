@@ -21,8 +21,11 @@ public class UserEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash")
     private String passwordHash;
+
+    @Column(name = "google_subject", unique = true)
+    private String googleSubject;
 
     @Column(name = "display_name", nullable = false)
     private String displayName;
@@ -43,6 +46,7 @@ public class UserEntity {
     public static UserEntity create(String id,
                                     String email,
                                     String passwordHash,
+                                    String googleSubject,
                                     String displayName,
                                     UserRole role,
                                     String profileImageUrl,
@@ -51,6 +55,7 @@ public class UserEntity {
         user.id = id;
         user.email = email;
         user.passwordHash = passwordHash;
+        user.googleSubject = googleSubject;
         user.displayName = displayName;
         user.role = role;
         user.profileImageUrl = profileImageUrl;
@@ -75,6 +80,10 @@ public class UserEntity {
         return passwordHash;
     }
 
+    public String getGoogleSubject() {
+        return googleSubject;
+    }
+
     public UserRole getRole() {
         return role;
     }
@@ -84,14 +93,21 @@ public class UserEntity {
     }
 
     public void refreshSeedProfile(String passwordHash,
+                                   String googleSubject,
                                    String displayName,
                                    UserRole role,
                                    String profileImageUrl,
-                                   LocalDateTime now) {
+                                    LocalDateTime now) {
         this.passwordHash = passwordHash;
+        this.googleSubject = googleSubject;
         this.displayName = displayName;
         this.role = role;
         this.profileImageUrl = profileImageUrl;
+        this.updatedAt = now;
+    }
+
+    public void linkGoogleSubject(String googleSubject, LocalDateTime now) {
+        this.googleSubject = googleSubject;
         this.updatedAt = now;
     }
 }

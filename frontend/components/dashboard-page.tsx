@@ -173,8 +173,8 @@ export function DashboardPage({
                 Quick Context
               </div>
               <div className="mt-4 space-y-3 text-sm text-muted-foreground">
-                <p>This dashboard is session-aware and uses the same authenticated backend context as bookings and watchlist flows.</p>
-                <p>Protected data on this page now depends on the same session contract used by login, current-user bootstrap, and logout.</p>
+                <p>This dashboard is auth-aware and uses the same authenticated backend context as bookings and watchlist flows.</p>
+                <p>Protected data on this page now depends on the same JWT contract used by login, current-user bootstrap, and logout.</p>
               </div>
             </section>
           </div>

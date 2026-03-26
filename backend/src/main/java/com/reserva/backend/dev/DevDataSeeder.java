@@ -158,6 +158,7 @@ public class DevDataSeeder implements ApplicationRunner {
                 .map(existing -> refreshSeedUser(
                         existing,
                         demoPasswordHash,
+                        null,
                         "Alex Johnson",
                         UserRole.USER,
                         "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
@@ -167,6 +168,7 @@ public class DevDataSeeder implements ApplicationRunner {
                         DEMO_USER_ID,
                         "alex@example.com",
                         demoPasswordHash,
+                        null,
                         "Alex Johnson",
                         UserRole.USER,
                         "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
@@ -177,6 +179,7 @@ public class DevDataSeeder implements ApplicationRunner {
                 .map(existing -> refreshSeedUser(
                         existing,
                         demoPasswordHash,
+                        null,
                         "City Culture Studio",
                         UserRole.CREATOR,
                         "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
@@ -186,6 +189,7 @@ public class DevDataSeeder implements ApplicationRunner {
                         DEMO_CREATOR_ID,
                         "creator@example.com",
                         demoPasswordHash,
+                        null,
                         "City Culture Studio",
                         UserRole.CREATOR,
                         "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
@@ -234,11 +238,12 @@ public class DevDataSeeder implements ApplicationRunner {
 
     private UserEntity refreshSeedUser(UserEntity user,
                                        String passwordHash,
+                                       String googleSubject,
                                        String displayName,
                                        UserRole role,
                                        String profileImageUrl,
                                        LocalDateTime now) {
-        user.refreshSeedProfile(passwordHash, displayName, role, profileImageUrl, now);
+        user.refreshSeedProfile(passwordHash, googleSubject, displayName, role, profileImageUrl, now);
         return user;
     }
 

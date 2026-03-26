@@ -94,7 +94,7 @@ Terminology:
 - `infra`: infrastructure-related work
 
 ### 6.2 Backend Feature Packages
-- `backend/src/main/java/com/reserva/backend/auth`: login, logout, current-user session contract
+- `backend/src/main/java/com/reserva/backend/auth`: login, logout, current-user JWT contract, Google OAuth exchange
 - `backend/src/main/java/com/reserva/backend/event`: event discovery, event detail, event creation, my events, inventory access
 - `backend/src/main/java/com/reserva/backend/booking`: booking creation, my bookings list, booking detail
 - `backend/src/main/java/com/reserva/backend/watchlist`: watchlist persistence and mutations
@@ -138,7 +138,6 @@ Use for ideas not yet confirmed for the current product baseline.
 
 Examples:
 - Signup
-- OAuth
 - Password reset
 - Email verification
 - Payments
@@ -156,11 +155,10 @@ Examples:
 - EC2 semideploy packaging with Docker-based services
 - Reverse-proxy and external environment setup for lightweight deployment
 - Vercel frontend hosting paired with EC2 backend deployment
-- Google OAuth added on top of the current session contract
 - Redis introduction for queue-ready reservation control
 
 Rules:
-- Preserve the current product routes and session-based protected-route contract while extending auth.
+- Preserve the current product routes and same-origin frontend auth flow while extending auth.
 - Treat queue work as readiness or MVP work first, not as justification for broad speculative platform scope.
 - Keep these items out of `Current` implementation claims until code and docs are updated together.
 
@@ -168,16 +166,16 @@ Rules:
 If implementation starts from this document, use this priority order:
 
 1. Local runtime stability and regression hardening for the verified baseline
-2. Vercel frontend plus EC2 backend and MySQL verification and environment hardening
-3. Google OAuth on top of the current session contract
+2. JWT-based protected-route contract and Google OAuth baseline
+3. Vercel frontend plus EC2 backend and MySQL verification and environment hardening
 4. Redis foundation for queue-enabled reservation control
 5. IA or documentation follow-up tied to real route, auth, deployment, or queue changes
 
 Why this order:
 - Event discovery, event detail, booking flows, watchlist persistence, event creation, dashboard summary, and my-events listing are already part of the current baseline.
 - The temporary dev auth fallback has been removed from the current baseline and the core flows have been verified end to end.
-- Docker, compose, nginx, and CI deployment assets now define the lightweight backend deployment baseline, and the next delivery need is verification and environment hardening for a Vercel frontend plus EC2 backend/MySQL split before expanding auth or traffic-control behavior.
-- OAuth and queue work should extend the deployable session-based baseline rather than replace it with speculative architecture.
+- The next auth baseline is JWT-protected APIs with Google as the first OAuth provider, implemented without changing the current route model.
+- Docker, compose, nginx, and CI deployment assets now define the lightweight backend deployment baseline, and deployment hardening should continue after the auth-baseline transition.
 
 ## 9. Baseline Snapshot
 
@@ -194,27 +192,29 @@ Why this order:
 ### 9.2 Temporary
 - No temporary auth fallback remains in the current baseline.
 - Frontend hosting is temporarily moving to Vercel while backend and MySQL remain on EC2 for deployment validation.
+- Local email/password login remains available during the Google OAuth rollout.
 
 ## 10. Minimal Auth Contract
 Current documented auth endpoints:
 - `POST /auth/login`
 - `GET /me`
 - `POST /auth/logout`
+- `POST /auth/oauth/google/exchange`
 
 Current assumptions:
-- Session-based auth is the documented default contract.
+- JWT bearer auth is the documented protected-route contract.
 - One authenticated user model supports both booking and event creation in the current baseline.
-- Final auth implementation details beyond the minimum contract remain undecided.
+- The frontend host remains the same-origin browser entrypoint and owns the httpOnly auth cookie that carries the JWT for SSR and proxy flows.
+- Google is the first OAuth provider in scope.
 
 Do not document as confirmed:
 - Signup API
-- OAuth providers
-- JWT vs session as a final commitment
 - Forgot password
 - Email verification
 
-Approved next-phase extension:
-- Google OAuth may be added as an additional login entry point, but protected routes should continue to rely on the session-based runtime contract unless a later decision explicitly changes it.
+Approved current auth extension:
+- Google OAuth is part of the current auth baseline transition.
+- Local email/password login may coexist with Google OAuth while both issue the same JWT contract.
 
 ## 11. Required Supporting Rules
 
