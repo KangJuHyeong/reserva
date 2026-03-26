@@ -5,6 +5,7 @@
 - Current implementation mode: full-stack feature slices on a live backend baseline
 - Current repository workflow: branch + PR + merge on a root monorepo
 - Current documentation rule: treat current code as the factual baseline and `prototype` as reference input only
+- Current auth transition: move from session-first auth to JWT-protected APIs plus Google OAuth
 
 ## Current
 
@@ -20,6 +21,7 @@
   - Docker packaging for EC2 semideploy
 - Implemented APIs:
   - `POST /api/v1/auth/login`
+  - `POST /api/v1/auth/oauth/google/exchange`
   - `GET /api/v1/me`
   - `POST /api/v1/auth/logout`
   - `GET /api/v1/events`
@@ -37,6 +39,7 @@
 - Frontend Next.js app exists in `frontend`.
 - Frontend runtime can be built into a Docker image, but the current lightweight deployment direction is Vercel hosting.
 - Server-rendered frontend routes and same-origin proxy routes now surface explicit backend-unavailable fallback states when the backend origin cannot be reached.
+- Frontend auth transport is transitioning from forwarded backend session cookies to a frontend-owned httpOnly JWT cookie.
 - Live routes backed by real API data:
   - `/`
   - `/reservation/[id]`
@@ -46,6 +49,8 @@
   - `/create`
   - `/login`
 - Implemented product behaviors:
+  - local email/password login backed by frontend-owned httpOnly JWT cookie
+  - Google OAuth callback exchange backed by the same frontend-owned JWT cookie contract
   - event discovery with search, category filtering, derived sections, and pagination
   - event detail with watchlist state and direct booking action
   - booking creation with capacity checks and duplicate-booking protection
@@ -62,6 +67,7 @@
   - `V2__create_events_and_event_inventory.sql`
   - `V3__create_bookings.sql`
   - `V4__create_watchlists.sql`
+  - `V5__add_google_subject_to_users.sql`
 
 ### Deployment
 - Deployment assets exist in `infra/deploy`.
@@ -72,6 +78,7 @@
 ## Temporary
 - No temporary auth fallback remains in the current baseline.
 - Frontend deployment is temporarily split from EC2 and is expected to run on Vercel while backend and MySQL stay on EC2 for validation.
+- Auth runtime is temporarily mid-transition from backend-managed session state to JWT bearer auth.
 
 ## Target
 - Keep `/dashboard` as a summary page and `/my-events` as the dedicated created-events workspace instead of collapsing both responsibilities into one route.
@@ -82,13 +89,14 @@
   - current states
   - current data dependencies
   - target improvements
-- Keep the current session-based protected-route contract as the baseline even if new login methods are added.
+- Keep browser requests same-origin to the frontend host and let the frontend host own the httpOnly auth cookie used to forward JWT bearer auth to the backend.
 - Keep EC2 semideploy lightweight, with same-host MySQL as the default baseline and external DB fallback available through env-only changes.
-- Keep browser requests same-origin to the frontend host and forward session cookies from frontend server runtime to the backend instead of depending on direct browser-to-backend session cookies.
+- Keep Google as the first OAuth provider while preserving local email/password login during transition if needed.
 
 ## Approved Next-Phase Candidates
 - EC2 semideploy packaging with Docker-based services
 - reverse proxy and environment setup suitable for lightweight external access
+- JWT-protected API baseline with frontend-owned auth cookie
 - Google OAuth as the first additional login option
 - Redis introduction for queue-ready reservation control
 
@@ -104,7 +112,7 @@
 - Browser-based E2E verification has been executed against the local seeded environment and recorded in `docs/operations/e2e-test-report-2026-03-23.md`.
 - No Playwright project configuration is currently committed in-repo.
 - Backend demo seed can be enabled with `SEED_DEMO_DATA=true`.
-- Minimal session login can be verified with `alex@example.com / dev-password` and `creator@example.com / dev-password` when demo seed is enabled.
+- Local email/password login can be verified with `alex@example.com / dev-password` and `creator@example.com / dev-password` when demo seed is enabled.
 - When no authenticated session exists, `/?view=Watchlist` should render the explicit unauthenticated state instead of attempting authenticated watchlist loading.
 - Stable demo event ids when demo data is enabled:
   - `evt_demo_jazz`
@@ -120,15 +128,15 @@
   - `/login`
 
 ## Next Priorities
-1. Frontend local runtime stability hardening for repeated `next dev` and `next start` restarts
-2. Vercel frontend plus EC2 backend and MySQL verification and environment hardening
-3. Google OAuth on top of the current session contract
+1. JWT-protected API baseline and Google OAuth rollout
+2. Frontend local runtime stability hardening for repeated `next dev` and `next start` restarts
+3. Vercel frontend plus EC2 backend and MySQL verification and environment hardening
 4. Redis foundation for queue-ready reservation control
-5. Residual validation and regression hardening around auth/session, booking, watchlist, and create flows
+5. Residual validation and regression hardening around auth, booking, watchlist, and create flows
 
 Priority rationale:
 - Core event, booking, watchlist, dashboard, event creation, and my-events flows are working in the current baseline after runtime bug fixes and end-to-end verification.
-- The highest remaining delivery risk observed during this run was local frontend process instability during repeated restarts, not a missing baseline user flow.
-- Docker packaging, reverse-proxy setup, and server-side env conventions are now present, and the current lightweight deploy path is Vercel for frontend plus EC2 for backend and MySQL.
-- Google OAuth should extend the current session model after deployment boundaries are clear.
+- The active auth redesign now changes the baseline from session-first runtime auth to JWT-protected APIs with Google OAuth in scope.
+- Local frontend runtime stability is still important, but auth transport now has higher product impact than repeated restart cleanup.
+- Docker packaging, reverse-proxy setup, and server-side env conventions are now present, and the current lightweight deploy path remains Vercel for frontend plus EC2 for backend and MySQL.
 - Redis should be introduced first as infrastructure for queue-ready reservation control, with broad waiting-room behavior deferred until a narrower MVP is defined.

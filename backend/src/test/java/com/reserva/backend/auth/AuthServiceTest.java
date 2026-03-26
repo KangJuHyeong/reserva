@@ -10,14 +10,12 @@ import com.reserva.backend.common.security.CurrentUser;
 import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.user.UserEntity;
 import com.reserva.backend.user.UserRepository;
-import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -25,6 +23,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,28 +38,31 @@ class AuthServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private JwtService jwtService;
+
+    @Mock
+    private GoogleOAuthClient googleOAuthClient;
+
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userRepository, currentUserProvider, passwordEncoder);
+        authService = new AuthService(userRepository, currentUserProvider, passwordEncoder, jwtService, googleOAuthClient);
     }
 
     @Test
-    void loginStoresSessionAndReturnsCurrentUser() {
+    void loginReturnsJwtAndCurrentUser() {
         UserEntity user = user("usr_123", "alex@example.com", "Alex Johnson", UserRole.USER, "encoded");
-        MockHttpServletRequest request = new MockHttpServletRequest();
 
         when(userRepository.findByEmail("alex@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("dev-password", "encoded")).thenReturn(true);
+        when(jwtService.issueToken("usr_123", "Alex Johnson")).thenReturn("jwt-token");
 
-        LoginResponse response = authService.login(new LoginRequest("alex@example.com", "dev-password"), request);
+        LoginResponse response = authService.login(new LoginRequest("alex@example.com", "dev-password"));
 
+        assertThat(response.accessToken()).isEqualTo("jwt-token");
         assertThat(response.user().email()).isEqualTo("alex@example.com");
-        HttpSession session = request.getSession(false);
-        assertThat(session).isNotNull();
-        assertThat(session.getAttribute("AUTH_USER_ID")).isEqualTo("usr_123");
-        assertThat(session.getAttribute("AUTH_USER_NAME")).isEqualTo("Alex Johnson");
     }
 
     @Test
@@ -70,7 +72,7 @@ class AuthServiceTest {
         when(userRepository.findByEmail("alex@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("wrong-password", "encoded")).thenReturn(false);
 
-        assertThatThrownBy(() -> authService.login(new LoginRequest("alex@example.com", "wrong-password"), new MockHttpServletRequest()))
+        assertThatThrownBy(() -> authService.login(new LoginRequest("alex@example.com", "wrong-password")))
                 .isInstanceOf(ApiException.class)
                 .satisfies(exception -> {
                     ApiException apiException = (ApiException) exception;
@@ -91,14 +93,21 @@ class AuthServiceTest {
     }
 
     @Test
-    void logoutInvalidatesExistingSession() {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        HttpSession session = request.getSession(true);
-        assertThat(session).isNotNull();
+    void exchangeGoogleCodeLinksExistingUserAndReturnsJwt() {
+        UserEntity user = user("usr_123", "alex@example.com", "Alex Johnson", UserRole.USER, "encoded");
 
-        authService.logout(request);
+        when(googleOAuthClient.exchangeCode("google-code", "http://localhost:3000/auth/callback/google"))
+                .thenReturn(new GoogleOAuthClient.GoogleUserProfile("google-subject", "alex@example.com", "Alex Johnson", "https://example.com/profile.jpg"));
+        when(userRepository.findByGoogleSubject("google-subject")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("alex@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
+        when(jwtService.issueToken("usr_123", "Alex Johnson")).thenReturn("jwt-token");
 
-        assertThat(request.getSession(false)).isNull();
+        LoginResponse response = authService.exchangeGoogleCode("google-code", "http://localhost:3000/auth/callback/google");
+
+        assertThat(response.accessToken()).isEqualTo("jwt-token");
+        assertThat(user.getGoogleSubject()).isEqualTo("google-subject");
+        verify(userRepository).save(user);
     }
 
     private UserEntity user(String id, String email, String displayName, UserRole role, String passwordHash) {

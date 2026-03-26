@@ -23,16 +23,16 @@
 - `Current`: the EC2 semideploy baseline uses nginx as the external reverse proxy in front of the backend container
 - `Current`: production env files stay on the target server instead of being committed to the repository
 - `Current`: the default semideploy baseline includes MySQL in Docker on the EC2 host, with external DB connection kept available through backend env values
-- `Current`: frontend server runtime should talk to the backend through `BACKEND_BASE_URL` and forward session cookies instead of relying on direct browser-to-backend cookie handling
+- `Current`: frontend server runtime should talk to the backend through `BACKEND_BASE_URL` and attach JWT bearer auth derived from a frontend-owned httpOnly cookie instead of relying on direct browser-to-backend cookie handling
 - `Current`: backend CORS should allow the configured frontend origin and optional Vercel preview-origin patterns
 - `Approved next phase`: Redis is the first infrastructure addition for queue-ready reservation control
 
 ## Auth Decisions
-- `Current target contract`: session-based auth remains the documented direction
-- `Current implementation`: backend auth uses the same session-first contract for login, me, logout, and protected routes
-- `Future / Not finalized`: final auth implementation details beyond the minimum contract remain undecided
-- `Approved next phase`: Google is the first OAuth provider to add
-- `Approved next phase`: OAuth should extend the existing session-based runtime contract rather than replace it with JWT-only auth
+- `Current target contract`: JWT bearer auth is the documented protected-route direction
+- `Current implementation`: frontend owns the auth cookie boundary and forwards JWT bearer auth to the backend
+- `Current`: Google is the first OAuth provider in scope
+- `Current`: local email/password login may coexist with Google OAuth while both issue the same JWT contract
+- `Future / Not finalized`: refresh-token rotation and multi-provider account linking beyond Google are not finalized
 
 ## Documentation Decisions
 - `Current`: `agent.md` is the operating guide and rule hub
@@ -46,5 +46,5 @@
 ## Scope Decisions
 - `Current`: prioritize current product flows first
 - `Current`: keep minimum safe backend requirements in scope
-- `Approved next phase`: semideploy, Google OAuth, and Redis-backed queue readiness are the next follow-up scope after baseline stability
+- `Approved next phase`: semideploy hardening and Redis-backed queue readiness follow after the JWT + Google OAuth auth baseline is stable
 - `Future / Not finalized`: signup, payments, notifications, broad user-visible queueing, and Kafka-based flows

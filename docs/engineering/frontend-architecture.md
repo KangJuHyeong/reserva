@@ -263,16 +263,17 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 ### `/login`
 
 #### Purpose
-- Minimal session-login entry point
+- JWT-login and Google OAuth entry point
 
 #### Current Structure
 - back-to-home link
 - email field
 - password field
 - sign-in CTA
+- Google sign-in CTA
 - error message area
 - demo credential guidance
-- side explanation panel for current auth behavior
+- side explanation panel for current JWT and OAuth behavior
 
 #### Current States
 - idle form state
@@ -282,11 +283,12 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 
 #### Current Data Dependencies
 - `POST /auth/login`
+- `GET /api/auth/google/start`
 - post-login bootstrap through `GET /me`
 
 #### Target Improvements
-- Keep login focused on the minimum session contract.
-- Do not add signup, OAuth, or password-recovery IA until those flows enter scope.
+- Keep login focused on local email/password and Google OAuth only.
+- Do not add signup or password-recovery IA until those flows enter scope.
 
 ## Prototype Comparison Notes
 
@@ -340,6 +342,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - my-events request
 - watchlist mutation requests
 - same-origin proxy routes for login, logout, current-user bootstrap, bookings, and watchlist mutations
+- same-origin auth routes own the browser auth cookie and expose Google OAuth start/callback handling
 - same-origin proxy routes convert backend transport failures into explicit unavailable responses for the UI
 
 ### Temporary
@@ -348,6 +351,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 ### Target
 - keep route-to-data ownership simple and page-local
 - avoid adding extra frontend-only state layers when the server contract already expresses the needed filtered state
+- keep browser auth storage in httpOnly cookies rather than client-readable storage
 
 ### Out Of Scope
 - waiting-room or polling UX for high-demand events

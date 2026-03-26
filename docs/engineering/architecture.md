@@ -9,7 +9,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 ### Current
 - The system currently runs around `frontend`, `backend`, and a relational database.
 - The main user-visible flows in scope are discovery, event detail, booking, watchlist, dashboard, my-events, create, and login.
-- Authentication uses the same session-first contract across login, me, logout, and protected routes.
+- Authentication is transitioning to the same JWT bearer contract across login, me, Google OAuth exchange, and protected routes.
 
 ### Temporary
 - No temporary auth fallback remains in the current baseline.
@@ -17,11 +17,11 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 
 ### Target
 - Keep the current route split where dashboard remains a summary workspace and my-events remains the created-events workspace.
-- Keep the current session-based protected-route contract even if new login providers are introduced.
+- Keep the protected-route contract JWT-based even when new login providers are introduced.
 - Prepare the system for lightweight external deployment without changing the current product route model.
 
 ### Out Of Scope
-- Advanced authentication flows
+- Signup and password-recovery flows
 - Payments
 - Notifications
 - Queue-based traffic control
@@ -30,7 +30,6 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 ### Approved Next-Phase Candidates
 - EC2 semideploy packaging with containerized backend services and optional containerized database
 - reverse-proxy setup suitable for lightweight external access
-- Google OAuth added as an additional login entry point
 - Redis added as infrastructure for queue-ready reservation control
 
 ## Deployment Topology
@@ -41,6 +40,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - `backend` runs behind the proxy.
 - `mysql` can run as a container on the same host for the default lightweight deployment.
 - The frontend is expected to run on Vercel and reach the backend through the public nginx origin.
+- The frontend is expected to own the browser auth cookie and attach JWT bearer auth from its server runtime and route handlers.
 
 ### Target
 - CI builds and publishes the versioned backend image used by EC2.
@@ -62,13 +62,14 @@ Responsibilities:
 Current baseline:
 - Next.js App Router application
 - `frontend/app` and `frontend/components` centered structure
-- Vercel-friendly runtime because protected mutations already flow through same-origin Next.js route handlers
+- Vercel-friendly runtime because protected reads and mutations flow through same-origin Next.js route handlers and server runtime cookie access
 
 ### Backend API Application
 Responsibilities:
 - provide auth, events, bookings, watchlists, dashboard, and my-events capabilities
 - perform validation, authorization, and error mapping
 - compute derived sections and compose user-specific payloads
+- exchange Google authorization codes for Google identity and issue application JWTs
 
 Current baseline:
 - Spring Boot
@@ -98,6 +99,7 @@ Current:
 - `POST /auth/login`
 - `GET /me`
 - `POST /auth/logout`
+- `POST /auth/oauth/google/exchange`
 - expose the current user identity to the rest of the system
 
 ### Event Catalog
@@ -141,9 +143,10 @@ Current:
 ### External Request Routing
 1. The browser connects to the frontend host, expected to be Vercel.
 2. The frontend host serves pages and same-origin route handlers such as `/api/auth/*`, `/api/me`, and mutation proxies.
-3. The frontend server runtime calls the EC2 backend through `BACKEND_BASE_URL` and forwards incoming cookies.
-4. If the frontend runtime cannot reach the backend, server-rendered pages and same-origin proxy routes should fail with an explicit backend-unavailable state instead of an opaque runtime crash.
-5. The EC2 nginx host routes `/api/v1/*` traffic to the backend container and keeps MySQL private on the internal Docker network.
+3. The frontend route handlers own the browser auth cookie and translate it into backend `Authorization: Bearer ...` headers.
+4. The frontend server runtime calls the EC2 backend through `BACKEND_BASE_URL` and attaches the same bearer token for SSR reads.
+5. If the frontend runtime cannot reach the backend, server-rendered pages and same-origin proxy routes should fail with an explicit backend-unavailable state instead of an opaque runtime crash.
+6. The EC2 nginx host routes `/api/v1/*` traffic to the backend container and keeps MySQL private on the internal Docker network.
 
 ### Browse Events
 1. The frontend requests the event list with search, category, section, and page inputs.
@@ -222,5 +225,5 @@ At minimum, the API must distinguish:
 - Prefer safe synchronous booking semantics over speculative async complexity.
 - Let the server own derived UI sections when business semantics matter.
 - Keep service ownership aligned to feature domains instead of temporary task groupings.
-- Extend auth through the existing session runtime contract before considering broader auth redesign.
+- Keep auth transport centered on frontend-owned cookies and backend JWT verification instead of returning to backend-managed sessions.
 - Introduce queue infrastructure in narrow, replaceable seams before committing to a large visible waiting-room experience.

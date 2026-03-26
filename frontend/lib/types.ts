@@ -27,6 +27,11 @@ export interface CurrentUserApi {
   email: string;
 }
 
+export interface LoginResponseApi {
+  accessToken: string;
+  user: CurrentUserApi;
+}
+
 export interface EventHostApi {
   id: string;
   name: string;

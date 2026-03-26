@@ -8,7 +8,7 @@ Use `docs/product/implementation-status.md` for current implementation coverage 
 
 ### Current
 - The current baseline tables are `users`, `events`, `event_inventory`, `bookings`, and `watchlists`.
-- The current migration baseline runs from `V1__create_users.sql` through `V4__create_watchlists.sql`.
+- The current migration baseline runs from `V1__create_users.sql` through `V5__add_google_subject_to_users.sql`.
 
 ### Temporary
 - `users.role` still exists in the schema, but it is not the active product-level permission contract in the current baseline.
@@ -34,12 +34,13 @@ Purpose:
 - store application users
 - support authentication and current-user loading
 - support both booking and event creation through the same authenticated user model
-- back the current session login contract without a separate auth table
+- back local login and Google-linked login without a separate auth table for the first OAuth rollout
 
 Recommended columns:
 - `id`
 - `email`
 - `password_hash`
+- `google_subject`
 - `display_name`
 - `role`
 - `profile_image_url`
@@ -48,7 +49,9 @@ Recommended columns:
 
 Rules:
 - `email` is unique
-- `password_hash` stores a one-way hash suitable for BCrypt verification
+- `password_hash` stores a one-way hash suitable for BCrypt verification when local login is enabled
+- `password_hash` may be null for OAuth-only users
+- `google_subject` is nullable and unique when present
 - `role` is a legacy column and is not the active product-level permission contract
 
 ### events
@@ -138,6 +141,7 @@ Rules:
 
 ### Auth And Identity
 - `users.email` must be unique
+- `users.google_subject` must be unique when not null
 
 ### Watchlist Integrity
 - `watchlists` requires unique `(user_id, event_id)`

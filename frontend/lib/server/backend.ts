@@ -4,6 +4,7 @@ import { ApiErrorResponse } from "@/lib/types";
 
 const DEFAULT_BACKEND_BASE_URL = "http://localhost:8080";
 export const BACKEND_UNAVAILABLE_CODE = "BACKEND_UNAVAILABLE";
+export const AUTH_TOKEN_COOKIE = "reserva_auth_token";
 
 export class BackendApiError extends Error {
   status: number;
@@ -39,6 +40,11 @@ async function incomingCookiesHeader() {
   return serialized ? serialized : null;
 }
 
+async function incomingBearerToken() {
+  const cookieStore = await cookies();
+  return cookieStore.get(AUTH_TOKEN_COOKIE)?.value ?? null;
+}
+
 async function mergeHeaders(
   headers?: HeadersInit,
   includeJsonContentType = false,
@@ -53,6 +59,11 @@ async function mergeHeaders(
     if (cookieHeader) {
       merged.set("Cookie", cookieHeader);
     }
+  }
+
+  const bearerToken = await incomingBearerToken();
+  if (bearerToken) {
+    merged.set("Authorization", `Bearer ${bearerToken}`);
   }
 
   if (headers) {
@@ -115,6 +126,12 @@ export async function proxyBackend(
   const cookieHeader = requestHeaders.get("cookie");
   if (cookieHeader) {
     mergedHeaders.set("Cookie", cookieHeader);
+  }
+
+  const cookieStore = await cookies();
+  const bearerToken = cookieStore.get(AUTH_TOKEN_COOKIE)?.value;
+  if (bearerToken) {
+    mergedHeaders.set("Authorization", `Bearer ${bearerToken}`);
   }
 
   let response: Response;
