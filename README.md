@@ -1,6 +1,6 @@
 # Reserva
 
-Reserva is an event reservation marketplace.
+Reserva is an event reservation marketplace with local signup/login, Google OAuth, discovery, booking, watchlist, dashboard, and event creation flows.
 
 The repository contains the frontend, backend, and supporting documentation for the current product baseline.
 

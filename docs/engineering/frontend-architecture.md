@@ -12,6 +12,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - `/my-events`
 - `/create`
 - `/login`
+- `/signup`
 
 ## Current Route Status
 - live route: `/`
@@ -21,6 +22,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - live route: `/my-events`
 - live route: `/create`
 - live route: `/login`
+- live route: `/signup`
 
 ## Shared Shell
 
@@ -86,6 +88,8 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - sticky `Navbar`
 - desktop `Sidebar`
 - mobile `MobileNav`
+- default mixed feed section:
+  - `Latest Events`
 - default curated sections:
   - `Trending Now`
   - `Almost Full`
@@ -112,6 +116,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - Keep the current server-driven curated sections instead of copying the prototype's heavier client-only page-state model.
 - Keep watchlist as an explicit filtered mode instead of a default home section to reduce feed clutter.
 - Improve workspace handoff through stronger quick links rather than by adding more home sections.
+- Keep the default home route from feeling empty by showing a mixed feed first and hiding curated sections that currently have no matching events.
 
 ### `/reservation/[id]`
 
@@ -288,7 +293,36 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 
 #### Target Improvements
 - Keep login focused on local email/password and Google OAuth only.
-- Do not add signup or password-recovery IA until those flows enter scope.
+- Keep login focused on account entry and hand off account creation to `/signup`.
+
+### `/signup`
+
+#### Purpose
+- Local account-creation entry point that lands the user in the same JWT-authenticated state as login
+
+#### Current Structure
+- back-to-home link
+- name field
+- email field
+- password field
+- account-create CTA
+- back-to-login link
+- side explanation panel for the current JWT signup behavior
+
+#### Current States
+- idle form state
+- submitting state
+- duplicate-email error state
+- validation error state
+- backend unavailable fallback state
+
+#### Current Data Dependencies
+- `POST /auth/signup`
+- post-signup bootstrap through `GET /me`
+
+#### Target Improvements
+- Keep local account creation aligned to the same JWT cookie contract used by login.
+- Do not add password recovery or multi-step email verification until those flows enter scope.
 
 ## Prototype Comparison Notes
 

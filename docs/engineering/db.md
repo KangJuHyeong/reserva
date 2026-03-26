@@ -33,6 +33,7 @@ Use `docs/product/implementation-status.md` for current implementation coverage 
 Purpose:
 - store application users
 - support authentication and current-user loading
+- support local signup
 - support both booking and event creation through the same authenticated user model
 - back local login and Google-linked login without a separate auth table for the first OAuth rollout
 
@@ -50,6 +51,7 @@ Recommended columns:
 Rules:
 - `email` is unique
 - `password_hash` stores a one-way hash suitable for BCrypt verification when local login is enabled
+- local signup writes `password_hash` for email/password accounts before issuing the application JWT contract
 - `password_hash` may be null for OAuth-only users
 - `google_subject` is nullable and unique when present
 - `role` is a legacy column and is not the active product-level permission contract

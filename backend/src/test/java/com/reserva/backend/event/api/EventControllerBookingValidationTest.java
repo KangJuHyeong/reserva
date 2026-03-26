@@ -1,11 +1,13 @@
 package com.reserva.backend.event.api;
 
+import com.reserva.backend.auth.JwtService;
 import com.reserva.backend.booking.BookingService;
 import com.reserva.backend.common.error.GlobalExceptionHandler;
 import com.reserva.backend.event.EventCommandService;
 import com.reserva.backend.event.EventQueryService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -17,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(EventController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @Import(GlobalExceptionHandler.class)
 class EventControllerBookingValidationTest {
 
@@ -31,6 +34,9 @@ class EventControllerBookingValidationTest {
 
     @MockBean
     private BookingService bookingService;
+
+    @MockBean
+    private JwtService jwtService;
 
     @Test
     void createBookingRejectsInvalidTicketCount() throws Exception {

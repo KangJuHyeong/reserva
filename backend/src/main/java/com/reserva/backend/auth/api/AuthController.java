@@ -23,6 +23,11 @@ public class AuthController {
         return authService.login(request);
     }
 
+    @PostMapping("/api/v1/auth/signup")
+    public LoginResponse signup(@Valid @RequestBody SignupRequest request) {
+        return authService.signup(request);
+    }
+
     @PostMapping("/api/v1/auth/oauth/google/exchange")
     public LoginResponse exchangeGoogleCode(@Valid @RequestBody GoogleExchangeRequest request) {
         return authService.exchangeGoogleCode(request.code(), request.redirectUri());

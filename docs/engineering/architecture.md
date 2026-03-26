@@ -8,8 +8,9 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 
 ### Current
 - The system currently runs around `frontend`, `backend`, and a relational database.
-- The main user-visible flows in scope are discovery, event detail, booking, watchlist, dashboard, my-events, create, and login.
-- Authentication is transitioning to the same JWT bearer contract across login, me, Google OAuth exchange, and protected routes.
+- The main user-visible flows in scope are discovery, event detail, booking, watchlist, dashboard, my-events, create, login, and signup.
+- Authentication is transitioning to the same JWT bearer contract across signup, login, me, Google OAuth exchange, and protected routes.
+- Backend protected-route enforcement now runs through Spring Security's stateless JWT filter chain before controller and service execution.
 
 ### Temporary
 - No temporary auth fallback remains in the current baseline.
@@ -21,7 +22,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - Prepare the system for lightweight external deployment without changing the current product route model.
 
 ### Out Of Scope
-- Signup and password-recovery flows
+- password-recovery flows
 - Payments
 - Notifications
 - Queue-based traffic control
@@ -54,6 +55,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 ### Frontend Web App
 Responsibilities:
 - render discovery, event detail, booking detail, dashboard, my-events, create, and login routes
+- render the signup route
 - connect auth, booking, and watchlist mutations through same-origin API routes
 - manage query-string-based search, filter, and pagination state
 - read `BACKEND_BASE_URL` from runtime env so the same build can target either local backend, EC2 backend, or other environments without code changes
@@ -70,6 +72,7 @@ Responsibilities:
 - perform validation, authorization, and error mapping
 - compute derived sections and compose user-specific payloads
 - exchange Google authorization codes for Google identity and issue application JWTs
+- translate verified JWT bearer auth into request-scoped `SecurityContext` state for downstream services
 
 Current baseline:
 - Spring Boot
@@ -96,6 +99,7 @@ Current baseline:
 
 ### Auth
 Current:
+- `POST /auth/signup`
 - `POST /auth/login`
 - `GET /me`
 - `POST /auth/logout`
@@ -147,6 +151,12 @@ Current:
 4. The frontend server runtime calls the EC2 backend through `BACKEND_BASE_URL` and attaches the same bearer token for SSR reads.
 5. If the frontend runtime cannot reach the backend, server-rendered pages and same-origin proxy routes should fail with an explicit backend-unavailable state instead of an opaque runtime crash.
 6. The EC2 nginx host routes `/api/v1/*` traffic to the backend container and keeps MySQL private on the internal Docker network.
+
+### Sign Up
+1. A visitor submits name, email, and password from the signup page.
+2. The frontend same-origin route forwards the request to the backend signup API.
+3. The backend creates the user, hashes the password, and issues the application JWT.
+4. The frontend stores the token in its httpOnly cookie boundary and redirects into the authenticated experience.
 
 ### Browse Events
 1. The frontend requests the event list with search, category, section, and page inputs.

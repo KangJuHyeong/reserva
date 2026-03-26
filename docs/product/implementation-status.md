@@ -14,12 +14,14 @@
 - Datasource configuration uses `backend/.env`.
 - Current stack in use:
   - Spring Boot
+  - Spring Security
   - MySQL
   - Flyway
   - JPA
   - QueryDSL
   - Docker packaging for EC2 semideploy
 - Implemented APIs:
+  - `POST /api/v1/auth/signup`
   - `POST /api/v1/auth/login`
   - `POST /api/v1/auth/oauth/google/exchange`
   - `GET /api/v1/me`
@@ -40,6 +42,7 @@
 - Frontend runtime can be built into a Docker image, but the current lightweight deployment direction is Vercel hosting.
 - Server-rendered frontend routes and same-origin proxy routes now surface explicit backend-unavailable fallback states when the backend origin cannot be reached.
 - Frontend auth transport is transitioning from forwarded backend session cookies to a frontend-owned httpOnly JWT cookie.
+- Backend protected-route authentication now runs through Spring Security with a stateless JWT filter chain.
 - Live routes backed by real API data:
   - `/`
   - `/reservation/[id]`
@@ -48,10 +51,12 @@
   - `/my-events`
   - `/create`
   - `/login`
+  - `/signup`
 - Implemented product behaviors:
+  - local sign-up backed by frontend-owned httpOnly JWT cookie
   - local email/password login backed by frontend-owned httpOnly JWT cookie
   - Google OAuth callback exchange backed by the same frontend-owned JWT cookie contract
-  - event discovery with search, category filtering, derived sections, and pagination
+  - event discovery with search, category filtering, a default mixed feed, derived sections, and pagination
   - event detail with watchlist state and direct booking action
   - booking creation with capacity checks and duplicate-booking protection
   - my bookings list and booking detail
@@ -101,7 +106,6 @@
 - Redis introduction for queue-ready reservation control
 
 ## Out Of Scope
-- Signup
 - Password reset
 - Email verification
 - Payments

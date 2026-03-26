@@ -3,6 +3,7 @@ package com.reserva.backend.auth;
 import com.reserva.backend.auth.api.CurrentUserResponse;
 import com.reserva.backend.auth.api.LoginRequest;
 import com.reserva.backend.auth.api.LoginResponse;
+import com.reserva.backend.auth.api.SignupRequest;
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.model.UserRole;
@@ -25,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -78,6 +80,33 @@ class AuthServiceTest {
                     ApiException apiException = (ApiException) exception;
                     assertThat(apiException.getErrorCode()).isEqualTo(ErrorCode.UNAUTHENTICATED);
                     assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+                });
+    }
+
+    @Test
+    void signupCreatesUserAndReturnsJwt() {
+        when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("safe-password")).thenReturn("encoded-password");
+        when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(jwtService.issueToken(any(String.class), org.mockito.ArgumentMatchers.eq("New User"))).thenReturn("jwt-token");
+
+        LoginResponse response = authService.signup(new SignupRequest("New User", "new@example.com", "safe-password"));
+
+        assertThat(response.accessToken()).isEqualTo("jwt-token");
+        assertThat(response.user().email()).isEqualTo("new@example.com");
+        verify(userRepository).save(any(UserEntity.class));
+    }
+
+    @Test
+    void signupRejectsDuplicateEmail() {
+        when(userRepository.findByEmail("alex@example.com")).thenReturn(Optional.of(user("usr_123", "alex@example.com", "Alex Johnson", UserRole.USER, "encoded")));
+
+        assertThatThrownBy(() -> authService.signup(new SignupRequest("Alex Johnson", "alex@example.com", "safe-password")))
+                .isInstanceOf(ApiException.class)
+                .satisfies(exception -> {
+                    ApiException apiException = (ApiException) exception;
+                    assertThat(apiException.getErrorCode()).isEqualTo(ErrorCode.EMAIL_ALREADY_IN_USE);
+                    assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.CONFLICT);
                 });
     }
 

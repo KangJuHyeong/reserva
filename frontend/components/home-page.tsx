@@ -36,6 +36,12 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
   const almostFullReservations = visibleItems.filter((item) => item.remainingSlots <= Math.max(5, Math.ceil(item.totalSlots * 0.2)));
   const endingSoonReservations = visibleItems.filter((item) => item.isEndingSoon);
   const upcomingReservations = visibleItems.filter((item) => item.isOpeningSoon);
+  const latestReservations = visibleItems.slice(0, 6);
+  const visibleSections = [
+    { key: "trending", title: "Trending Now", items: trendingReservations },
+    { key: "almost-full", title: "Almost Full", items: almostFullReservations },
+    { key: "ending-soon", title: "Ending Soon", items: endingSoonReservations },
+  ].filter((section) => section.items.length > 0);
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
   function clearView() {
@@ -95,43 +101,41 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
           ) : mode === "default" ? (
             <div className="space-y-10">
               <section>
-                <h2 className="mb-4 text-xl font-semibold text-foreground">Trending Now</h2>
+                <h2 className="mb-2 text-xl font-semibold text-foreground">Latest Events</h2>
+                <p className="mb-4 text-sm text-muted-foreground">A mixed discovery feed so every category stays visible even when curated sections are sparse.</p>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-                  {trendingReservations.map((reservation) => (
-                    <ReservationCard
-                      key={reservation.id}
-                      reservation={reservation}
-                      onWatchlistChange={(nextValue) => updateWatchlist(reservation.id, nextValue)}
-                    />
-                  ))}
+                  {latestReservations.map((reservation) =>
+                    reservation.isOpeningSoon ? (
+                      <UpcomingCard
+                        key={reservation.id}
+                        reservation={reservation}
+                        onWatchlistChange={(nextValue) => updateWatchlist(reservation.id, nextValue)}
+                      />
+                    ) : (
+                      <ReservationCard
+                        key={reservation.id}
+                        reservation={reservation}
+                        onWatchlistChange={(nextValue) => updateWatchlist(reservation.id, nextValue)}
+                      />
+                    )
+                  )}
                 </div>
               </section>
 
-              <section>
-                <h2 className="mb-4 text-xl font-semibold text-foreground">Almost Full</h2>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-                  {almostFullReservations.map((reservation) => (
-                    <ReservationCard
-                      key={reservation.id}
-                      reservation={reservation}
-                      onWatchlistChange={(nextValue) => updateWatchlist(reservation.id, nextValue)}
-                    />
-                  ))}
-                </div>
-              </section>
-
-              <section>
-                <h2 className="mb-4 text-xl font-semibold text-foreground">Ending Soon</h2>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-                  {endingSoonReservations.map((reservation) => (
-                    <ReservationCard
-                      key={reservation.id}
-                      reservation={reservation}
-                      onWatchlistChange={(nextValue) => updateWatchlist(reservation.id, nextValue)}
-                    />
-                  ))}
-                </div>
-              </section>
+              {visibleSections.map((section) => (
+                <section key={section.key}>
+                  <h2 className="mb-4 text-xl font-semibold text-foreground">{section.title}</h2>
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    {section.items.map((reservation) => (
+                      <ReservationCard
+                        key={reservation.id}
+                        reservation={reservation}
+                        onWatchlistChange={(nextValue) => updateWatchlist(reservation.id, nextValue)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
 
               {upcomingReservations.length > 0 ? (
                 <section>

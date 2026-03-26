@@ -5,7 +5,6 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
-import com.querydsl.core.types.dsl.NumberTemplate;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.reserva.backend.event.model.EventCategory;
@@ -100,7 +99,7 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
                                                LocalDateTime now) {
         return switch (section) {
             case TRENDING -> fillRateExpression(inventory).goe(0.7d);
-            case ENDING_SOON -> remainingSlotsExpression(inventory).loe(endingSoonThresholdExpression(inventory));
+            case ENDING_SOON -> event.eventDateTime.goe(now).and(event.eventDateTime.loe(now.plusHours(72)));
             case OPENING_SOON -> event.reservationOpenDateTime.after(now);
             case WATCHLIST -> watchlist.userId.eq(currentUserId);
             case DEFAULT -> null;
@@ -116,7 +115,6 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
                     event.eventDateTime.asc()
             };
             case ENDING_SOON -> new OrderSpecifier<?>[]{
-                    remainingSlotsExpression(inventory).asc(),
                     event.eventDateTime.asc()
             };
             case OPENING_SOON -> new OrderSpecifier<?>[]{
@@ -128,10 +126,6 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
         };
     }
 
-    private NumberExpression<Integer> remainingSlotsExpression(QEventInventoryEntity inventory) {
-        return inventory.totalSlots.subtract(inventory.reservedSlots);
-    }
-
     private NumberExpression<Double> fillRateExpression(QEventInventoryEntity inventory) {
         return Expressions.numberTemplate(
                 Double.class,
@@ -141,11 +135,4 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
         );
     }
 
-    private NumberTemplate<Integer> endingSoonThresholdExpression(QEventInventoryEntity inventory) {
-        return Expressions.numberTemplate(
-                Integer.class,
-                "greatest(5, ceil({0} * 0.2))",
-                inventory.totalSlots
-        );
-    }
 }
