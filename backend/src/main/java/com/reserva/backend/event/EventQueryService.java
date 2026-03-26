@@ -71,8 +71,7 @@ public class EventQueryService {
         return toDetailResponse(event, currentUserProvider.getCurrentUserOrNull());
     }
 
-    public PageResponse<EventSummaryResponse> getMyEvents(int page, int size) {
-        CurrentUser currentUser = currentUserProvider.getCurrentUserOrThrow();
+    public PageResponse<EventSummaryResponse> getMyEvents(CurrentUser currentUser, int page, int size) {
         LocalDateTime now = LocalDateTime.now();
         Page<EventEntity> myEvents = eventRepository.findByCreator_IdOrderByCreatedAtDesc(
                 currentUser.id(),

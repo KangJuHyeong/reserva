@@ -5,7 +5,6 @@ import com.reserva.backend.booking.BookingRepository;
 import com.reserva.backend.booking.api.BookingSummaryResponse;
 import com.reserva.backend.booking.model.BookingStatus;
 import com.reserva.backend.common.security.CurrentUser;
-import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.dashboard.api.DashboardStatsResponse;
 import com.reserva.backend.dashboard.api.DashboardSummaryResponse;
 import com.reserva.backend.event.EventEntity;
@@ -31,23 +30,19 @@ import java.util.stream.Collectors;
 @Service
 public class DashboardQueryService {
 
-    private final CurrentUserProvider currentUserProvider;
     private final BookingRepository bookingRepository;
     private final EventRepository eventRepository;
     private final WatchlistRepository watchlistRepository;
 
-    public DashboardQueryService(CurrentUserProvider currentUserProvider,
-                                 BookingRepository bookingRepository,
+    public DashboardQueryService(BookingRepository bookingRepository,
                                  EventRepository eventRepository,
                                  WatchlistRepository watchlistRepository) {
-        this.currentUserProvider = currentUserProvider;
         this.bookingRepository = bookingRepository;
         this.eventRepository = eventRepository;
         this.watchlistRepository = watchlistRepository;
     }
 
-    public DashboardSummaryResponse getDashboardSummary() {
-        CurrentUser currentUser = currentUserProvider.getCurrentUserOrThrow();
+    public DashboardSummaryResponse getDashboardSummary(CurrentUser currentUser) {
         String userId = currentUser.id();
         LocalDateTime now = LocalDateTime.now();
 

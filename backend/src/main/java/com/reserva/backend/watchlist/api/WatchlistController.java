@@ -1,7 +1,9 @@
 package com.reserva.backend.watchlist.api;
 
 import com.reserva.backend.watchlist.WatchlistService;
+import com.reserva.backend.common.security.CurrentUser;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,13 +23,15 @@ public class WatchlistController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void save(@PathVariable String eventId) {
-        watchlistService.save(eventId);
+    public void save(@AuthenticationPrincipal CurrentUser currentUser,
+                     @PathVariable String eventId) {
+        watchlistService.save(currentUser, eventId);
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void remove(@PathVariable String eventId) {
-        watchlistService.remove(eventId);
+    public void remove(@AuthenticationPrincipal CurrentUser currentUser,
+                       @PathVariable String eventId) {
+        watchlistService.remove(currentUser, eventId);
     }
 }

@@ -4,7 +4,6 @@ import com.reserva.backend.booking.BookingEntity;
 import com.reserva.backend.booking.BookingRepository;
 import com.reserva.backend.booking.model.BookingStatus;
 import com.reserva.backend.common.security.CurrentUser;
-import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.dashboard.api.DashboardSummaryResponse;
 import com.reserva.backend.event.EventEntity;
 import com.reserva.backend.event.EventInventoryEntity;
@@ -32,9 +31,6 @@ import static org.mockito.Mockito.when;
 class DashboardQueryServiceTest {
 
     @Mock
-    private CurrentUserProvider currentUserProvider;
-
-    @Mock
     private BookingRepository bookingRepository;
 
     @Mock
@@ -47,7 +43,7 @@ class DashboardQueryServiceTest {
 
     @BeforeEach
     void setUp() {
-        dashboardQueryService = new DashboardQueryService(currentUserProvider, bookingRepository, eventRepository, watchlistRepository);
+        dashboardQueryService = new DashboardQueryService(bookingRepository, eventRepository, watchlistRepository);
     }
 
     @Test
@@ -59,7 +55,6 @@ class DashboardQueryServiceTest {
         EventEntity watchlistReady = event("evt_watch_2", "Ready To Reserve", "usr_host", LocalDateTime.now().plusDays(5), LocalDateTime.now().minusDays(2), 60, 25);
         EventEntity createdEvent = event("evt_created", "My Created Event", "usr_1", LocalDateTime.now().plusDays(20), LocalDateTime.now().plusDays(5), 120, 10);
 
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(currentUser);
         when(bookingRepository.countByUserId("usr_1")).thenReturn(4L);
         when(bookingRepository.countByUserIdAndStatus("usr_1", BookingStatus.COMPLETED)).thenReturn(1L);
         when(bookingRepository.findTop3ByUserIdOrderByBookedAtDesc("usr_1")).thenReturn(List.of(booking));
@@ -71,7 +66,7 @@ class DashboardQueryServiceTest {
         when(eventRepository.countByCreator_Id("usr_1")).thenReturn(1L);
         when(eventRepository.findTop3ByCreator_IdOrderByCreatedAtDesc("usr_1")).thenReturn(List.of(createdEvent));
 
-        DashboardSummaryResponse response = dashboardQueryService.getDashboardSummary();
+        DashboardSummaryResponse response = dashboardQueryService.getDashboardSummary(currentUser);
 
         assertThat(response.stats().totalBookings()).isEqualTo(4);
         assertThat(response.stats().completedBookings()).isEqualTo(1);

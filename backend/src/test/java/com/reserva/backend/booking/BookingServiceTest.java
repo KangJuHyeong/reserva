@@ -7,7 +7,6 @@ import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.model.UserRole;
 import com.reserva.backend.common.security.CurrentUser;
-import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.event.EventEntity;
 import com.reserva.backend.event.EventInventoryEntity;
 import com.reserva.backend.event.EventInventoryRepository;
@@ -50,10 +49,8 @@ class BookingServiceTest {
     @Mock
     private EventInventoryRepository eventInventoryRepository;
 
-    @Mock
-    private CurrentUserProvider currentUserProvider;
-
     private BookingService bookingService;
+    private final CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson");
 
     @BeforeEach
     void setUp() {
@@ -61,16 +58,13 @@ class BookingServiceTest {
                 bookingRepository,
                 eventRepository,
                 eventInventoryRepository,
-                currentUserProvider,
                 "BK"
         );
     }
 
     @Test
     void createBookingRejectsInvalidTicketCount() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
-
-        assertThatThrownBy(() -> bookingService.createBooking("evt_1", new BookingCreateRequest(0)))
+        assertThatThrownBy(() -> bookingService.createBooking(currentUser, "evt_1", new BookingCreateRequest(0)))
                 .isInstanceOf(ApiException.class)
                 .satisfies(exception -> {
                     ApiException apiException = (ApiException) exception;
@@ -83,11 +77,10 @@ class BookingServiceTest {
 
     @Test
     void createBookingRejectsUnknownEvent() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByIdAndStatusAndVisibility("evt_missing", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> bookingService.createBooking("evt_missing", new BookingCreateRequest(1)))
+        assertThatThrownBy(() -> bookingService.createBooking(currentUser, "evt_missing", new BookingCreateRequest(1)))
                 .isInstanceOf(ApiException.class)
                 .satisfies(exception -> {
                     ApiException apiException = (ApiException) exception;
@@ -98,11 +91,10 @@ class BookingServiceTest {
 
     @Test
     void createBookingRejectsReservationBeforeOpen() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.of(event("evt_1", 10, 0, LocalDateTime.now().plusDays(1))));
 
-        assertThatThrownBy(() -> bookingService.createBooking("evt_1", new BookingCreateRequest(1)))
+        assertThatThrownBy(() -> bookingService.createBooking(currentUser, "evt_1", new BookingCreateRequest(1)))
                 .isInstanceOf(ApiException.class)
                 .satisfies(exception -> {
                     ApiException apiException = (ApiException) exception;
@@ -113,13 +105,12 @@ class BookingServiceTest {
 
     @Test
     void createBookingRejectsDuplicateConfirmedBooking() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.of(event("evt_1", 10, 0, LocalDateTime.now().minusDays(1))));
         when(bookingRepository.existsByUserIdAndEventIdAndStatusIn(eq("usr_1"), eq("evt_1"), eq(EnumSet.of(BookingStatus.CONFIRMED))))
                 .thenReturn(true);
 
-        assertThatThrownBy(() -> bookingService.createBooking("evt_1", new BookingCreateRequest(1)))
+        assertThatThrownBy(() -> bookingService.createBooking(currentUser, "evt_1", new BookingCreateRequest(1)))
                 .isInstanceOf(ApiException.class)
                 .satisfies(exception -> {
                     ApiException apiException = (ApiException) exception;
@@ -132,14 +123,13 @@ class BookingServiceTest {
     void createBookingRejectsSoldOutInventory() {
         EventEntity event = event("evt_1", 2, 2, LocalDateTime.now().minusDays(1));
 
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.of(event));
         when(bookingRepository.existsByUserIdAndEventIdAndStatusIn(eq("usr_1"), eq("evt_1"), eq(EnumSet.of(BookingStatus.CONFIRMED))))
                 .thenReturn(false);
         when(eventInventoryRepository.findByEventIdForUpdate("evt_1")).thenReturn(Optional.of(event.getInventory()));
 
-        assertThatThrownBy(() -> bookingService.createBooking("evt_1", new BookingCreateRequest(1)))
+        assertThatThrownBy(() -> bookingService.createBooking(currentUser, "evt_1", new BookingCreateRequest(1)))
                 .isInstanceOf(ApiException.class)
                 .satisfies(exception -> {
                     ApiException apiException = (ApiException) exception;
@@ -152,14 +142,13 @@ class BookingServiceTest {
     void createBookingRejectsMissingInventory() {
         EventEntity event = event("evt_1", 10, 0, LocalDateTime.now().minusDays(1));
 
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.of(event));
         when(bookingRepository.existsByUserIdAndEventIdAndStatusIn(eq("usr_1"), eq("evt_1"), eq(EnumSet.of(BookingStatus.CONFIRMED))))
                 .thenReturn(false);
         when(eventInventoryRepository.findByEventIdForUpdate("evt_1")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> bookingService.createBooking("evt_1", new BookingCreateRequest(1)))
+        assertThatThrownBy(() -> bookingService.createBooking(currentUser, "evt_1", new BookingCreateRequest(1)))
                 .isInstanceOf(ApiException.class)
                 .satisfies(exception -> {
                     ApiException apiException = (ApiException) exception;
@@ -172,7 +161,6 @@ class BookingServiceTest {
     void createBookingPersistsBookingAndReservesInventory() {
         EventEntity event = event("evt_1", 10, 1, LocalDateTime.now().minusDays(1));
 
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.of(event));
         when(bookingRepository.existsByUserIdAndEventIdAndStatusIn(eq("usr_1"), eq("evt_1"), eq(EnumSet.of(BookingStatus.CONFIRMED))))
@@ -180,7 +168,7 @@ class BookingServiceTest {
         when(eventInventoryRepository.findByEventIdForUpdate("evt_1")).thenReturn(Optional.of(event.getInventory()));
         when(bookingRepository.save(any(BookingEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        BookingCreateResponse response = bookingService.createBooking("evt_1", new BookingCreateRequest(2));
+        BookingCreateResponse response = bookingService.createBooking(currentUser, "evt_1", new BookingCreateRequest(2));
 
         assertThat(response.eventId()).isEqualTo("evt_1");
         assertThat(response.ticketCount()).isEqualTo(2);

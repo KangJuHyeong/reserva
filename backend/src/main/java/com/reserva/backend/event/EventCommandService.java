@@ -3,7 +3,6 @@ package com.reserva.backend.event;
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.security.CurrentUser;
-import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.event.api.EventCreateRequest;
 import com.reserva.backend.event.api.EventCreateResponse;
 import com.reserva.backend.event.model.EventCategory;
@@ -24,19 +23,15 @@ public class EventCommandService {
 
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
-    private final CurrentUserProvider currentUserProvider;
 
     public EventCommandService(EventRepository eventRepository,
-                               UserRepository userRepository,
-                               CurrentUserProvider currentUserProvider) {
+                               UserRepository userRepository) {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
-        this.currentUserProvider = currentUserProvider;
     }
 
     @Transactional
-    public EventCreateResponse createEvent(EventCreateRequest request) {
-        CurrentUser currentUser = currentUserProvider.getCurrentUserOrThrow();
+    public EventCreateResponse createEvent(CurrentUser currentUser, EventCreateRequest request) {
         if (!request.reservationOpenDateTime().isBefore(request.eventDateTime())) {
             throw new ApiException(ErrorCode.INVALID_SCHEDULE, HttpStatus.BAD_REQUEST, "Reservation open datetime must be before event datetime.");
         }

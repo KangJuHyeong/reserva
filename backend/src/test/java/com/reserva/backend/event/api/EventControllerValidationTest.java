@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.reserva.backend.auth.JwtService;
 import com.reserva.backend.booking.BookingService;
 import com.reserva.backend.common.api.ApiErrorResponse;
+import com.reserva.backend.common.security.CurrentUser;
 import com.reserva.backend.common.error.GlobalExceptionHandler;
 import com.reserva.backend.event.EventCommandService;
 import com.reserva.backend.event.EventQueryService;
@@ -26,6 +27,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,7 +60,7 @@ class EventControllerValidationTest {
 
     @Test
     void createEventReturnsCreatedResponseForValidPayload() throws Exception {
-        when(eventCommandService.createEvent(any(EventCreateRequest.class)))
+        when(eventCommandService.createEvent(nullable(CurrentUser.class), any(EventCreateRequest.class)))
                 .thenReturn(new EventCreateResponse("evt_1", "Summer Jazz Night"));
 
         mockMvc.perform(post("/api/v1/events")
@@ -79,7 +81,7 @@ class EventControllerValidationTest {
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.message").value(expectedMessageFragment));
 
-        verify(eventCommandService, never()).createEvent(any(EventCreateRequest.class));
+        verify(eventCommandService, never()).createEvent(any(CurrentUser.class), any(EventCreateRequest.class));
     }
 
     static Stream<Arguments> invalidPayloads() {

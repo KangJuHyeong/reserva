@@ -4,7 +4,6 @@ import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.model.UserRole;
 import com.reserva.backend.common.security.CurrentUser;
-import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.event.api.EventCreateRequest;
 import com.reserva.backend.event.api.EventCreateResponse;
 import com.reserva.backend.event.model.EventStatus;
@@ -41,23 +40,21 @@ class EventCommandServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    @Mock
-    private CurrentUserProvider currentUserProvider;
-
     private EventCommandService eventCommandService;
+    private final CurrentUser creatorUser = new CurrentUser("usr_creator", "Creator Name");
+    private final CurrentUser standardUser = new CurrentUser("usr_1", "Alex Johnson");
 
     @BeforeEach
     void setUp() {
-        eventCommandService = new EventCommandService(eventRepository, userRepository, currentUserProvider);
+        eventCommandService = new EventCommandService(eventRepository, userRepository);
     }
 
     @Test
     void createEventCreatesPublishedPublicEventWithInventory() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_creator", "Creator Name"));
         when(userRepository.findById("usr_creator")).thenReturn(Optional.of(user("usr_creator", UserRole.CREATOR)));
         when(eventRepository.save(any(EventEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        EventCreateResponse response = eventCommandService.createEvent(validRequest());
+        EventCreateResponse response = eventCommandService.createEvent(creatorUser, validRequest());
 
         assertThat(response.title()).isEqualTo("Summer Jazz Night");
 
@@ -74,19 +71,16 @@ class EventCommandServiceTest {
 
     @Test
     void createEventAllowsAnyAuthenticatedUser() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(userRepository.findById("usr_1")).thenReturn(Optional.of(user("usr_1", UserRole.USER)));
         when(eventRepository.save(any(EventEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        EventCreateResponse response = eventCommandService.createEvent(validRequest());
+        EventCreateResponse response = eventCommandService.createEvent(standardUser, validRequest());
 
         assertThat(response.title()).isEqualTo("Summer Jazz Night");
     }
 
     @Test
     void createEventRejectsInvalidSchedule() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_creator", "Creator Name"));
-
         EventCreateRequest request = new EventCreateRequest(
                 "Summer Jazz Night",
                 "Concert",
@@ -99,7 +93,7 @@ class EventCommandServiceTest {
                 "https://example.com/image.jpg"
         );
 
-        assertThatThrownBy(() -> eventCommandService.createEvent(request))
+        assertThatThrownBy(() -> eventCommandService.createEvent(creatorUser, request))
                 .isInstanceOf(ApiException.class)
                 .satisfies(exception -> {
                     ApiException apiException = (ApiException) exception;
@@ -112,8 +106,6 @@ class EventCommandServiceTest {
 
     @Test
     void createEventRejectsUnsupportedCategory() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_creator", "Creator Name"));
-
         EventCreateRequest request = new EventCreateRequest(
                 "Summer Jazz Night",
                 "Festival",
@@ -126,7 +118,7 @@ class EventCommandServiceTest {
                 "https://example.com/image.jpg"
         );
 
-        assertThatThrownBy(() -> eventCommandService.createEvent(request))
+        assertThatThrownBy(() -> eventCommandService.createEvent(creatorUser, request))
                 .isInstanceOf(ApiException.class)
                 .satisfies(exception -> {
                     ApiException apiException = (ApiException) exception;

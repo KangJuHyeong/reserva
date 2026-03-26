@@ -4,11 +4,13 @@ import com.reserva.backend.booking.BookingService;
 import com.reserva.backend.booking.api.BookingCreateRequest;
 import com.reserva.backend.booking.api.BookingCreateResponse;
 import com.reserva.backend.common.api.PageResponse;
+import com.reserva.backend.common.security.CurrentUser;
 import com.reserva.backend.event.EventCommandService;
 import com.reserva.backend.event.EventQueryService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,13 +56,16 @@ public class EventController {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    public EventCreateResponse createEvent(@Valid @RequestBody EventCreateRequest request) {
-        return eventCommandService.createEvent(request);
+    public EventCreateResponse createEvent(@AuthenticationPrincipal CurrentUser currentUser,
+                                           @Valid @RequestBody EventCreateRequest request) {
+        return eventCommandService.createEvent(currentUser, request);
     }
 
     @PostMapping("/{eventId}/bookings")
     @ResponseStatus(CREATED)
-    public BookingCreateResponse createBooking(@PathVariable String eventId, @Valid @RequestBody BookingCreateRequest request) {
-        return bookingService.createBooking(eventId, request);
+    public BookingCreateResponse createBooking(@AuthenticationPrincipal CurrentUser currentUser,
+                                               @PathVariable String eventId,
+                                               @Valid @RequestBody BookingCreateRequest request) {
+        return bookingService.createBooking(currentUser, eventId, request);
     }
 }
