@@ -3,7 +3,6 @@ package com.reserva.backend.watchlist;
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.security.CurrentUser;
-import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.event.EventEntity;
 import com.reserva.backend.event.EventRepository;
 import com.reserva.backend.event.model.EventStatus;
@@ -20,19 +19,15 @@ public class WatchlistService {
 
     private final WatchlistRepository watchlistRepository;
     private final EventRepository eventRepository;
-    private final CurrentUserProvider currentUserProvider;
 
     public WatchlistService(WatchlistRepository watchlistRepository,
-                            EventRepository eventRepository,
-                            CurrentUserProvider currentUserProvider) {
+                            EventRepository eventRepository) {
         this.watchlistRepository = watchlistRepository;
         this.eventRepository = eventRepository;
-        this.currentUserProvider = currentUserProvider;
     }
 
     @Transactional
-    public void save(String eventId) {
-        CurrentUser currentUser = currentUserProvider.getCurrentUserOrThrow();
+    public void save(CurrentUser currentUser, String eventId) {
         EventEntity event = findEventOrThrow(eventId);
 
         if (watchlistRepository.existsByUserIdAndEventId(currentUser.id(), event.getId())) {
@@ -48,8 +43,7 @@ public class WatchlistService {
     }
 
     @Transactional
-    public void remove(String eventId) {
-        CurrentUser currentUser = currentUserProvider.getCurrentUserOrThrow();
+    public void remove(CurrentUser currentUser, String eventId) {
         EventEntity event = findEventOrThrow(eventId);
         watchlistRepository.deleteByUserIdAndEventId(currentUser.id(), event.getId());
     }

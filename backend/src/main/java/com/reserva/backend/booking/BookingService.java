@@ -6,7 +6,6 @@ import com.reserva.backend.booking.model.BookingStatus;
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.security.CurrentUser;
-import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.event.EventEntity;
 import com.reserva.backend.event.EventInventoryEntity;
 import com.reserva.backend.event.EventInventoryRepository;
@@ -31,25 +30,20 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final EventRepository eventRepository;
     private final EventInventoryRepository eventInventoryRepository;
-    private final CurrentUserProvider currentUserProvider;
     private final String bookingCodePrefix;
 
     public BookingService(BookingRepository bookingRepository,
                           EventRepository eventRepository,
                           EventInventoryRepository eventInventoryRepository,
-                          CurrentUserProvider currentUserProvider,
                           @Value("${app.booking.code-prefix:BK}") String bookingCodePrefix) {
         this.bookingRepository = bookingRepository;
         this.eventRepository = eventRepository;
         this.eventInventoryRepository = eventInventoryRepository;
-        this.currentUserProvider = currentUserProvider;
         this.bookingCodePrefix = bookingCodePrefix;
     }
 
     @Transactional
-    public BookingCreateResponse createBooking(String eventId, BookingCreateRequest request) {
-        CurrentUser currentUser = currentUserProvider.getCurrentUserOrThrow();
-
+    public BookingCreateResponse createBooking(CurrentUser currentUser, String eventId, BookingCreateRequest request) {
         if (request.ticketCount() < 1) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, "ticketCount must be at least 1");
         }

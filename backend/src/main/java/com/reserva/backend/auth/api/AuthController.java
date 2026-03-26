@@ -1,8 +1,10 @@
 package com.reserva.backend.auth.api;
 
 import com.reserva.backend.auth.AuthService;
+import com.reserva.backend.common.security.CurrentUser;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,7 +42,7 @@ public class AuthController {
     }
 
     @GetMapping("/api/v1/me")
-    public CurrentUserResponse getCurrentUser() {
-        return authService.getCurrentUser();
+    public CurrentUserResponse getCurrentUser(@AuthenticationPrincipal CurrentUser currentUser) {
+        return authService.getCurrentUser(currentUser);
     }
 }

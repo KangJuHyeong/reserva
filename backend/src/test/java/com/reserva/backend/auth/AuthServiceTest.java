@@ -8,7 +8,6 @@ import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.model.UserRole;
 import com.reserva.backend.common.security.CurrentUser;
-import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.user.UserEntity;
 import com.reserva.backend.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,9 +34,6 @@ class AuthServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private CurrentUserProvider currentUserProvider;
-
-    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -50,7 +46,7 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userRepository, currentUserProvider, passwordEncoder, jwtService, googleOAuthClient);
+        authService = new AuthService(userRepository, passwordEncoder, jwtService, googleOAuthClient);
     }
 
     @Test
@@ -112,10 +108,9 @@ class AuthServiceTest {
 
     @Test
     void getCurrentUserLoadsEmailFromPersistence() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_123", "Alex Johnson"));
         when(userRepository.findById("usr_123")).thenReturn(Optional.of(user("usr_123", "alex@example.com", "Alex Johnson", UserRole.USER, "encoded")));
 
-        CurrentUserResponse response = authService.getCurrentUser();
+        CurrentUserResponse response = authService.getCurrentUser(new CurrentUser("usr_123", "Alex Johnson"));
 
         assertThat(response.email()).isEqualTo("alex@example.com");
         assertThat(response.name()).isEqualTo("Alex Johnson");

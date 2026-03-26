@@ -8,7 +8,6 @@ import com.reserva.backend.common.api.PageResponse;
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.security.CurrentUser;
-import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.event.EventEntity;
 import com.reserva.backend.event.EventRepository;
 import com.reserva.backend.event.api.EventHostResponse;
@@ -31,18 +30,14 @@ public class BookingQueryService {
 
     private final BookingRepository bookingRepository;
     private final EventRepository eventRepository;
-    private final CurrentUserProvider currentUserProvider;
 
     public BookingQueryService(BookingRepository bookingRepository,
-                               EventRepository eventRepository,
-                               CurrentUserProvider currentUserProvider) {
+                               EventRepository eventRepository) {
         this.bookingRepository = bookingRepository;
         this.eventRepository = eventRepository;
-        this.currentUserProvider = currentUserProvider;
     }
 
-    public PageResponse<BookingSummaryResponse> getMyBookings(String status, int page, int size) {
-        CurrentUser currentUser = currentUserProvider.getCurrentUserOrThrow();
+    public PageResponse<BookingSummaryResponse> getMyBookings(CurrentUser currentUser, String status, int page, int size) {
         PageRequest pageable = PageRequest.of(page - 1, size);
         BookingStatus bookingStatus = parseStatus(status);
 
@@ -62,8 +57,7 @@ public class BookingQueryService {
         return new PageResponse<>(items, page, size, bookingsPage.getTotalElements());
     }
 
-    public BookingDetailResponse getMyBookingDetail(String bookingId) {
-        CurrentUser currentUser = currentUserProvider.getCurrentUserOrThrow();
+    public BookingDetailResponse getMyBookingDetail(CurrentUser currentUser, String bookingId) {
         BookingEntity booking = bookingRepository.findByBookingCodeAndUserId(bookingId, currentUser.id())
                 .orElseThrow(() -> new ApiException(ErrorCode.BOOKING_NOT_FOUND, HttpStatus.NOT_FOUND, "The booking was not found."));
 

@@ -7,7 +7,6 @@ import com.reserva.backend.common.api.PageResponse;
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.security.CurrentUser;
-import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.event.EventEntity;
 import com.reserva.backend.event.EventInventoryEntity;
 import com.reserva.backend.event.EventRepository;
@@ -46,13 +45,11 @@ class BookingQueryServiceTest {
     private EventRepository eventRepository;
 
     @Mock
-    private CurrentUserProvider currentUserProvider;
-
     private BookingQueryService bookingQueryService;
 
     @BeforeEach
     void setUp() {
-        bookingQueryService = new BookingQueryService(bookingRepository, eventRepository, currentUserProvider);
+        bookingQueryService = new BookingQueryService(bookingRepository, eventRepository);
     }
 
     @Test
@@ -61,12 +58,11 @@ class BookingQueryServiceTest {
         BookingEntity booking = booking("BK-2026-ABC12345", "usr_1", "evt_1", BookingStatus.CONFIRMED);
         EventEntity event = event("evt_1");
 
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(currentUser);
         when(bookingRepository.findByUserIdOrderByBookedAtDesc("usr_1", PageRequest.of(0, 20)))
                 .thenReturn(new PageImpl<>(List.of(booking), PageRequest.of(0, 20), 1));
         when(eventRepository.findAllById(List.of("evt_1"))).thenReturn(List.of(event));
 
-        PageResponse<BookingSummaryResponse> response = bookingQueryService.getMyBookings(null, 1, 20);
+        PageResponse<BookingSummaryResponse> response = bookingQueryService.getMyBookings(currentUser, null, 1, 20);
 
         assertThat(response.total()).isEqualTo(1);
         assertThat(response.items()).hasSize(1);
@@ -82,12 +78,11 @@ class BookingQueryServiceTest {
     void getMyBookingsAppliesStatusFilter() {
         CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson");
 
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(currentUser);
         when(bookingRepository.findByUserIdAndStatusOrderByBookedAtDesc("usr_1", BookingStatus.CANCELLED, PageRequest.of(0, 20)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
         when(eventRepository.findAllById(List.of())).thenReturn(List.of());
 
-        PageResponse<BookingSummaryResponse> response = bookingQueryService.getMyBookings("cancelled", 1, 20);
+        PageResponse<BookingSummaryResponse> response = bookingQueryService.getMyBookings(currentUser, "cancelled", 1, 20);
 
         assertThat(response.items()).isEmpty();
         verify(bookingRepository).findByUserIdAndStatusOrderByBookedAtDesc("usr_1", BookingStatus.CANCELLED, PageRequest.of(0, 20));
@@ -95,9 +90,7 @@ class BookingQueryServiceTest {
 
     @Test
     void getMyBookingsThrowsValidationErrorForUnsupportedStatus() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
-
-        assertThatThrownBy(() -> bookingQueryService.getMyBookings("pending", 1, 20))
+        assertThatThrownBy(() -> bookingQueryService.getMyBookings(new CurrentUser("usr_1", "Alex Johnson"), "pending", 1, 20))
                 .isInstanceOf(ApiException.class)
                 .satisfies(exception -> {
                     ApiException apiException = (ApiException) exception;
@@ -107,27 +100,15 @@ class BookingQueryServiceTest {
     }
 
     @Test
-    void getMyBookingsPropagatesUnauthenticatedWhenNoCurrentUser() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenThrow(
-                new ApiException(ErrorCode.UNAUTHENTICATED, HttpStatus.UNAUTHORIZED, "Authentication is required.")
-        );
-
-        assertThatThrownBy(() -> bookingQueryService.getMyBookings(null, 1, 20))
-                .isInstanceOf(ApiException.class)
-                .satisfies(exception -> assertThat(((ApiException) exception).getErrorCode()).isEqualTo(ErrorCode.UNAUTHENTICATED));
-    }
-
-    @Test
     void getMyBookingDetailReturnsCurrentUsersBooking() {
         CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson");
         BookingEntity booking = booking("BK-2026-ABC12345", "usr_1", "evt_1", BookingStatus.CONFIRMED);
         EventEntity event = event("evt_1");
 
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(currentUser);
         when(bookingRepository.findByBookingCodeAndUserId("BK-2026-ABC12345", "usr_1")).thenReturn(Optional.of(booking));
         when(eventRepository.findById("evt_1")).thenReturn(Optional.of(event));
 
-        BookingDetailResponse response = bookingQueryService.getMyBookingDetail("BK-2026-ABC12345");
+        BookingDetailResponse response = bookingQueryService.getMyBookingDetail(currentUser, "BK-2026-ABC12345");
 
         assertThat(response.bookingId()).isEqualTo("BK-2026-ABC12345");
         assertThat(response.participantName()).isEqualTo("Alex Johnson");
@@ -139,10 +120,9 @@ class BookingQueryServiceTest {
     void getMyBookingDetailThrowsWhenBookingDoesNotExist() {
         CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson");
 
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(currentUser);
         when(bookingRepository.findByBookingCodeAndUserId("BK-2026-MISSING", "usr_1")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> bookingQueryService.getMyBookingDetail("BK-2026-MISSING"))
+        assertThatThrownBy(() -> bookingQueryService.getMyBookingDetail(currentUser, "BK-2026-MISSING"))
                 .isInstanceOf(ApiException.class)
                 .satisfies(exception -> {
                     ApiException apiException = (ApiException) exception;
@@ -155,10 +135,9 @@ class BookingQueryServiceTest {
     void getMyBookingDetailHidesOtherUsersBooking() {
         CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson");
 
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(currentUser);
         when(bookingRepository.findByBookingCodeAndUserId("BK-2026-OTHER", "usr_1")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> bookingQueryService.getMyBookingDetail("BK-2026-OTHER"))
+        assertThatThrownBy(() -> bookingQueryService.getMyBookingDetail(currentUser, "BK-2026-OTHER"))
                 .isInstanceOf(ApiException.class)
                 .satisfies(exception -> assertThat(((ApiException) exception).getErrorCode()).isEqualTo(ErrorCode.BOOKING_NOT_FOUND));
     }

@@ -142,13 +142,12 @@ class EventQueryServiceTest {
         EventEntity first = event("evt_created_1", LocalDateTime.now().plusDays(4));
         EventEntity second = event("evt_created_2", LocalDateTime.now().plusDays(8));
 
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByCreator_IdOrderByCreatedAtDesc("usr_1", PageRequest.of(0, 20)))
                 .thenReturn(new PageImpl<>(List.of(first, second), PageRequest.of(0, 20), 2));
         when(watchlistRepository.findEventIdsByUserIdAndEventIdIn("usr_1", List.of("evt_created_1", "evt_created_2")))
                 .thenReturn(Set.of("evt_created_2"));
 
-        PageResponse<EventSummaryResponse> response = eventQueryService.getMyEvents(1, 20);
+        PageResponse<EventSummaryResponse> response = eventQueryService.getMyEvents(new CurrentUser("usr_1", "Alex Johnson"), 1, 20);
 
         assertThat(response.items()).hasSize(2);
         assertThat(response.total()).isEqualTo(2);

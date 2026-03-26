@@ -3,7 +3,6 @@ package com.reserva.backend.watchlist;
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.security.CurrentUser;
-import com.reserva.backend.common.security.CurrentUserProvider;
 import com.reserva.backend.event.EventEntity;
 import com.reserva.backend.event.EventRepository;
 import com.reserva.backend.event.model.EventStatus;
@@ -35,24 +34,21 @@ class WatchlistServiceTest {
     @Mock
     private EventRepository eventRepository;
 
-    @Mock
-    private CurrentUserProvider currentUserProvider;
-
     private WatchlistService watchlistService;
+    private final CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson");
 
     @BeforeEach
     void setUp() {
-        watchlistService = new WatchlistService(watchlistRepository, eventRepository, currentUserProvider);
+        watchlistService = new WatchlistService(watchlistRepository, eventRepository);
     }
 
     @Test
     void savePersistsWatchlistForCurrentUser() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.of(event("evt_1")));
         when(watchlistRepository.existsByUserIdAndEventId("usr_1", "evt_1")).thenReturn(false);
 
-        watchlistService.save("evt_1");
+        watchlistService.save(currentUser, "evt_1");
 
         ArgumentCaptor<WatchlistEntity> captor = ArgumentCaptor.forClass(WatchlistEntity.class);
         verify(watchlistRepository).save(captor.capture());
@@ -61,23 +57,21 @@ class WatchlistServiceTest {
 
     @Test
     void saveIsIdempotentWhenWatchlistAlreadyExists() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.of(event("evt_1")));
         when(watchlistRepository.existsByUserIdAndEventId("usr_1", "evt_1")).thenReturn(true);
 
-        watchlistService.save("evt_1");
+        watchlistService.save(currentUser, "evt_1");
 
         verify(watchlistRepository, never()).save(any(WatchlistEntity.class));
     }
 
     @Test
     void saveThrowsWhenEventDoesNotExist() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByIdAndStatusAndVisibility("evt_missing", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> watchlistService.save("evt_missing"))
+        assertThatThrownBy(() -> watchlistService.save(currentUser, "evt_missing"))
                 .isInstanceOf(ApiException.class)
                 .satisfies(exception -> {
                     ApiException apiException = (ApiException) exception;
@@ -88,24 +82,22 @@ class WatchlistServiceTest {
 
     @Test
     void removeDeletesExistingOrMissingWatchlistIdempotently() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.of(event("evt_1")));
 
-        watchlistService.remove("evt_1");
+        watchlistService.remove(currentUser, "evt_1");
 
         verify(watchlistRepository).deleteByUserIdAndEventId("usr_1", "evt_1");
     }
 
     @Test
-    void removePropagatesUnauthenticated() {
-        when(currentUserProvider.getCurrentUserOrThrow()).thenThrow(
-                new ApiException(ErrorCode.UNAUTHENTICATED, HttpStatus.UNAUTHORIZED, "Authentication is required.")
-        );
+    void removeThrowsWhenEventDoesNotExist() {
+        when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
+                .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> watchlistService.remove("evt_1"))
+        assertThatThrownBy(() -> watchlistService.remove(currentUser, "evt_1"))
                 .isInstanceOf(ApiException.class)
-                .satisfies(exception -> assertThat(((ApiException) exception).getErrorCode()).isEqualTo(ErrorCode.UNAUTHENTICATED));
+                .satisfies(exception -> assertThat(((ApiException) exception).getErrorCode()).isEqualTo(ErrorCode.EVENT_NOT_FOUND));
     }
 
     private EventEntity event(String id) {
