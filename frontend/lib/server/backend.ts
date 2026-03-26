@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { ApiErrorResponse } from "@/lib/types";
 
 const DEFAULT_BACKEND_BASE_URL = "http://localhost:8080";
+export const BACKEND_UNAVAILABLE_CODE = "BACKEND_UNAVAILABLE";
 
 export class BackendApiError extends Error {
   status: number;
@@ -13,6 +14,14 @@ export class BackendApiError extends Error {
     this.status = status;
     this.code = code;
   }
+}
+
+function backendUnavailableError() {
+  return new BackendApiError(
+    503,
+    BACKEND_UNAVAILABLE_CODE,
+    "The frontend could not reach the backend service."
+  );
 }
 
 function backendBaseUrl() {
@@ -65,11 +74,17 @@ export async function fetchBackendJson<T>(
     includeIncomingCookies?: boolean;
   }
 ): Promise<T> {
-  const response = await fetch(`${backendBaseUrl()}${path}`, {
-    ...init,
-    headers: await mergeHeaders(init?.headers, false, options),
-    cache: "no-store",
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${backendBaseUrl()}${path}`, {
+      ...init,
+      headers: await mergeHeaders(init?.headers, false, options),
+      cache: "no-store",
+    });
+  } catch {
+    throw backendUnavailableError();
+  }
 
   if (!response.ok) {
     let errorCode = "UNKNOWN_ERROR";
@@ -102,12 +117,26 @@ export async function proxyBackend(
     mergedHeaders.set("Cookie", cookieHeader);
   }
 
-  const response = await fetch(`${backendBaseUrl()}${path}`, {
-    method,
-    headers: mergedHeaders,
-    body,
-    cache: "no-store",
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${backendBaseUrl()}${path}`, {
+      method,
+      headers: mergedHeaders,
+      body,
+      cache: "no-store",
+    });
+  } catch {
+    return Response.json(
+      {
+        code: BACKEND_UNAVAILABLE_CODE,
+        message: "The frontend could not reach the backend service.",
+      } satisfies ApiErrorResponse,
+      {
+        status: 503,
+      }
+    );
+  }
 
   const headers = new Headers();
   const contentType = response.headers.get("Content-Type");

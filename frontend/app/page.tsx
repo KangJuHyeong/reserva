@@ -1,6 +1,7 @@
+import { BackendUnavailablePage } from "@/components/backend-unavailable-page";
 import { HomePage } from "@/components/home-page";
 import { toEventSummaryViewModel } from "@/lib/mappers";
-import { BackendApiError } from "@/lib/server/backend";
+import { BACKEND_UNAVAILABLE_CODE, BackendApiError } from "@/lib/server/backend";
 import { fetchCurrentUser, fetchEvents } from "@/lib/server/queries";
 import { Category } from "@/lib/types";
 
@@ -55,6 +56,15 @@ export default async function Home({
   try {
     currentUser = await fetchCurrentUser();
   } catch (error) {
+    if (error instanceof BackendApiError && error.code === BACKEND_UNAVAILABLE_CODE) {
+      return (
+        <BackendUnavailablePage
+          title="Unable to load discovery"
+          description="The frontend started, but it could not reach the backend to load the event feed."
+        />
+      );
+    }
+
     if (!(error instanceof BackendApiError) || error.code !== "UNAUTHENTICATED") {
       throw error;
     }

@@ -1,7 +1,8 @@
+import { BackendUnavailablePage } from "@/components/backend-unavailable-page";
 import { redirect } from "next/navigation";
 import { DashboardPage } from "@/components/dashboard-page";
 import { toBookingSummaryViewModel, toEventSummaryViewModel } from "@/lib/mappers";
-import { BackendApiError } from "@/lib/server/backend";
+import { BACKEND_UNAVAILABLE_CODE, BackendApiError } from "@/lib/server/backend";
 import { fetchCurrentUser, fetchDashboardSummary } from "@/lib/server/queries";
 
 export default async function Dashboard() {
@@ -21,6 +22,15 @@ export default async function Dashboard() {
       />
     );
   } catch (error) {
+    if (error instanceof BackendApiError && error.code === BACKEND_UNAVAILABLE_CODE) {
+      return (
+        <BackendUnavailablePage
+          title="Unable to load dashboard"
+          description="The dashboard could not load because the frontend could not reach the backend."
+        />
+      );
+    }
+
     if (error instanceof BackendApiError && error.code === "UNAUTHENTICATED") {
       redirect("/login");
     }
