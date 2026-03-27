@@ -21,6 +21,19 @@ interface HomePageProps {
   totalItems: number;
 }
 
+const categoryLabels: Record<Category, string> = {
+  All: "전체",
+  Concert: "콘서트",
+  Restaurant: "레스토랑",
+  "Art & Design": "아트 & 디자인",
+  Other: "기타",
+  Sports: "스포츠",
+  Trending: "인기",
+  "Ending Soon": "마감 임박",
+  Upcoming: "오픈 예정",
+  Watchlist: "찜한 이벤트",
+};
+
 export function HomePage({ searchQuery, selectedCategory, items, currentUser, mode, currentPage, pageSize, totalItems }: HomePageProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -38,9 +51,9 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
   const upcomingReservations = visibleItems.filter((item) => item.isOpeningSoon);
   const latestReservations = visibleItems.slice(0, 6);
   const visibleSections = [
-    { key: "trending", title: "Trending Now", items: trendingReservations },
-    { key: "almost-full", title: "Almost Full", items: almostFullReservations },
-    { key: "ending-soon", title: "Ending Soon", items: endingSoonReservations },
+    { key: "trending", title: "지금 인기", items: trendingReservations },
+    { key: "almost-full", title: "거의 마감", items: almostFullReservations },
+    { key: "ending-soon", title: "마감 임박", items: endingSoonReservations },
   ].filter((section) => section.items.length > 0);
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
@@ -92,17 +105,17 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
               <div className="rounded-full bg-secondary p-4">
                 <Timer className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h2 className="mt-4 text-xl font-semibold text-foreground">Sign in to view your watchlist</h2>
-              <p className="mt-2 text-sm text-muted-foreground">The watchlist section requires authentication before saved events can be loaded.</p>
+              <h2 className="mt-4 text-xl font-semibold text-foreground">찜한 이벤트를 보려면 로그인해 주세요</h2>
+              <p className="mt-2 text-sm text-muted-foreground">찜한 이벤트 목록은 로그인한 사용자만 불러올 수 있습니다.</p>
               <button type="button" onClick={clearView} disabled={isPending} className="mt-5 text-sm text-primary hover:underline">
-                Back to discovery
+                둘러보기로 돌아가기
               </button>
             </div>
           ) : mode === "default" ? (
             <div className="space-y-10">
               <section>
-                <h2 className="mb-2 text-xl font-semibold text-foreground">Latest Events</h2>
-                <p className="mb-4 text-sm text-muted-foreground">A mixed discovery feed so every category stays visible even when curated sections are sparse.</p>
+                <h2 className="mb-2 text-xl font-semibold text-foreground">최신 이벤트</h2>
+                <p className="mb-4 text-sm text-muted-foreground">추천 섹션이 적을 때도 전체 분위기를 볼 수 있도록 다양한 카테고리를 함께 보여줍니다.</p>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
                   {latestReservations.map((reservation) =>
                     reservation.isOpeningSoon ? (
@@ -141,7 +154,7 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
                 <section>
                   <div className="mb-4 flex items-center gap-2">
                     <Timer className="h-5 w-5 text-primary" />
-                    <h2 className="text-xl font-semibold text-foreground">Opening Soon</h2>
+                    <h2 className="text-xl font-semibold text-foreground">오픈 예정</h2>
                   </div>
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
                     {upcomingReservations.map((reservation) => (
@@ -158,8 +171,8 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
           ) : (
             <div>
               <h2 className="mb-4 text-xl font-semibold text-foreground">
-                {selectedCategory === "All" ? "Search Results" : selectedCategory}
-                <span className="ml-2 text-sm font-normal text-muted-foreground">({totalItems} results)</span>
+                {selectedCategory === "All" ? "검색 결과" : categoryLabels[selectedCategory]}
+                <span className="ml-2 text-sm font-normal text-muted-foreground">({totalItems}개)</span>
               </h2>
               {visibleItems.length > 0 ? (
                 <div className="space-y-6">
@@ -184,7 +197,7 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
                   {totalPages > 1 ? (
                     <div className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
                       <p className="text-sm text-muted-foreground">
-                        Page {currentPage} of {totalPages}
+                        {currentPage} / {totalPages} 페이지
                       </p>
                       <div className="flex items-center gap-2">
                         <button
@@ -193,7 +206,7 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
                           onClick={() => changePage(currentPage - 1)}
                           className="rounded-lg border border-border px-3 py-2 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          Previous
+                          이전
                         </button>
                         <button
                           type="button"
@@ -201,7 +214,7 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
                           onClick={() => changePage(currentPage + 1)}
                           className="rounded-lg border border-border px-3 py-2 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          Next
+                          다음
                         </button>
                       </div>
                     </div>
@@ -213,16 +226,16 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
                     <Timer className="h-8 w-8 text-muted-foreground" />
                   </div>
                   <h3 className="mt-4 text-lg font-medium text-foreground">
-                    {selectedCategory === "Watchlist" ? "No saved events yet" : "No events found"}
+                    {selectedCategory === "Watchlist" ? "아직 찜한 이벤트가 없습니다" : "이벤트를 찾을 수 없습니다"}
                   </h3>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {selectedCategory === "Watchlist"
-                      ? "Save events with the heart button and they will appear here."
-                      : "Try adjusting your search or filter criteria."}
+                      ? "하트 버튼으로 저장한 이벤트가 여기에 표시됩니다."
+                      : "검색어나 필터 조건을 바꿔서 다시 시도해 보세요."}
                   </p>
                   {selectedCategory === "Watchlist" ? (
                     <button type="button" onClick={clearView} disabled={isPending} className="mt-5 text-sm text-primary hover:underline">
-                      Back to discovery
+                      둘러보기로 돌아가기
                     </button>
                   ) : null}
                 </div>

@@ -12,8 +12,8 @@ export default async function SignupPage() {
     if (error instanceof BackendApiError && error.code === BACKEND_UNAVAILABLE_CODE) {
       return (
         <BackendUnavailablePage
-          title="Unable to load sign-up"
-          description="The sign-up page could not confirm backend auth availability."
+          title="회원가입 화면을 불러올 수 없습니다"
+          description="회원가입 페이지가 백엔드 인증 상태를 확인하지 못했습니다."
         />
       );
     }

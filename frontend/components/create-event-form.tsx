@@ -2,17 +2,24 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { ArrowLeft, CalendarClock, ImageIcon, MapPin, Ticket, UserRoundPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ApiErrorResponse, EventCreateRequestApi, EventCreateResponseApi } from "@/lib/types";
 
-const categoryOptions = ["Concert", "Restaurant", "Art & Design", "Sports"] as const;
+const categoryOptions = ["Concert", "Restaurant", "Art & Design", "Sports", "Other"] as const;
+const categoryLabels: Record<(typeof categoryOptions)[number], string> = {
+  Concert: "콘서트",
+  Restaurant: "레스토랑",
+  "Art & Design": "아트 & 디자인",
+  Sports: "스포츠",
+  Other: "기타",
+};
 
 const errorMessages: Record<string, string> = {
-  FORBIDDEN: "이벤트를 생성할 수 없습니다. 현재 로그인 상태를 다시 확인해 주세요.",
-  UNAUTHENTICATED: "임시 인증 정보가 없습니다. 프론트 개발용 사용자 설정을 확인해 주세요.",
-  INVALID_SCHEDULE: "예약 오픈 시간은 이벤트 시간보다 이전이어야 합니다.",
+  FORBIDDEN: "이벤트를 생성하거나 수정할 권한이 없습니다. 현재 로그인 상태를 다시 확인해 주세요.",
+  UNAUTHENTICATED: "인증 정보가 없습니다. 로그인 후 다시 시도해 주세요.",
+  INVALID_SCHEDULE: "예약 오픈 시각은 이벤트 시작 시각보다 이전이어야 합니다.",
   VALIDATION_ERROR: "입력값을 다시 확인해 주세요.",
 };
 
@@ -78,12 +85,12 @@ function validateForm(form: FormState) {
 
   const totalSlots = Number(form.totalSlots);
   if (!Number.isInteger(totalSlots) || totalSlots < 1) {
-    return "총 좌석 수는 1 이상 정수여야 합니다.";
+    return "총 좌석 수는 1 이상의 정수여야 합니다.";
   }
 
   const maxTicketsPerBooking = Number(form.maxTicketsPerBooking);
   if (!Number.isInteger(maxTicketsPerBooking) || maxTicketsPerBooking < 1) {
-    return "1회 예약 최대 수량은 1 이상 정수여야 합니다.";
+    return "1회 예약 최대 수량은 1 이상의 정수여야 합니다.";
   }
 
   if (maxTicketsPerBooking > totalSlots) {
@@ -101,7 +108,7 @@ function validateForm(form: FormState) {
   }
 
   if (reservationOpenDateTime >= eventDateTime) {
-    return "예약 오픈 시간은 이벤트 시간보다 이전이어야 합니다.";
+    return "예약 오픈 시각은 이벤트 시작 시각보다 이전이어야 합니다.";
   }
 
   return null;
@@ -116,6 +123,28 @@ export function CreateEventForm({
   const [form, setForm] = useState<FormState>(initialValues ?? initialState);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const totalSlotsNumber = Number(form.totalSlots);
+  const maxTicketsPerBookingNumber = Number(form.maxTicketsPerBooking);
+  const reservedSlots = form.reservedSlots ?? 0;
+
+  const capacitySummary = useMemo(() => {
+    if (!Number.isInteger(totalSlotsNumber) || totalSlotsNumber < 1) {
+      return "총 좌석 수를 입력하면 현재 정원 설정을 요약해 드립니다.";
+    }
+
+    const remaining = Math.max(totalSlotsNumber - reservedSlots, 0);
+    const perBookingText =
+      Number.isInteger(maxTicketsPerBookingNumber) && maxTicketsPerBookingNumber > 0
+        ? `한 번 예약할 때 최대 ${maxTicketsPerBookingNumber}장까지 받을 수 있습니다.`
+        : "1회 예약 최대 수량을 입력하면 예약 제한을 함께 안내합니다.";
+
+    if (mode === "edit") {
+      return `현재 예약된 수량은 ${reservedSlots}장이고, 수정 후 남는 좌석은 ${remaining}석입니다. ${perBookingText}`;
+    }
+
+    return `현재 설정 기준 전체 정원은 ${totalSlotsNumber}석입니다. ${perBookingText}`;
+  }, [maxTicketsPerBookingNumber, mode, reservedSlots, totalSlotsNumber]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -165,18 +194,27 @@ export function CreateEventForm({
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(242,189,97,0.18),_transparent_30%),linear-gradient(180deg,_hsl(var(--background)),_hsl(var(--secondary)))] px-6 py-8">
       <div className="mx-auto max-w-5xl">
-        <Link href={mode === "edit" ? "/my-events" : "/"} className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
+        <Link
+          href={mode === "edit" ? "/my-events" : "/"}
+          className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
           <ArrowLeft className="h-4 w-4" />
-          홈으로 돌아가기
+          {mode === "edit" ? "내 이벤트로 돌아가기" : "홈으로 돌아가기"}
         </Link>
 
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
           <section className="rounded-[28px] border border-border/70 bg-card/95 p-6 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.35)] sm:p-8">
             <div className="mb-8">
-              <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">{mode === "edit" ? "Edit Event" : "Event Studio"}</p>
-              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{mode === "edit" ? "이벤트 정보를 수정하세요" : "새 이벤트를 게시하세요"}</h1>
+              <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">
+                {mode === "edit" ? "이벤트 수정" : "이벤트 생성"}
+              </p>
+              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                {mode === "edit" ? "이벤트 정보를 수정해 주세요" : "새 이벤트를 등록해 보세요"}
+              </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                프로토타입 기준 최소 입력만으로 공개 이벤트를 생성합니다. 저장이 끝나면 홈으로 이동하며, 예약 오픈 시간은 이벤트 시작보다 이전이어야 합니다.
+                {mode === "edit"
+                  ? "이미 공개한 이벤트의 핵심 정보와 예약 조건을 여기서 조정할 수 있습니다. 정원을 줄일 때는 이미 예약된 수량보다 작아질 수 없다는 점을 확인해 주세요."
+                  : "제목, 일정, 위치, 정원만 정확히 입력해도 바로 공개 가능한 이벤트를 만들 수 있습니다. 예약 오픈 시각은 이벤트 시작보다 이전이어야 합니다."}
               </p>
             </div>
 
@@ -188,7 +226,7 @@ export function CreateEventForm({
                     value={form.title}
                     onChange={(inputEvent) => setForm((current) => ({ ...current, title: inputEvent.target.value }))}
                     className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    placeholder="Summer Jazz Night"
+                    placeholder="한강 재즈 나이트"
                   />
                 </label>
 
@@ -196,12 +234,14 @@ export function CreateEventForm({
                   카테고리
                   <select
                     value={form.category}
-                    onChange={(inputEvent) => setForm((current) => ({ ...current, category: inputEvent.target.value as FormState["category"] }))}
+                    onChange={(inputEvent) =>
+                      setForm((current) => ({ ...current, category: inputEvent.target.value as FormState["category"] }))
+                    }
                     className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   >
                     {categoryOptions.map((option) => (
                       <option key={option} value={option}>
-                        {option}
+                        {categoryLabels[option]}
                       </option>
                     ))}
                   </select>
@@ -214,7 +254,7 @@ export function CreateEventForm({
                   value={form.description}
                   onChange={(inputEvent) => setForm((current) => ({ ...current, description: inputEvent.target.value }))}
                   className="mt-2 min-h-32 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  placeholder="이벤트의 분위기, 참여 포인트, 진행 방식을 설명해 주세요."
+                  placeholder="이벤트 분위기, 참가 대상, 진행 방식, 현장 안내를 적어 주세요."
                 />
               </label>
 
@@ -252,11 +292,18 @@ export function CreateEventForm({
                     min="1"
                     step="1"
                     value={form.maxTicketsPerBooking}
-                    onChange={(inputEvent) => setForm((current) => ({ ...current, maxTicketsPerBooking: inputEvent.target.value }))}
+                    onChange={(inputEvent) =>
+                      setForm((current) => ({ ...current, maxTicketsPerBooking: inputEvent.target.value }))
+                    }
                     className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                     placeholder="4"
                   />
                 </label>
+              </div>
+
+              <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-4 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">정원 설정 안내</p>
+                <p className="mt-2 leading-6">{capacitySummary}</p>
               </div>
 
               <div className="grid gap-6 md:grid-cols-2">
@@ -266,7 +313,7 @@ export function CreateEventForm({
                     value={form.location}
                     onChange={(inputEvent) => setForm((current) => ({ ...current, location: inputEvent.target.value }))}
                     className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    placeholder="Blue Note Jazz Club, NYC"
+                    placeholder="성수 재즈 클럽"
                   />
                 </label>
 
@@ -277,7 +324,7 @@ export function CreateEventForm({
                     value={form.imageUrl}
                     onChange={(inputEvent) => setForm((current) => ({ ...current, imageUrl: inputEvent.target.value }))}
                     className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    placeholder="https://example.com/image.jpg"
+                    placeholder="https://example.com/event-cover.jpg"
                   />
                 </label>
               </div>
@@ -310,7 +357,9 @@ export function CreateEventForm({
                     <input
                       type="date"
                       value={form.reservationOpenDate}
-                      onChange={(inputEvent) => setForm((current) => ({ ...current, reservationOpenDate: inputEvent.target.value }))}
+                      onChange={(inputEvent) =>
+                        setForm((current) => ({ ...current, reservationOpenDate: inputEvent.target.value }))
+                      }
                       className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
                   </label>
@@ -319,21 +368,40 @@ export function CreateEventForm({
                     <input
                       type="time"
                       value={form.reservationOpenTime}
-                      onChange={(inputEvent) => setForm((current) => ({ ...current, reservationOpenTime: inputEvent.target.value }))}
+                      onChange={(inputEvent) =>
+                        setForm((current) => ({ ...current, reservationOpenTime: inputEvent.target.value }))
+                      }
                       className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
                   </label>
                 </div>
               </div>
 
-              {errorMessage ? <div className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">{errorMessage}</div> : null}
+              {errorMessage ? (
+                <div className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                  {errorMessage}
+                </div>
+              ) : null}
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Button type="submit" size="lg" className="h-12 rounded-xl px-6 text-base" disabled={isSubmitting}>
-                  {isSubmitting ? (mode === "edit" ? "이벤트 수정 중..." : "이벤트 생성 중...") : (mode === "edit" ? "이벤트 저장" : "이벤트 생성")}
+                  {isSubmitting
+                    ? mode === "edit"
+                      ? "이벤트 수정 중..."
+                      : "이벤트 생성 중..."
+                    : mode === "edit"
+                      ? "변경사항 저장"
+                      : "이벤트 생성"}
                 </Button>
-                <Button type="button" variant="outline" size="lg" className="h-12 rounded-xl px-6" onClick={() => setForm(initialValues ?? initialState)} disabled={isSubmitting}>
-                  {mode === "edit" ? "변경 취소" : "입력 초기화"}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className="h-12 rounded-xl px-6"
+                  onClick={() => setForm(initialValues ?? initialState)}
+                  disabled={isSubmitting}
+                >
+                  {mode === "edit" ? "초기값으로 되돌리기" : "입력 초기화"}
                 </Button>
               </div>
             </form>
@@ -345,29 +413,29 @@ export function CreateEventForm({
               <div className="mt-5 space-y-4 text-sm text-muted-foreground">
                 <div className="flex gap-3">
                   <UserRoundPlus className="mt-0.5 h-4 w-4 text-primary" />
-                  <p>현재 임시 인증에서는 로그인된 사용자라면 누구나 저장할 수 있습니다.</p>
+                  <p>현재 로그인한 사용자가 이 이벤트의 주최자로 등록됩니다.</p>
                 </div>
                 <div className="flex gap-3">
                   <CalendarClock className="mt-0.5 h-4 w-4 text-primary" />
-                  <p>예약 오픈 시간은 이벤트 시작보다 반드시 빨라야 합니다.</p>
+                  <p>예약 오픈 시각은 이벤트 시작 시각보다 반드시 빨라야 합니다.</p>
                 </div>
                 <div className="flex gap-3">
                   <Ticket className="mt-0.5 h-4 w-4 text-primary" />
-                  <p>생성 시 재고는 자동으로 함께 만들어지고 예약 수는 0으로 시작합니다.</p>
+                  <p>총 좌석 수와 1회 예약 최대 수량은 예약 가능 정책을 직접 결정합니다.</p>
                 </div>
                 <div className="flex gap-3">
                   <ImageIcon className="mt-0.5 h-4 w-4 text-primary" />
-                  <p>이미지는 업로드가 아니라 URL 문자열만 저장합니다.</p>
+                  <p>이미지 업로드 기능은 아직 없고, 외부 이미지 URL만 입력할 수 있습니다.</p>
                 </div>
                 <div className="flex gap-3">
                   <MapPin className="mt-0.5 h-4 w-4 text-primary" />
-                  <p>저장 후에는 홈으로 돌아가며 공개 이벤트로 바로 노출됩니다.</p>
+                  <p>{mode === "edit" ? "저장 후에는 내 이벤트 목록으로 돌아갑니다." : "생성 후에는 홈으로 이동합니다."}</p>
                 </div>
               </div>
             </div>
 
             <div className="rounded-[28px] border border-dashed border-border/80 bg-background/70 p-6">
-              <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">Current Payload</p>
+              <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">현재 전송 값</p>
               <div className="mt-4 space-y-3 text-sm">
                 <div className="rounded-xl bg-card px-4 py-3">
                   <div className="text-xs text-muted-foreground">title</div>
@@ -375,16 +443,22 @@ export function CreateEventForm({
                 </div>
                 <div className="rounded-xl bg-card px-4 py-3">
                   <div className="text-xs text-muted-foreground">category / totalSlots / maxTicketsPerBooking</div>
-                  <div className="mt-1 text-foreground">{form.category} / {form.totalSlots || "미입력"} / {form.maxTicketsPerBooking || "미입력"}</div>
+                  <div className="mt-1 text-foreground">
+                    {categoryLabels[form.category]} / {form.totalSlots || "미입력"} / {form.maxTicketsPerBooking || "미입력"}
+                  </div>
                 </div>
                 <div className="rounded-xl bg-card px-4 py-3">
                   <div className="text-xs text-muted-foreground">eventDateTime</div>
-                  <div className="mt-1 break-all text-foreground">{form.eventDate && form.eventTime ? toIsoString(form.eventDate, form.eventTime) : "미입력"}</div>
+                  <div className="mt-1 break-all text-foreground">
+                    {form.eventDate && form.eventTime ? toIsoString(form.eventDate, form.eventTime) : "미입력"}
+                  </div>
                 </div>
                 <div className="rounded-xl bg-card px-4 py-3">
                   <div className="text-xs text-muted-foreground">reservationOpenDateTime</div>
                   <div className="mt-1 break-all text-foreground">
-                    {form.reservationOpenDate && form.reservationOpenTime ? toIsoString(form.reservationOpenDate, form.reservationOpenTime) : "미입력"}
+                    {form.reservationOpenDate && form.reservationOpenTime
+                      ? toIsoString(form.reservationOpenDate, form.reservationOpenTime)
+                      : "미입력"}
                   </div>
                 </div>
               </div>

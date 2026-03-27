@@ -135,6 +135,19 @@ public class DevDataSeeder implements ApplicationRunner {
                     1,
                     3,
                     30
+            ),
+            new SeedEventDefinition(
+                    "evt_demo_other_market",
+                    "Weekend Vintage Market",
+                    EventCategory.OTHER,
+                    "A curated community market with vintage sellers, small craft booths, and casual live performances.",
+                    "https://images.unsplash.com/photo-1523906630133-f6934a1ab2b9",
+                    "Seongsu Warehouse Yard, Seoul",
+                    "8.00",
+                    11,
+                    2,
+                    5,
+                    150
             )
     );
 

@@ -12,8 +12,8 @@ export default async function LoginPage() {
     if (error instanceof BackendApiError && error.code === BACKEND_UNAVAILABLE_CODE) {
       return (
         <BackendUnavailablePage
-          title="Unable to load login"
-          description="The login page could not confirm backend auth availability."
+          title="로그인 화면을 불러올 수 없습니다"
+          description="로그인 페이지가 백엔드 인증 상태를 확인하지 못했습니다."
         />
       );
     }

@@ -26,8 +26,8 @@ export default async function Dashboard() {
     if (error instanceof BackendApiError && error.code === BACKEND_UNAVAILABLE_CODE) {
       return (
         <BackendUnavailablePage
-          title="Unable to load dashboard"
-          description="The dashboard could not load because the frontend could not reach the backend."
+          title="대시보드를 불러올 수 없습니다"
+          description="프론트엔드가 백엔드에 연결하지 못해 대시보드를 표시할 수 없습니다."
         />
       );
     }

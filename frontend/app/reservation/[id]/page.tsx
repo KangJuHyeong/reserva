@@ -14,10 +14,10 @@ export default async function ReservationDetailPage({ params }: { params: Promis
     if (error instanceof BackendApiError && error.code === "EVENT_NOT_FOUND") {
       return (
         <main className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
-          <h1 className="text-2xl font-bold text-foreground">Event Not Found</h1>
-          <p className="mt-2 text-muted-foreground">The event you are looking for does not exist.</p>
+          <h1 className="text-2xl font-bold text-foreground">이벤트를 찾을 수 없습니다</h1>
+          <p className="mt-2 text-muted-foreground">찾고 있는 이벤트가 존재하지 않습니다.</p>
           <Link href="/" className="mt-6 inline-block">
-            <Button>Go Home</Button>
+            <Button>홈으로 가기</Button>
           </Link>
         </main>
       );
@@ -25,10 +25,10 @@ export default async function ReservationDetailPage({ params }: { params: Promis
 
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
-        <h1 className="text-2xl font-bold text-foreground">Unable to load event</h1>
-        <p className="mt-2 text-muted-foreground">The frontend could not load this event from the backend.</p>
+        <h1 className="text-2xl font-bold text-foreground">이벤트를 불러올 수 없습니다</h1>
+        <p className="mt-2 text-muted-foreground">프론트엔드가 백엔드에서 이 이벤트를 불러오지 못했습니다.</p>
         <Link href="/" className="mt-6 inline-block">
-          <Button>Back to Home</Button>
+          <Button>홈으로 돌아가기</Button>
         </Link>
       </main>
     );

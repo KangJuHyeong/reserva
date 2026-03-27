@@ -11,8 +11,8 @@ export default async function CreatePage() {
     if (error instanceof BackendApiError && error.code === BACKEND_UNAVAILABLE_CODE) {
       return (
         <BackendUnavailablePage
-          title="Unable to load event creation"
-          description="The create page could not verify backend session access."
+          title="이벤트 생성 화면을 불러올 수 없습니다"
+          description="생성 페이지가 백엔드 인증 상태를 확인하지 못했습니다."
         />
       );
     }

@@ -15,11 +15,11 @@ interface DashboardPageProps {
 }
 
 const statCards = [
-  { key: "totalBookings", label: "Bookings", tone: "bg-primary/10 text-primary" },
-  { key: "completedBookings", label: "Completed", tone: "bg-accent/10 text-accent" },
-  { key: "watchlistCount", label: "Saved", tone: "bg-chart-4/10 text-chart-4" },
-  { key: "upcomingOpenEvents", label: "Opening Soon", tone: "bg-chart-3/10 text-chart-3" },
-  { key: "createdEvents", label: "Published", tone: "bg-secondary text-secondary-foreground" },
+  { key: "totalBookings", label: "예약", tone: "bg-primary/10 text-primary" },
+  { key: "completedBookings", label: "이용 완료", tone: "bg-accent/10 text-accent" },
+  { key: "watchlistCount", label: "찜한 이벤트", tone: "bg-chart-4/10 text-chart-4" },
+  { key: "upcomingOpenEvents", label: "오픈 예정", tone: "bg-chart-3/10 text-chart-3" },
+  { key: "createdEvents", label: "내가 만든 이벤트", tone: "bg-secondary text-secondary-foreground" },
 ] as const;
 
 export function DashboardPage({
@@ -36,31 +36,32 @@ export function DashboardPage({
         <section className="overflow-hidden rounded-[32px] border border-border/70 bg-card/95 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.35)]">
           <div className="grid gap-8 px-6 py-8 md:px-8 lg:grid-cols-[1.15fr_0.85fr] lg:px-10">
             <div>
-              <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">My Activity</p>
+              <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">내 활동</p>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                {currentUser.name}, your reservations and published lineup are together here.
+                {currentUser.name}님, 예약 현황과 creator 작업 흐름을 여기서 한 번에 확인하세요.
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Use this summary home to review recent bookings, saved events, and opening-soon items. When you need the full creator workspace, open My Events. When you want to publish something new, go to Create Event.
+                이 화면은 개인 활동 요약용입니다. 최근 예약, 찜한 이벤트, 오픈 예정 이벤트를 빠르게 훑고,
+                실제로 내가 만든 이벤트를 관리할 때는 내 이벤트로 이동하면 됩니다.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button asChild size="lg" className="h-11 rounded-xl px-5">
                   <Link href="/">
-                    Browse Events
+                    이벤트 둘러보기
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="h-11 rounded-xl px-5">
                   <Link href="/my-events">
                     <LayoutDashboard className="h-4 w-4" />
-                    My Events
+                    내 이벤트
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="h-11 rounded-xl px-5">
                   <Link href="/create">
                     <Plus className="h-4 w-4" />
-                    Create Event
+                    이벤트 만들기
                   </Link>
                 </Button>
               </div>
@@ -82,9 +83,9 @@ export function DashboardPage({
         <section className="grid gap-8 lg:grid-cols-[1.25fr_0.75fr]">
           <div className="space-y-8">
             <DashboardSection
-              title="Recent Bookings"
-              description="Your latest reservation activity."
-              emptyMessage="No bookings yet. Reserve a spot and your booking history will appear here."
+              title="최근 예약"
+              description="최근 예약한 내역을 빠르게 확인하는 영역입니다."
+              emptyMessage="아직 예약 내역이 없습니다. 이벤트를 예약하면 여기서 바로 확인할 수 있습니다."
               icon={<Ticket className="h-4 w-4 text-primary" />}
             >
               {recentBookings.map((booking) => (
@@ -106,8 +107,8 @@ export function DashboardPage({
                     </div>
                     <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
                       <span>{booking.eventDateLabel} {booking.eventTimeLabel}</span>
-                      <span>{booking.ticketCount} tickets</span>
-                      <span>Booked {booking.bookedAtLabel}</span>
+                      <span>{booking.ticketCount}매</span>
+                      <span>예약일 {booking.bookedAtLabel}</span>
                     </div>
                   </div>
                 </Link>
@@ -115,15 +116,15 @@ export function DashboardPage({
             </DashboardSection>
 
             <DashboardSection
-              title="Watchlist Preview"
-              description="Saved events you may want to revisit."
-              emptyMessage="Your watchlist is empty. Save events from discovery to build this section."
+              title="찜한 이벤트"
+              description="나중에 다시 보고 싶은 이벤트를 모아둔 미리보기입니다."
+              emptyMessage="찜한 이벤트가 아직 없습니다. 둘러보기에서 저장하면 이 영역에 표시됩니다."
               icon={<Heart className="h-4 w-4 text-primary" />}
             >
               {watchlistPreview.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {watchlistPreview.map((event) => (
-                    <EventPreviewCard key={event.id} event={event} eyebrow="Watchlist" />
+                    <EventPreviewCard key={event.id} event={event} eyebrow="찜함" />
                   ))}
                 </div>
               ) : null}
@@ -132,9 +133,9 @@ export function DashboardPage({
 
           <div className="space-y-8">
             <DashboardSection
-              title="Opening Soon"
-              description="Saved events whose reservation window has not opened yet."
-              emptyMessage="No saved events are waiting to open right now."
+              title="오픈 예정"
+              description="찜한 이벤트 중 아직 예약이 열리지 않은 항목입니다."
+              emptyMessage="지금은 오픈 대기 중인 저장 이벤트가 없습니다."
               icon={<CalendarClock className="h-4 w-4 text-primary" />}
             >
               {upcomingOpenEvents.length > 0 ? (
@@ -147,29 +148,29 @@ export function DashboardPage({
             </DashboardSection>
 
             <DashboardSection
-              title="Published Events Preview"
-              description="Your latest created events. Open My Events for the full workspace."
-              emptyMessage="Publish your first event to start building your creator workspace."
+              title="내 이벤트 미리보기"
+              description="최근에 만든 이벤트 미리보기입니다. 전체 관리는 내 이벤트에서 계속할 수 있습니다."
+              emptyMessage="첫 이벤트를 등록하면 creator workspace가 여기서부터 시작됩니다."
               icon={<LayoutDashboard className="h-4 w-4 text-primary" />}
             >
               {createdEventsPreview.length > 0 ? (
                 <div className="space-y-4">
                   <div className="grid gap-4">
                     {createdEventsPreview.map((event) => (
-                      <EventPreviewCard key={event.id} event={event} eyebrow="Published" compact />
+                      <EventPreviewCard key={event.id} event={event} eyebrow="게시됨" compact />
                     ))}
                   </div>
                   <div className="flex flex-wrap gap-3">
                     <Button asChild className="rounded-xl">
                       <Link href="/my-events">
-                        Open My Events
+                        내 이벤트 열기
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
                     <Button asChild variant="outline" className="rounded-xl">
                       <Link href="/create">
                         <Plus className="h-4 w-4" />
-                        Create Event
+                        이벤트 만들기
                       </Link>
                     </Button>
                   </div>
@@ -180,11 +181,11 @@ export function DashboardPage({
             <section className="rounded-[28px] border border-border/70 bg-card/95 p-6">
               <div className="flex items-center gap-2 text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
                 <UserRound className="h-4 w-4 text-primary" />
-                Where To Start
+                어디서 시작할까
               </div>
               <div className="mt-4 space-y-3 text-sm text-muted-foreground">
-                <p><span className="font-medium text-foreground">Dashboard</span> keeps bookings, watchlist items, and opening-soon events in one summary view.</p>
-                <p><span className="font-medium text-foreground">My Events</span> is the dedicated workspace for the events you published.</p>
+                <p><span className="font-medium text-foreground">대시보드</span>는 예약, 찜, 오픈 예정 이벤트를 한 번에 보는 요약 화면입니다.</p>
+                <p><span className="font-medium text-foreground">내 이벤트</span>는 내가 만든 이벤트를 수정하고 관리하는 전용 작업 공간입니다.</p>
               </div>
             </section>
           </div>
@@ -250,7 +251,7 @@ function EventPreviewCard({
         </div>
         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
           <span>{event.dateLabel} {event.timeLabel}</span>
-          <span>{event.remainingSlots} spots left</span>
+          <span>남은 좌석 {event.remainingSlots}석</span>
         </div>
       </div>
     </Link>

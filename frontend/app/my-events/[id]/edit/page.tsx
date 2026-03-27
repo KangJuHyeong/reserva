@@ -29,7 +29,7 @@ export default async function EditMyEventPage({
         eventId={id}
         initialValues={{
           title: event.title,
-          category: event.category as "Concert" | "Restaurant" | "Art & Design" | "Sports",
+          category: event.category as "Concert" | "Restaurant" | "Art & Design" | "Sports" | "Other",
           description: event.description,
           price: String(event.price),
           totalSlots: String(event.totalSlots),
@@ -48,8 +48,8 @@ export default async function EditMyEventPage({
     if (error instanceof BackendApiError && error.code === BACKEND_UNAVAILABLE_CODE) {
       return (
         <BackendUnavailablePage
-          title="Unable to load event editor"
-          description="The edit page could not reach the backend service."
+          title="이벤트 수정 화면을 불러올 수 없습니다"
+          description="수정 페이지가 백엔드 서비스에 연결하지 못했습니다."
         />
       );
     }
