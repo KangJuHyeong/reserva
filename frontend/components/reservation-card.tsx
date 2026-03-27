@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Calendar, MapPin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WatchlistToggleButton } from "@/components/watchlist-toggle-button";
+import { formatCurrency } from "@/lib/format";
 import { EventSummaryViewModel } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -45,7 +46,7 @@ export function ReservationCard({ reservation, onWatchlistChange }: ReservationC
 
           <div className="absolute right-3 top-3">
             <span className="rounded-full bg-background/90 px-2.5 py-1 text-xs font-semibold text-foreground">
-              ${reservation.price}
+              {formatCurrency(Number(reservation.price))}
             </span>
           </div>
         </div>

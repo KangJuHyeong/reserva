@@ -50,6 +50,7 @@
   - `/reservation/[id]`
   - `/booking/[id]`
   - `/dashboard`
+  - `/my-bookings`
   - `/my-events`
   - `/my-events/[id]/edit`
   - `/create`
@@ -63,12 +64,13 @@
   - event detail with watchlist state and direct booking action
   - booking creation with capacity checks, duplicate-booking protection, and an event-specific per-booking ticket quantity limit
   - my bookings list and booking detail
+  - dedicated `/my-bookings` page for the current user's reservation history with status filtering and pagination
   - watchlist save/remove on cards and event detail
   - persisted watchlist loading through `/?view=Watchlist`
   - authenticated event creation page, form, and API including event-specific max ticket configuration
   - authenticated creator event editing through `/my-events/[id]/edit` with owner-only, pre-reservation-open backend update rules
   - personalized dashboard summary that more clearly serves as the user's activity home for bookings, saved events, opening-soon items, and published-event preview
-  - dedicated `/my-events` page for the current user's created events with pagination and clearer creator-workspace framing
+  - dedicated `/my-events` page for the current user's created events with pagination, clearer creator-workspace framing, and server-backed creator filter/sort controls
 
 ### Database
 - Database baseline exists through:
@@ -133,6 +135,7 @@
   - `/reservation/[id]`
   - `/booking/[id]`
   - `/dashboard`
+  - `/my-bookings`
   - `/my-events`
   - `/create`
   - `/login`

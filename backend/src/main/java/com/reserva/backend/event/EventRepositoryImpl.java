@@ -75,6 +75,44 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
         return new SearchResult(events, total == null ? 0 : total);
     }
 
+    @Override
+    public SearchResult searchMyEvents(String creatorId,
+                                       MyEventsFilter filter,
+                                       MyEventsSort sort,
+                                       LocalDateTime now,
+                                       int page,
+                                       int size) {
+        QEventEntity event = QEventEntity.eventEntity;
+        QUserEntity creator = QUserEntity.userEntity;
+        QEventInventoryEntity inventory = QEventInventoryEntity.eventInventoryEntity;
+
+        BooleanBuilder predicate = new BooleanBuilder()
+                .and(event.creator.id.eq(creatorId))
+                .and(myEventsFilterPredicate(filter, event, inventory, now));
+
+        JPAQuery<EventEntity> contentQuery = queryFactory.selectFrom(event)
+                .join(event.creator, creator).fetchJoin()
+                .join(event.inventory, inventory).fetchJoin();
+
+        JPAQuery<Long> countQuery = queryFactory.select(event.count())
+                .from(event)
+                .join(event.creator, creator)
+                .join(event.inventory, inventory);
+
+        List<EventEntity> events = contentQuery
+                .where(predicate)
+                .orderBy(myEventsOrderSpecifiers(sort, event, inventory))
+                .offset((long) (page - 1) * size)
+                .limit(size)
+                .fetch();
+
+        Long total = countQuery
+                .where(predicate)
+                .fetchOne();
+
+        return new SearchResult(events, total == null ? 0 : total);
+    }
+
     private BooleanExpression categoryPredicate(QEventEntity event, EventCategory category) {
         return category == null ? null : event.category.eq(category);
     }
@@ -106,6 +144,18 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
         };
     }
 
+    private BooleanExpression myEventsFilterPredicate(MyEventsFilter filter,
+                                                      QEventEntity event,
+                                                      QEventInventoryEntity inventory,
+                                                      LocalDateTime now) {
+        return switch (filter) {
+            case ALL -> null;
+            case EDITABLE, UPCOMING -> event.reservationOpenDateTime.after(now);
+            case OPEN -> event.reservationOpenDateTime.loe(now);
+            case ALMOST_FULL -> inventory.reservedSlots.goe(almostFullThreshold(inventory));
+        };
+    }
+
     private OrderSpecifier<?>[] orderSpecifiers(DiscoverySection section,
                                                 QEventEntity event,
                                                 QEventInventoryEntity inventory) {
@@ -126,12 +176,46 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
         };
     }
 
+    private OrderSpecifier<?>[] myEventsOrderSpecifiers(MyEventsSort sort,
+                                                        QEventEntity event,
+                                                        QEventInventoryEntity inventory) {
+        return switch (sort) {
+            case LATEST -> new OrderSpecifier<?>[]{
+                    event.createdAt.desc(),
+                    event.eventDateTime.asc()
+            };
+            case EVENT_DATE -> new OrderSpecifier<?>[]{
+                    event.eventDateTime.asc(),
+                    event.createdAt.desc()
+            };
+            case RESERVATION_OPEN -> new OrderSpecifier<?>[]{
+                    event.reservationOpenDateTime.asc(),
+                    event.createdAt.desc()
+            };
+            case MOST_RESERVED -> new OrderSpecifier<?>[]{
+                    inventory.reservedSlots.desc(),
+                    event.eventDateTime.asc(),
+                    event.createdAt.desc()
+            };
+        };
+    }
+
     private NumberExpression<Double> fillRateExpression(QEventInventoryEntity inventory) {
         return Expressions.numberTemplate(
                 Double.class,
                 "({0} * 1.0 / nullif({1}, 0))",
                 inventory.reservedSlots,
                 inventory.totalSlots
+        );
+    }
+
+    private NumberExpression<Integer> almostFullThreshold(QEventInventoryEntity inventory) {
+        return Expressions.numberTemplate(
+                Integer.class,
+                "greatest({1}, ceiling({0} * {2}))",
+                inventory.totalSlots,
+                5,
+                0.8d
         );
     }
 

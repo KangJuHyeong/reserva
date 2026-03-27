@@ -14,6 +14,7 @@ import {
   Music,
   Palette,
   Plus,
+  Ticket,
   TrendingUp,
   Trophy,
   UtensilsCrossed,
@@ -118,6 +119,10 @@ export function MobileNav({ selectedCategory }: MobileNavProps) {
               <Link href="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
                 <LayoutDashboard className="h-4 w-4" />
                 대시보드
+              </Link>
+              <Link href="/my-bookings" onClick={() => setIsOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+                <Ticket className="h-4 w-4" />
+                내 예약
               </Link>
               <Link href="/my-events" onClick={() => setIsOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
                 <ListChecks className="h-4 w-4" />

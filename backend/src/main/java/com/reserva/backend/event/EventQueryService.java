@@ -12,8 +12,6 @@ import com.reserva.backend.event.model.EventCategory;
 import com.reserva.backend.event.model.EventStatus;
 import com.reserva.backend.event.model.EventVisibility;
 import com.reserva.backend.watchlist.WatchlistRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -71,17 +69,25 @@ public class EventQueryService {
         return toDetailResponse(event, currentUserProvider.getCurrentUserOrNull());
     }
 
-    public PageResponse<EventSummaryResponse> getMyEvents(CurrentUser currentUser, int page, int size) {
+    public PageResponse<EventSummaryResponse> getMyEvents(CurrentUser currentUser,
+                                                         String filter,
+                                                         String sort,
+                                                         int page,
+                                                         int size) {
         LocalDateTime now = LocalDateTime.now();
-        Page<EventEntity> myEvents = eventRepository.findByCreator_IdOrderByCreatedAtDesc(
+        EventRepositoryCustom.SearchResult myEvents = eventRepository.searchMyEvents(
                 currentUser.id(),
-                PageRequest.of(page - 1, size)
+                parseMyEventsFilter(filter),
+                parseMyEventsSort(sort),
+                now,
+                page,
+                size
         );
-        Set<String> watchlistedEventIds = resolveWatchlistedEventIds(myEvents.getContent(), currentUser);
-        List<EventSummaryResponse> items = myEvents.getContent().stream()
+        Set<String> watchlistedEventIds = resolveWatchlistedEventIds(myEvents.events(), currentUser);
+        List<EventSummaryResponse> items = myEvents.events().stream()
                 .map(event -> toSummaryResponse(event, watchlistedEventIds, now))
                 .toList();
-        return new PageResponse<>(items, page, size, myEvents.getTotalElements());
+        return new PageResponse<>(items, page, size, myEvents.total());
     }
 
     public EventDetailResponse getMyEventDetail(CurrentUser currentUser, String eventId) {
@@ -113,6 +119,35 @@ public class EventQueryService {
         } catch (IllegalArgumentException exception) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, "Unsupported category: " + rawCategory);
         }
+    }
+
+    private MyEventsFilter parseMyEventsFilter(String rawFilter) {
+        if (rawFilter == null || rawFilter.isBlank()) {
+            return MyEventsFilter.ALL;
+        }
+
+        return switch (rawFilter.trim().toLowerCase(Locale.ROOT)) {
+            case "all" -> MyEventsFilter.ALL;
+            case "editable" -> MyEventsFilter.EDITABLE;
+            case "open" -> MyEventsFilter.OPEN;
+            case "upcoming" -> MyEventsFilter.UPCOMING;
+            case "almostfull" -> MyEventsFilter.ALMOST_FULL;
+            default -> throw new ApiException(ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, "Unsupported my-events filter: " + rawFilter);
+        };
+    }
+
+    private MyEventsSort parseMyEventsSort(String rawSort) {
+        if (rawSort == null || rawSort.isBlank()) {
+            return MyEventsSort.LATEST;
+        }
+
+        return switch (rawSort.trim().toLowerCase(Locale.ROOT)) {
+            case "latest" -> MyEventsSort.LATEST;
+            case "eventdate" -> MyEventsSort.EVENT_DATE;
+            case "reservationopen" -> MyEventsSort.RESERVATION_OPEN;
+            case "mostreserved" -> MyEventsSort.MOST_RESERVED;
+            default -> throw new ApiException(ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, "Unsupported my-events sort: " + rawSort);
+        };
     }
 
     private Set<String> resolveWatchlistedEventIds(List<EventEntity> events, CurrentUser currentUser) {

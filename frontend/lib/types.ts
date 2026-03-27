@@ -10,6 +10,12 @@ export type Category =
   | "Upcoming"
   | "Watchlist";
 
+export type MyEventsFilter = "all" | "editable" | "open" | "upcoming" | "almostFull";
+
+export type MyEventsSort = "latest" | "eventDate" | "reservationOpen" | "mostReserved";
+
+export type MyBookingsStatus = "all" | "confirmed" | "completed" | "cancelled";
+
 export interface PageResponse<T> {
   items: T[];
   page: number;

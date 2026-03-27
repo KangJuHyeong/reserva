@@ -452,6 +452,8 @@ Current:
 - implemented
 
 Query parameters:
+- `filter`
+- `sort`
 - `page`
 - `size`
 
@@ -492,6 +494,11 @@ Notes:
 - reuses `Event Summary`
 - returns only the authenticated user's created events
 - default ordering is newest-created first
+- `filter` may be one of `editable`, `open`, `upcoming`, `almostFull`
+- `sort` may be one of `latest`, `eventDate`, `reservationOpen`, `mostReserved`
+- `filter=editable` and `filter=upcoming` both return events whose `reservationOpenDateTime` is still in the future
+- `filter=open` returns events whose reservations are already open
+- `filter=almostFull` returns events with high reservation utilization based on the same inventory threshold used by creator workspace badges
 
 ### GET /me/events/{eventId}
 Current:

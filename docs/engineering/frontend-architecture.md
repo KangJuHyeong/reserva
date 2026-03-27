@@ -9,6 +9,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - `/reservation/[id]`
 - `/booking/[id]`
 - `/dashboard`
+- `/my-bookings`
 - `/my-events`
 - `/my-events/[id]/edit`
 - `/create`
@@ -20,6 +21,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - live route: `/reservation/[id]`
 - live route: `/booking/[id]`
 - live route: `/dashboard`
+- live route: `/my-bookings`
 - live route: `/my-events`
 - live route: `/my-events/[id]/edit`
 - live route: `/create`
@@ -31,7 +33,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 ### Current
 - Discovery pages use a shared top `Navbar`.
 - Home uses desktop `Sidebar` and `MobileNav` for category and quick-link navigation.
-- Authenticated navigation exposes quick entry to `/dashboard`, `/my-events`, and `/create`.
+- Authenticated navigation exposes quick entry to `/dashboard`, `/my-bookings`, `/my-events`, and `/create`.
 - Dashboard and My Events are intentionally separate so users can tell the difference between a summary home and a creator workspace.
 - Search is query-string driven through `q`.
 - Category and mode changes are query-string driven through `view`.
@@ -189,9 +191,11 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - hero summary block focused on personal activity
 - stats card grid
 - recent bookings section
+- CTA into `/my-bookings`
 - watchlist preview section
 - opening-soon preview section
 - created-events preview with CTA into `/my-events`
+- preview sections include handoff CTAs into full list destinations where those destinations exist
 - quick guidance block that explains where Dashboard and My Events start
 
 #### Current States
@@ -206,8 +210,36 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 
 #### Target Improvements
 - Keep dashboard as a summary home for reservations, watchlist, and published-event previews.
+- Keep full booking management in `/my-bookings` instead of letting the summary page grow into a second booking workspace.
 - Keep created-event management in `/my-events` instead of reverting to the prototype's multi-tab dashboard workspace.
 - If creator tooling grows later, expand through summary-level entry points instead of turning dashboard into an all-in-one control panel.
+
+### `/my-bookings`
+
+#### Purpose
+- Dedicated workspace for the current user's booking history and reservation management
+
+#### Current Structure
+- page header and description that frame the route as a reservation workspace
+- back link to `/dashboard`
+- status filter
+- booking card grid
+- pagination controls
+
+#### Current States
+- authenticated booking list state
+- empty booking state
+- filtered empty state
+- unauthenticated redirect to `/login`
+- backend unavailable fallback state
+
+#### Current Data Dependencies
+- `GET /me`
+- `GET /me/bookings`
+
+#### Target Improvements
+- Keep this route separate from dashboard so reservations have a clear full-list destination instead of staying inside summary-only previews.
+- Keep booking detail itself focused on a single reservation while list management and filtering live here.
 
 ### `/my-events`
 
@@ -218,6 +250,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - page header and description that frame the route as a creator workspace
 - back link to `/dashboard`
 - create-event CTA
+- server-backed filter and sort controls
 - created-event card grid
 - pagination controls
 
@@ -234,6 +267,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 #### Target Improvements
 - Keep this route separate from dashboard because it creates a clearer IA boundary between "my summary" and "my published inventory."
 - Keep edit affordances focused on direct creator maintenance instead of turning the page into a broader operations console.
+- Grow creator operations through server-backed filters and ordering first, then add event-specific reservation views as a follow-up slice.
 
 ### `/my-events/[id]/edit`
 

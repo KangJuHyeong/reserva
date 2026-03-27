@@ -38,10 +38,12 @@ public class DashboardController {
     @GetMapping("/events")
     public PageResponse<EventSummaryResponse> getMyEvents(
             @AuthenticationPrincipal CurrentUser currentUser,
+            @RequestParam(required = false) String filter,
+            @RequestParam(required = false) String sort,
             @RequestParam(defaultValue = "1") @Min(1) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
     ) {
-        return eventQueryService.getMyEvents(currentUser, page, size);
+        return eventQueryService.getMyEvents(currentUser, filter, sort, page, size);
     }
 
     @GetMapping("/events/{eventId}")

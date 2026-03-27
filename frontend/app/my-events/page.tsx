@@ -4,6 +4,7 @@ import { MyEventsPage } from "@/components/my-events-page";
 import { toEventSummaryViewModel } from "@/lib/mappers";
 import { BACKEND_UNAVAILABLE_CODE, BackendApiError } from "@/lib/server/backend";
 import { fetchCurrentUser, fetchMyEvents } from "@/lib/server/queries";
+import { MyEventsFilter, MyEventsSort } from "@/lib/types";
 
 function parsePage(value?: string) {
   const parsed = Number(value);
@@ -13,18 +14,43 @@ function parsePage(value?: string) {
   return parsed;
 }
 
+function parseFilter(value?: string): MyEventsFilter {
+  switch (value) {
+    case "editable":
+    case "open":
+    case "upcoming":
+    case "almostFull":
+      return value;
+    default:
+      return "all";
+  }
+}
+
+function parseSort(value?: string): MyEventsSort {
+  switch (value) {
+    case "eventDate":
+    case "reservationOpen":
+    case "mostReserved":
+      return value;
+    default:
+      return "latest";
+  }
+}
+
 export default async function MyEvents({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; filter?: string; sort?: string }>;
 }) {
   const params = await searchParams;
   const page = parsePage(params.page);
+  const filter = parseFilter(params.filter);
+  const sort = parseSort(params.sort);
 
   try {
     const [currentUser, response] = await Promise.all([
       fetchCurrentUser(),
-      fetchMyEvents({ page, size: 12 }),
+      fetchMyEvents({ page, size: 12, filter, sort }),
     ]);
 
     return (
@@ -34,6 +60,8 @@ export default async function MyEvents({
         currentPage={response.page}
         pageSize={response.size}
         totalItems={response.total}
+        activeFilter={filter}
+        activeSort={sort}
       />
     );
   } catch (error) {

@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Calendar, Clock, Lock, MapPin, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WatchlistToggleButton } from "@/components/watchlist-toggle-button";
+import { formatCurrency } from "@/lib/format";
 import { EventSummaryViewModel } from "@/lib/types";
 
 interface UpcomingCardProps {
@@ -59,18 +60,18 @@ export function UpcomingCard({ reservation, onWatchlistChange }: UpcomingCardPro
         </div>
         <div className="flex items-center justify-between border-t border-border pt-2 text-sm">
           <div>
-            <span className="text-muted-foreground">가격: </span>
-            <span className="font-bold text-foreground">${reservation.price}</span>
+            <span className="text-muted-foreground">가격 </span>
+            <span className="font-bold text-foreground">{formatCurrency(Number(reservation.price))}</span>
           </div>
           <div>
-            <span className="text-muted-foreground">좌석 수: </span>
+            <span className="text-muted-foreground">총 좌석 </span>
             <span className="font-bold text-foreground">{reservation.totalSlots}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Button disabled className="flex-1" variant="secondary">
             <Lock className="mr-2 h-4 w-4" />
-            곧 오픈
+            오픈 대기
           </Button>
           <WatchlistToggleButton
             eventId={reservation.id}
