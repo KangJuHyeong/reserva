@@ -14,6 +14,8 @@ public interface EventRepository extends JpaRepository<EventEntity, String>, Eve
 
     Optional<EventEntity> findByIdAndStatusAndVisibility(String id, EventStatus status, EventVisibility visibility);
 
+    Optional<EventEntity> findByIdAndCreator_Id(String id, String creatorId);
+
     long countByCreator_Id(String creatorId);
 
     List<EventEntity> findTop3ByCreator_IdOrderByCreatedAtDesc(String creatorId);

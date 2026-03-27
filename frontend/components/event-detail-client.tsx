@@ -25,6 +25,7 @@ const errorMessages: Record<string, string> = {
   UNAUTHENTICATED: "Sign in first to reserve this event.",
   EVENT_SOLD_OUT: "This event no longer has enough remaining slots.",
   ALREADY_BOOKED: "You already have an active booking for this event.",
+  BOOKING_QUANTITY_LIMIT_EXCEEDED: "You selected more tickets than the booking limit allows.",
   VALIDATION_ERROR: "This reservation request is invalid right now.",
 };
 
@@ -36,6 +37,8 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [watchlistMessage, setWatchlistMessage] = useState<string | null>(null);
   const progress = (event.reservedSlots / event.totalSlots) * 100;
+  const maxSelectableTickets = Math.min(event.maxTicketsPerBooking, event.remainingSlots);
+  const isSoldOut = event.remainingSlots === 0;
 
   useEffect(() => {
     setIsWatchlisted(event.isWatchlisted);
@@ -44,6 +47,11 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
   async function handleReserve() {
     if (!Number.isInteger(ticketCount) || ticketCount < 1) {
       setErrorMessage("Ticket count must be at least 1.");
+      return;
+    }
+
+    if (ticketCount > maxSelectableTickets) {
+      setErrorMessage(`You can reserve up to ${maxSelectableTickets} tickets for this booking.`);
       return;
     }
 
@@ -141,10 +149,10 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
 
           <div className="lg:col-span-1">
             <div className="sticky top-24 rounded-xl border border-border bg-card p-6">
-              <div className="mb-1 text-3xl font-bold text-foreground">
-                ${event.price}
-                <span className="text-base font-normal text-muted-foreground"> / person</span>
-              </div>
+                <div className="mb-1 text-3xl font-bold text-foreground">
+                  ${event.price}
+                  <span className="text-base font-normal text-muted-foreground"> / person</span>
+                </div>
 
               <div className="mt-6 space-y-4">
                 <div className="flex items-center justify-between">
@@ -178,13 +186,23 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
                   <input
                     type="number"
                     min={1}
+                    max={Math.max(1, maxSelectableTickets)}
                     value={ticketCount}
                     onChange={(inputEvent) => {
                       const nextValue = Number(inputEvent.target.value);
-                      setTicketCount(Number.isFinite(nextValue) && nextValue > 0 ? nextValue : 1);
+                      if (!Number.isFinite(nextValue) || nextValue < 1) {
+                        setTicketCount(1);
+                        return;
+                      }
+
+                      setTicketCount(Math.min(Math.floor(nextValue), Math.max(1, maxSelectableTickets)));
                     }}
-                    className="mt-2 h-11 w-full rounded-lg border border-border bg-input px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    disabled={isSoldOut}
+                    className="mt-2 h-11 w-full rounded-lg border border-border bg-input px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
                   />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Up to {event.maxTicketsPerBooking} tickets per booking. {event.remainingSlots} spots remain right now.
+                  </p>
                 </label>
 
                 {errorMessage ? <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{errorMessage}</div> : null}
@@ -193,7 +211,7 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
                 <Button
                   className="h-12 w-full bg-primary text-base text-primary-foreground hover:bg-primary/90"
                   onClick={handleReserve}
-                  disabled={isSubmitting || event.remainingSlots === 0}
+                  disabled={isSubmitting || isSoldOut}
                 >
                   {isSubmitting ? "Reserving..." : event.remainingSlots === 0 ? "Sold Out" : "Reserve My Spot"}
                 </Button>

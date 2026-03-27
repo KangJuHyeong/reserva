@@ -7,6 +7,7 @@ import {
   CalendarClock,
   Clock,
   Heart,
+  LayoutDashboard,
   LayoutGrid,
   ListChecks,
   Menu,
@@ -15,7 +16,6 @@ import {
   Plus,
   TrendingUp,
   Trophy,
-  User,
   UtensilsCrossed,
   X,
 } from "lucide-react";
@@ -115,8 +115,8 @@ export function MobileNav({ selectedCategory }: MobileNavProps) {
 
             <div className="border-t border-sidebar-border pt-4">
               <Link href="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
-                <User className="h-4 w-4" />
-                My Page
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
               </Link>
               <Link href="/my-events" onClick={() => setIsOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
                 <ListChecks className="h-4 w-4" />

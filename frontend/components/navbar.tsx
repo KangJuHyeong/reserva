@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Bell, LogOut, Plus, Search, User } from "lucide-react";
+import { Bell, LayoutDashboard, ListChecks, LogOut, Plus, Search, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CurrentUserApi } from "@/lib/types";
 
@@ -69,12 +69,20 @@ export function Navbar({ searchQuery, currentUser }: NavbarProps) {
 
         <div className="flex items-center gap-3">
           {currentUser ? (
-            <Link href="/my-events">
-              <Button variant="outline" className="gap-2">
-                <User className="h-4 w-4" />
-                <span className="hidden sm:inline">My Events</span>
-              </Button>
-            </Link>
+            <>
+              <Link href="/dashboard">
+                <Button variant="outline" className="gap-2">
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span className="hidden sm:inline">Dashboard</span>
+                </Button>
+              </Link>
+              <Link href="/my-events">
+                <Button variant="outline" className="gap-2">
+                  <ListChecks className="h-4 w-4" />
+                  <span className="hidden sm:inline">My Events</span>
+                </Button>
+              </Link>
+            </>
           ) : null}
           <Link href="/create">
             <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">

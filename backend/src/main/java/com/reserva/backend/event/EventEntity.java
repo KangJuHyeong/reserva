@@ -56,6 +56,9 @@ public class EventEntity {
     @Column(name = "reservation_open_datetime", nullable = false)
     private LocalDateTime reservationOpenDateTime;
 
+    @Column(name = "max_tickets_per_booking", nullable = false)
+    private int maxTicketsPerBooking;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EventStatus status;
@@ -83,6 +86,7 @@ public class EventEntity {
                                      BigDecimal price,
                                      LocalDateTime eventDateTime,
                                      LocalDateTime reservationOpenDateTime,
+                                     int maxTicketsPerBooking,
                                      EventStatus status,
                                      EventVisibility visibility,
                                      LocalDateTime now,
@@ -98,6 +102,7 @@ public class EventEntity {
         event.price = price;
         event.eventDateTime = eventDateTime;
         event.reservationOpenDateTime = reservationOpenDateTime;
+        event.maxTicketsPerBooking = maxTicketsPerBooking;
         event.status = status;
         event.visibility = visibility;
         event.createdAt = now;
@@ -144,6 +149,34 @@ public class EventEntity {
 
     public LocalDateTime getReservationOpenDateTime() {
         return reservationOpenDateTime;
+    }
+
+    public int getMaxTicketsPerBooking() {
+        return maxTicketsPerBooking;
+    }
+
+    public void update(String title,
+                       EventCategory category,
+                       String description,
+                       String imageUrl,
+                       String location,
+                       BigDecimal price,
+                       LocalDateTime eventDateTime,
+                       LocalDateTime reservationOpenDateTime,
+                       int totalSlots,
+                       int maxTicketsPerBooking,
+                       LocalDateTime now) {
+        this.title = title;
+        this.category = category;
+        this.description = description;
+        this.imageUrl = imageUrl;
+        this.location = location;
+        this.price = price;
+        this.eventDateTime = eventDateTime;
+        this.reservationOpenDateTime = reservationOpenDateTime;
+        this.maxTicketsPerBooking = maxTicketsPerBooking;
+        this.updatedAt = now;
+        this.inventory.updateTotalSlots(totalSlots, now);
     }
 
     public EventStatus getStatus() {

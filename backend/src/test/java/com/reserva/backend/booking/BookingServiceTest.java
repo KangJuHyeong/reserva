@@ -139,6 +139,24 @@ class BookingServiceTest {
     }
 
     @Test
+    void createBookingRejectsTicketCountAbovePolicyLimit() {
+        EventEntity event = event("evt_1", 20, 1, LocalDateTime.now().minusDays(1), 3);
+
+        when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
+                .thenReturn(Optional.of(event));
+
+        assertThatThrownBy(() -> bookingService.createBooking(currentUser, "evt_1", new BookingCreateRequest(4)))
+                .isInstanceOf(ApiException.class)
+                .satisfies(exception -> {
+                    ApiException apiException = (ApiException) exception;
+                    assertThat(apiException.getErrorCode()).isEqualTo(ErrorCode.BOOKING_QUANTITY_LIMIT_EXCEEDED);
+                    assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+                });
+
+        verify(eventInventoryRepository, never()).findByEventIdForUpdate(any());
+    }
+
+    @Test
     void createBookingRejectsMissingInventory() {
         EventEntity event = event("evt_1", 10, 0, LocalDateTime.now().minusDays(1));
 
@@ -187,6 +205,10 @@ class BookingServiceTest {
     }
 
     private EventEntity event(String id, int totalSlots, int reservedSlots, LocalDateTime reservationOpenDateTime) {
+        return event(id, totalSlots, reservedSlots, reservationOpenDateTime, 10);
+    }
+
+    private EventEntity event(String id, int totalSlots, int reservedSlots, LocalDateTime reservationOpenDateTime, int maxTicketsPerBooking) {
         EventEntity event = EventEntity.create(
                 id,
                 user("usr_creator"),
@@ -198,6 +220,7 @@ class BookingServiceTest {
                 new BigDecimal("45.00"),
                 LocalDateTime.now().plusDays(10),
                 reservationOpenDateTime,
+                maxTicketsPerBooking,
                 EventStatus.PUBLISHED,
                 EventVisibility.PUBLIC,
                 LocalDateTime.now().minusDays(2),

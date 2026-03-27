@@ -134,6 +134,7 @@ class EventQueryServiceTest {
         EventDetailResponse response = eventQueryService.getEventDetail("evt_1");
 
         assertThat(response.isWatchlisted()).isTrue();
+        assertThat(response.maxTicketsPerBooking()).isEqualTo(6);
         verify(watchlistRepository).existsByUserIdAndEventId("usr_1", "evt_1");
     }
 
@@ -153,6 +154,18 @@ class EventQueryServiceTest {
         assertThat(response.total()).isEqualTo(2);
         assertThat(response.items().getFirst().id()).isEqualTo("evt_created_1");
         assertThat(response.items().get(1).isWatchlisted()).isTrue();
+    }
+
+    @Test
+    void getMyEventDetailReturnsOwnedEvent() {
+        EventEntity event = event("evt_created_1", LocalDateTime.now().plusDays(4));
+
+        when(eventRepository.findByIdAndCreator_Id("evt_created_1", "usr_1")).thenReturn(Optional.of(event));
+
+        EventDetailResponse response = eventQueryService.getMyEventDetail(new CurrentUser("usr_1", "Alex Johnson"), "evt_created_1");
+
+        assertThat(response.id()).isEqualTo("evt_created_1");
+        assertThat(response.maxTicketsPerBooking()).isEqualTo(6);
     }
 
     private EventEntity event(String eventId, LocalDateTime eventDateTime) {
@@ -187,6 +200,7 @@ class EventQueryServiceTest {
         ReflectionTestUtils.setField(event, "price", new BigDecimal("45.00"));
         ReflectionTestUtils.setField(event, "eventDateTime", eventDateTime);
         ReflectionTestUtils.setField(event, "reservationOpenDateTime", reservationOpenDateTime);
+        ReflectionTestUtils.setField(event, "maxTicketsPerBooking", 6);
         ReflectionTestUtils.setField(event, "status", EventStatus.PUBLISHED);
         ReflectionTestUtils.setField(event, "visibility", EventVisibility.PUBLIC);
         ReflectionTestUtils.setField(event, "inventory", inventory);

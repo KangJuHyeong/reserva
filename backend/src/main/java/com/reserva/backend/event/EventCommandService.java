@@ -5,6 +5,7 @@ import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.security.CurrentUser;
 import com.reserva.backend.event.api.EventCreateRequest;
 import com.reserva.backend.event.api.EventCreateResponse;
+import com.reserva.backend.event.api.EventUpdateResponse;
 import com.reserva.backend.event.model.EventCategory;
 import com.reserva.backend.event.model.EventStatus;
 import com.reserva.backend.event.model.EventVisibility;
@@ -36,6 +37,10 @@ public class EventCommandService {
             throw new ApiException(ErrorCode.INVALID_SCHEDULE, HttpStatus.BAD_REQUEST, "Reservation open datetime must be before event datetime.");
         }
 
+        if (request.maxTicketsPerBooking() > request.totalSlots()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, "maxTicketsPerBooking must not exceed totalSlots.");
+        }
+
         EventCategory category;
         try {
             category = EventCategory.fromLabel(request.category());
@@ -58,6 +63,7 @@ public class EventCommandService {
                 request.price(),
                 request.eventDateTime().withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime(),
                 request.reservationOpenDateTime().withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime(),
+                request.maxTicketsPerBooking(),
                 EventStatus.PUBLISHED,
                 EventVisibility.PUBLIC,
                 now,
@@ -66,5 +72,52 @@ public class EventCommandService {
 
         EventEntity savedEvent = eventRepository.save(event);
         return new EventCreateResponse(savedEvent.getId(), savedEvent.getTitle());
+    }
+
+    @Transactional
+    public EventUpdateResponse updateEvent(CurrentUser currentUser, String eventId, EventCreateRequest request) {
+        if (!request.reservationOpenDateTime().isBefore(request.eventDateTime())) {
+            throw new ApiException(ErrorCode.INVALID_SCHEDULE, HttpStatus.BAD_REQUEST, "Reservation open datetime must be before event datetime.");
+        }
+
+        if (request.maxTicketsPerBooking() > request.totalSlots()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, "maxTicketsPerBooking must not exceed totalSlots.");
+        }
+
+        EventCategory category;
+        try {
+            category = EventCategory.fromLabel(request.category());
+        } catch (IllegalArgumentException exception) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, "Unsupported category: " + request.category());
+        }
+
+        EventEntity event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ApiException(ErrorCode.EVENT_NOT_FOUND, HttpStatus.NOT_FOUND, "The event was not found."));
+
+        if (!event.getCreator().getId().equals(currentUser.id())) {
+            throw new ApiException(ErrorCode.FORBIDDEN, HttpStatus.FORBIDDEN, "You cannot edit this event.");
+        }
+
+        if (request.totalSlots() < event.getInventory().getReservedSlots()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, "totalSlots must be greater than or equal to reservedSlots.");
+        }
+
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        event.update(
+                request.title().trim(),
+                category,
+                request.description().trim(),
+                request.imageUrl().trim(),
+                request.location().trim(),
+                request.price(),
+                request.eventDateTime().withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime(),
+                request.reservationOpenDateTime().withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime(),
+                request.totalSlots(),
+                request.maxTicketsPerBooking(),
+                now
+        );
+
+        EventEntity savedEvent = eventRepository.save(event);
+        return new EventUpdateResponse(savedEvent.getId(), savedEvent.getTitle());
     }
 }

@@ -26,6 +26,8 @@ public record EventCreateRequest(
         OffsetDateTime reservationOpenDateTime,
         @Min(value = 1, message = "must be greater than or equal to 1")
         int totalSlots,
+        @Min(value = 1, message = "must be greater than or equal to 1")
+        int maxTicketsPerBooking,
         @NotBlank(message = "must not be blank")
         String imageUrl
 ) {

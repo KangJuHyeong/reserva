@@ -4,12 +4,14 @@ import com.reserva.backend.dashboard.DashboardQueryService;
 import com.reserva.backend.common.api.PageResponse;
 import com.reserva.backend.common.security.CurrentUser;
 import com.reserva.backend.event.EventQueryService;
+import com.reserva.backend.event.api.EventDetailResponse;
 import com.reserva.backend.event.api.EventSummaryResponse;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,5 +42,11 @@ public class DashboardController {
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
     ) {
         return eventQueryService.getMyEvents(currentUser, page, size);
+    }
+
+    @GetMapping("/events/{eventId}")
+    public EventDetailResponse getMyEventDetail(@AuthenticationPrincipal CurrentUser currentUser,
+                                                @PathVariable String eventId) {
+        return eventQueryService.getMyEventDetail(currentUser, eventId);
     }
 }

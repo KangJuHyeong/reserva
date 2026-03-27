@@ -55,6 +55,14 @@ public class BookingService {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, "Reservation is not open yet.");
         }
 
+        if (request.ticketCount() > event.getMaxTicketsPerBooking()) {
+            throw new ApiException(
+                    ErrorCode.BOOKING_QUANTITY_LIMIT_EXCEEDED,
+                    HttpStatus.BAD_REQUEST,
+                    "ticketCount must not exceed " + event.getMaxTicketsPerBooking() + " for a single booking."
+            );
+        }
+
         if (bookingRepository.existsByUserIdAndEventIdAndStatusIn(currentUser.id(), eventId, EnumSet.of(BookingStatus.CONFIRMED))) {
             throw new ApiException(ErrorCode.ALREADY_BOOKED, HttpStatus.CONFLICT, "The user already has an active booking for this event.");
         }

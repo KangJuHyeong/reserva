@@ -10,6 +10,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - `/booking/[id]`
 - `/dashboard`
 - `/my-events`
+- `/my-events/[id]/edit`
 - `/create`
 - `/login`
 - `/signup`
@@ -20,6 +21,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - live route: `/booking/[id]`
 - live route: `/dashboard`
 - live route: `/my-events`
+- live route: `/my-events/[id]/edit`
 - live route: `/create`
 - live route: `/login`
 - live route: `/signup`
@@ -30,6 +32,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - Discovery pages use a shared top `Navbar`.
 - Home uses desktop `Sidebar` and `MobileNav` for category and quick-link navigation.
 - Authenticated navigation exposes quick entry to `/dashboard`, `/my-events`, and `/create`.
+- Dashboard and My Events are intentionally separate so users can tell the difference between a summary home and a creator workspace.
 - Search is query-string driven through `q`.
 - Category and mode changes are query-string driven through `view`.
 
@@ -130,7 +133,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - description
 - price and slot status
 - remaining slots and reservation-open timestamp
-- ticket-count input
+- ticket-count input with a visible event-specific per-booking cap
 - reserve CTA
 - watchlist action
 - share action
@@ -183,13 +186,13 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - Personal summary page for recent activity and next actions
 
 #### Current Structure
-- hero summary block
+- hero summary block focused on personal activity
 - stats card grid
 - recent bookings section
 - watchlist preview section
 - opening-soon preview section
 - created-events preview with CTA into `/my-events`
-- quick context block
+- quick guidance block that explains where Dashboard and My Events start
 
 #### Current States
 - authenticated dashboard summary
@@ -202,7 +205,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - `GET /me/dashboard-summary`
 
 #### Target Improvements
-- Keep dashboard as a summary page.
+- Keep dashboard as a summary home for reservations, watchlist, and published-event previews.
 - Keep created-event management in `/my-events` instead of reverting to the prototype's multi-tab dashboard workspace.
 - If creator tooling grows later, expand through summary-level entry points instead of turning dashboard into an all-in-one control panel.
 
@@ -212,7 +215,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - Dedicated workspace for the current user's created events
 
 #### Current Structure
-- page header and description
+- page header and description that frame the route as a creator workspace
 - back link to `/dashboard`
 - create-event CTA
 - created-event card grid
@@ -230,7 +233,32 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 
 #### Target Improvements
 - Keep this route separate from dashboard because it creates a clearer IA boundary between "my summary" and "my published inventory."
-- Add edit/manage affordances only when the backend exposes matching update or management APIs.
+- Keep edit affordances focused on direct creator maintenance instead of turning the page into a broader operations console.
+
+### `/my-events/[id]/edit`
+
+#### Purpose
+- Edit an existing event from the creator workspace
+
+#### Current Structure
+- prefilled event form reusing the create-event field set
+- owner-only entry from `/my-events`
+- save CTA and reset/cancel action
+
+#### Current States
+- authenticated edit state
+- validation error state
+- unauthenticated redirect to `/login`
+- missing or non-owned event redirect back to `/my-events`
+- backend unavailable fallback state
+
+#### Current Data Dependencies
+- `GET /me`
+- `GET /me/events/{eventId}`
+- `PATCH /events/{eventId}`
+
+#### Target Improvements
+- Keep edit and create field sets aligned while the product stays within the current event-publishing baseline.
 
 ### `/create`
 
@@ -244,6 +272,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - description
 - price
 - total slots
+- max tickets per booking
 - location
 - event date and time
 - reservation open date and time
@@ -354,6 +383,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 ### Booking Action
 - reserve CTA should show loading while submitting
 - duplicate clicks must be prevented during submission
+- ticket-count input should clamp to the smaller of remaining capacity and the event-specific per-booking limit returned by event detail
 - sold-out state should disable the CTA
 
 ### Empty States

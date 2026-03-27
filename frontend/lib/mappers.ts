@@ -74,6 +74,7 @@ export function toEventDetailViewModel(event: EventDetailApi): EventDetailViewMo
     totalSlots: event.totalSlots,
     reservedSlots: event.reservedSlots,
     remainingSlots: event.remainingSlots,
+    maxTicketsPerBooking: event.maxTicketsPerBooking,
     isWatchlisted: event.isWatchlisted,
     hostName: event.host.name,
     hostAvatarUrl: event.host.avatarUrl,

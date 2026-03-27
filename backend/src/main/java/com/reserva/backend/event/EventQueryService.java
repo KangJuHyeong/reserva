@@ -84,6 +84,12 @@ public class EventQueryService {
         return new PageResponse<>(items, page, size, myEvents.getTotalElements());
     }
 
+    public EventDetailResponse getMyEventDetail(CurrentUser currentUser, String eventId) {
+        EventEntity event = eventRepository.findByIdAndCreator_Id(eventId, currentUser.id())
+                .orElseThrow(() -> new ApiException(ErrorCode.EVENT_NOT_FOUND, HttpStatus.NOT_FOUND, "The event was not found for the current user."));
+        return toDetailResponse(event, currentUser);
+    }
+
     private DiscoverySection parseSection(String rawSection) {
         if (rawSection == null || rawSection.isBlank()) {
             return DiscoverySection.DEFAULT;
@@ -161,6 +167,7 @@ public class EventQueryService {
                 event.getInventory().getTotalSlots(),
                 event.getInventory().getReservedSlots(),
                 remainingSlots(event),
+                event.getMaxTicketsPerBooking(),
                 watchlisted,
                 toHost(event)
         );

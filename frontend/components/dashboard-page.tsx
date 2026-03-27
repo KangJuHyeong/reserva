@@ -11,14 +11,15 @@ interface DashboardPageProps {
   recentBookings: BookingSummaryViewModel[];
   upcomingOpenEvents: EventSummaryViewModel[];
   watchlistPreview: EventSummaryViewModel[];
+  createdEventsPreview: EventSummaryViewModel[];
 }
 
 const statCards = [
-  { key: "totalBookings", label: "Total Bookings", tone: "bg-primary/10 text-primary" },
+  { key: "totalBookings", label: "Bookings", tone: "bg-primary/10 text-primary" },
   { key: "completedBookings", label: "Completed", tone: "bg-accent/10 text-accent" },
-  { key: "watchlistCount", label: "Watchlist", tone: "bg-chart-4/10 text-chart-4" },
+  { key: "watchlistCount", label: "Saved", tone: "bg-chart-4/10 text-chart-4" },
   { key: "upcomingOpenEvents", label: "Opening Soon", tone: "bg-chart-3/10 text-chart-3" },
-  { key: "createdEvents", label: "Created Events", tone: "bg-secondary text-secondary-foreground" },
+  { key: "createdEvents", label: "Published", tone: "bg-secondary text-secondary-foreground" },
 ] as const;
 
 export function DashboardPage({
@@ -27,6 +28,7 @@ export function DashboardPage({
   recentBookings,
   upcomingOpenEvents,
   watchlistPreview,
+  createdEventsPreview,
 }: DashboardPageProps) {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(242,189,97,0.18),_transparent_28%),linear-gradient(180deg,_hsl(var(--background)),_hsl(var(--secondary)))] px-6 py-8">
@@ -34,12 +36,12 @@ export function DashboardPage({
         <section className="overflow-hidden rounded-[32px] border border-border/70 bg-card/95 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.35)]">
           <div className="grid gap-8 px-6 py-8 md:px-8 lg:grid-cols-[1.15fr_0.85fr] lg:px-10">
             <div>
-              <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">Dashboard</p>
+              <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">My Activity</p>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                {currentUser.name}, your reservation pulse is live.
+                {currentUser.name}, your reservations and published lineup are together here.
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Track bookings, monitor saved events that are about to open, and move between your personal activity and your published events without losing context.
+                Use this summary home to review recent bookings, saved events, and opening-soon items. When you need the full creator workspace, open My Events. When you want to publish something new, go to Create Event.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
@@ -118,11 +120,13 @@ export function DashboardPage({
               emptyMessage="Your watchlist is empty. Save events from discovery to build this section."
               icon={<Heart className="h-4 w-4 text-primary" />}
             >
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {watchlistPreview.map((event) => (
-                  <EventPreviewCard key={event.id} event={event} eyebrow="Watchlist" />
-                ))}
-              </div>
+              {watchlistPreview.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {watchlistPreview.map((event) => (
+                    <EventPreviewCard key={event.id} event={event} eyebrow="Watchlist" />
+                  ))}
+                </div>
+              ) : null}
             </DashboardSection>
           </div>
 
@@ -133,48 +137,54 @@ export function DashboardPage({
               emptyMessage="No saved events are waiting to open right now."
               icon={<CalendarClock className="h-4 w-4 text-primary" />}
             >
-              <div className="space-y-4">
-                {upcomingOpenEvents.map((event) => (
-                  <EventPreviewCard key={event.id} event={event} eyebrow={event.reservationOpenLabel} compact />
-                ))}
-              </div>
+              {upcomingOpenEvents.length > 0 ? (
+                <div className="space-y-4">
+                  {upcomingOpenEvents.map((event) => (
+                    <EventPreviewCard key={event.id} event={event} eyebrow={event.reservationOpenLabel} compact />
+                  ))}
+                </div>
+              ) : null}
             </DashboardSection>
 
             <DashboardSection
-              title="My Events"
-              description="Keep your created events in a dedicated page separate from your personal reservations."
-              emptyMessage="Create your first event to start building your lineup."
+              title="Published Events Preview"
+              description="Your latest created events. Open My Events for the full workspace."
+              emptyMessage="Publish your first event to start building your creator workspace."
               icon={<LayoutDashboard className="h-4 w-4 text-primary" />}
             >
-              <div className="rounded-2xl border border-border/70 bg-background/60 p-5">
-                <p className="text-sm text-muted-foreground">
-                  My Page now focuses on bookings, watchlist activity, and summary stats. Use My Events for your full published event list.
-                </p>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <Button asChild className="rounded-xl">
-                    <Link href="/my-events">
-                      Open My Events
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" className="rounded-xl">
-                    <Link href="/create">
-                      <Plus className="h-4 w-4" />
-                      Create Event
-                    </Link>
-                  </Button>
+              {createdEventsPreview.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="grid gap-4">
+                    {createdEventsPreview.map((event) => (
+                      <EventPreviewCard key={event.id} event={event} eyebrow="Published" compact />
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <Button asChild className="rounded-xl">
+                      <Link href="/my-events">
+                        Open My Events
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="rounded-xl">
+                      <Link href="/create">
+                        <Plus className="h-4 w-4" />
+                        Create Event
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </DashboardSection>
 
             <section className="rounded-[28px] border border-border/70 bg-card/95 p-6">
               <div className="flex items-center gap-2 text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
                 <UserRound className="h-4 w-4 text-primary" />
-                Quick Context
+                Where To Start
               </div>
               <div className="mt-4 space-y-3 text-sm text-muted-foreground">
-                <p>This dashboard is auth-aware and uses the same authenticated backend context as bookings and watchlist flows.</p>
-                <p>Protected data on this page now depends on the same JWT contract used by login, current-user bootstrap, and logout.</p>
+                <p><span className="font-medium text-foreground">Dashboard</span> keeps bookings, watchlist items, and opening-soon events in one summary view.</p>
+                <p><span className="font-medium text-foreground">My Events</span> is the dedicated workspace for the events you published.</p>
               </div>
             </section>
           </div>

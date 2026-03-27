@@ -8,7 +8,7 @@ Use `docs/product/implementation-status.md` for current implementation coverage 
 
 ### Current
 - The current baseline tables are `users`, `events`, `event_inventory`, `bookings`, and `watchlists`.
-- The current migration baseline runs from `V1__create_users.sql` through `V5__add_google_subject_to_users.sql`.
+- The current migration baseline runs from `V1__create_users.sql` through `V6__add_max_tickets_per_booking_to_events.sql`.
 
 ### Temporary
 - `users.role` still exists in the schema, but it is not the active product-level permission contract in the current baseline.
@@ -71,6 +71,7 @@ Recommended columns:
 - `price`
 - `event_datetime`
 - `reservation_open_datetime`
+- `max_tickets_per_booking`
 - `status`
 - `visibility`
 - `created_at`
@@ -151,6 +152,8 @@ Rules:
 ### Booking Integrity
 - human-facing `booking_code` must be unique
 - duplicate-booking prevention should be enforced through application logic and, where feasible, DB-backed uniqueness strategy
+- `events.max_tickets_per_booking >= 1`
+- booking requests must not exceed the event's configured `max_tickets_per_booking`
 
 ### Schedule Integrity
 - `reservation_open_datetime < event_datetime`
@@ -161,6 +164,9 @@ Rules:
 Booking creation must atomically do both:
 - reserve available slots
 - persist the booking
+
+Current:
+- booking creation rejects `ticket_count` values above the event's configured per-booking maximum before inventory reservation proceeds
 
 ### Capacity Protection
 Recommended approaches:

@@ -65,3 +65,9 @@ export async function fetchMyEvents(params?: {
     includeIncomingCookies: true,
   });
 }
+
+export async function fetchMyEventDetail(eventId: string) {
+  return fetchBackendJson<EventDetailApi>(`/api/v1/me/events/${eventId}`, undefined, {
+    includeIncomingCookies: true,
+  });
+}
