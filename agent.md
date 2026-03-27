@@ -76,6 +76,7 @@ Current canonical routes:
 - `/reservation/[id]`
 - `/booking/[id]`
 - `/dashboard`
+- `/my-bookings`
 - `/my-events`
 - `/my-events/[id]/edit`
 - `/create`
@@ -106,7 +107,7 @@ Terminology:
 - `backend/src/main/java/com/reserva/backend/common`: shared API, error, and security support
 
 ### 6.3 Frontend Work Areas
-- `frontend/app`: route entry points such as `/`, `/reservation/[id]`, `/booking/[id]`, `/dashboard`, `/my-events`, `/my-events/[id]/edit`, `/create`, `/login`
+- `frontend/app`: route entry points such as `/`, `/reservation/[id]`, `/booking/[id]`, `/dashboard`, `/my-bookings`, `/my-events`, `/my-events/[id]/edit`, `/create`, `/login`
 - `frontend/app/api`: same-origin proxy routes for auth and event mutations
 - `frontend/components`: page composition and interactive UI pieces
 - `frontend/lib/server`: backend fetch wrappers and server-side query helpers
@@ -189,8 +190,8 @@ Why this order:
 - Frontend project exists in `frontend`
 - Datasource configuration is driven by `backend/.env`
 - Spring Boot, MySQL, Flyway, JPA, and QueryDSL-backed repository queries are active
-- Live frontend routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, `/dashboard`, `/my-events`, `/my-events/[id]/edit`, `/create`, and `/login`
-- Live frontend routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, `/dashboard`, `/my-events`, `/my-events/[id]/edit`, `/create`, `/login`, and `/signup`
+- Live frontend routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, `/dashboard`, `/my-bookings`, `/my-events`, `/my-events/[id]/edit`, `/create`, and `/login`
+- Live frontend routes currently include `/`, `/reservation/[id]`, `/booking/[id]`, `/dashboard`, `/my-bookings`, `/my-events`, `/my-events/[id]/edit`, `/create`, `/login`, and `/signup`
 - EC2 semideploy assets exist in `infra/deploy`
 - Frontend and backend Dockerfiles exist for container image builds
 - GitHub Actions workflow exists for backend GHCR image publication and EC2 SSH-based redeploy

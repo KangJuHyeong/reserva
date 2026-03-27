@@ -12,6 +12,7 @@ import {
   Music,
   Palette,
   Plus,
+  Ticket,
   TrendingUp,
   Trophy,
   User,
@@ -65,7 +66,11 @@ export function Sidebar({ selectedCategory }: SidebarProps) {
           <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">바로가기</p>
           <Link href="/dashboard" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
             <User className="h-4 w-4" />
-            마이페이지
+            대시보드
+          </Link>
+          <Link href="/my-bookings" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+            <Ticket className="h-4 w-4" />
+            내 예약
           </Link>
           <Link href="/my-events" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
             <ListChecks className="h-4 w-4" />

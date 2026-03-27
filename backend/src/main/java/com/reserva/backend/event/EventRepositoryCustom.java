@@ -15,6 +15,13 @@ public interface EventRepositoryCustom {
                                           int page,
                                           int size);
 
+    SearchResult searchMyEvents(String creatorId,
+                                MyEventsFilter filter,
+                                MyEventsSort sort,
+                                LocalDateTime now,
+                                int page,
+                                int size);
+
     record SearchResult(List<EventEntity> events, long total) {
     }
 }

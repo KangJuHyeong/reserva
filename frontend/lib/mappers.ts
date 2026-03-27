@@ -8,32 +8,7 @@ import {
   EventSummaryApi,
   EventSummaryViewModel,
 } from "@/lib/types";
-
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-  timeZone: "UTC",
-});
-
-const timeFormatter = new Intl.DateTimeFormat("en-US", {
-  hour: "numeric",
-  minute: "2-digit",
-  hour12: true,
-  timeZone: "UTC",
-});
-
-function formatDateLabel(value: string) {
-  return dateFormatter.format(new Date(value));
-}
-
-function formatTimeLabel(value: string) {
-  return timeFormatter.format(new Date(value));
-}
-
-function formatDateTimeLabel(value: string) {
-  return `${formatDateLabel(value)} ${formatTimeLabel(value)}`;
-}
+import { formatDateLabel, formatDateTimeLabel, formatTimeLabel } from "@/lib/format";
 
 export function toEventSummaryViewModel(event: EventSummaryApi): EventSummaryViewModel {
   return {
@@ -107,7 +82,13 @@ export function toBookingDetailViewModel(booking: BookingDetailApi): BookingDeta
 }
 
 export function toBookingSummaryViewModel(booking: BookingSummaryApi): BookingSummaryViewModel {
-  const statusLabel = booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
+  const statusLabel = booking.status === "confirmed"
+    ? "예약 확정"
+    : booking.status === "completed"
+      ? "이용 완료"
+      : booking.status === "cancelled"
+        ? "취소됨"
+        : booking.status;
 
   return {
     bookingId: booking.bookingId,

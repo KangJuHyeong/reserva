@@ -13,8 +13,6 @@ import com.reserva.backend.event.model.EventStatus;
 import com.reserva.backend.event.model.EventVisibility;
 import com.reserva.backend.user.UserEntity;
 import com.reserva.backend.watchlist.WatchlistRepository;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -143,17 +141,52 @@ class EventQueryServiceTest {
         EventEntity first = event("evt_created_1", LocalDateTime.now().plusDays(4));
         EventEntity second = event("evt_created_2", LocalDateTime.now().plusDays(8));
 
-        when(eventRepository.findByCreator_IdOrderByCreatedAtDesc("usr_1", PageRequest.of(0, 20)))
-                .thenReturn(new PageImpl<>(List.of(first, second), PageRequest.of(0, 20), 2));
+        when(eventRepository.searchMyEvents(eq("usr_1"), eq(MyEventsFilter.ALL), eq(MyEventsSort.LATEST), any(LocalDateTime.class), eq(1), eq(20)))
+                .thenReturn(new EventRepositoryCustom.SearchResult(List.of(first, second), 2));
         when(watchlistRepository.findEventIdsByUserIdAndEventIdIn("usr_1", List.of("evt_created_1", "evt_created_2")))
                 .thenReturn(Set.of("evt_created_2"));
 
-        PageResponse<EventSummaryResponse> response = eventQueryService.getMyEvents(new CurrentUser("usr_1", "Alex Johnson"), 1, 20);
+        PageResponse<EventSummaryResponse> response = eventQueryService.getMyEvents(new CurrentUser("usr_1", "Alex Johnson"), null, null, 1, 20);
 
         assertThat(response.items()).hasSize(2);
         assertThat(response.total()).isEqualTo(2);
         assertThat(response.items().getFirst().id()).isEqualTo("evt_created_1");
         assertThat(response.items().get(1).isWatchlisted()).isTrue();
+    }
+
+    @Test
+    void getMyEventsPassesRequestedFilterAndSort() {
+        EventEntity event = event("evt_created_1", LocalDateTime.now().plusDays(4));
+
+        when(eventRepository.searchMyEvents(eq("usr_1"), eq(MyEventsFilter.ALMOST_FULL), eq(MyEventsSort.MOST_RESERVED), any(LocalDateTime.class), eq(2), eq(12)))
+                .thenReturn(new EventRepositoryCustom.SearchResult(List.of(event), 1));
+        when(watchlistRepository.findEventIdsByUserIdAndEventIdIn("usr_1", List.of("evt_created_1")))
+                .thenReturn(Set.of());
+
+        PageResponse<EventSummaryResponse> response = eventQueryService.getMyEvents(
+                new CurrentUser("usr_1", "Alex Johnson"),
+                "almostFull",
+                "mostReserved",
+                2,
+                12
+        );
+
+        assertThat(response.items()).hasSize(1);
+        verify(eventRepository).searchMyEvents(eq("usr_1"), eq(MyEventsFilter.ALMOST_FULL), eq(MyEventsSort.MOST_RESERVED), any(LocalDateTime.class), eq(2), eq(12));
+    }
+
+    @Test
+    void getMyEventsRejectsUnsupportedFilter() {
+        assertThatThrownBy(() -> eventQueryService.getMyEvents(new CurrentUser("usr_1", "Alex Johnson"), "locked", null, 1, 20))
+                .isInstanceOf(ApiException.class)
+                .satisfies(exception -> assertThat(((ApiException) exception).getErrorCode()).isEqualTo(ErrorCode.VALIDATION_ERROR));
+    }
+
+    @Test
+    void getMyEventsRejectsUnsupportedSort() {
+        assertThatThrownBy(() -> eventQueryService.getMyEvents(new CurrentUser("usr_1", "Alex Johnson"), null, "bookings", 1, 20))
+                .isInstanceOf(ApiException.class)
+                .satisfies(exception -> assertThat(((ApiException) exception).getErrorCode()).isEqualTo(ErrorCode.VALIDATION_ERROR));
     }
 
     @Test

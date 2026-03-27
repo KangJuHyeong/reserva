@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Bell, LayoutDashboard, ListChecks, LogOut, Plus, Search, User } from "lucide-react";
+import { Bell, LayoutDashboard, ListChecks, LogOut, Plus, Search, Ticket, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CurrentUserApi } from "@/lib/types";
 
@@ -74,6 +74,12 @@ export function Navbar({ searchQuery, currentUser }: NavbarProps) {
                 <Button variant="outline" className="gap-2">
                   <LayoutDashboard className="h-4 w-4" />
                   <span className="hidden sm:inline">대시보드</span>
+                </Button>
+              </Link>
+              <Link href="/my-bookings">
+                <Button variant="outline" className="gap-2">
+                  <Ticket className="h-4 w-4" />
+                  <span className="hidden sm:inline">내 예약</span>
                 </Button>
               </Link>
               <Link href="/my-events">

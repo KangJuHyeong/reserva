@@ -2,10 +2,14 @@ import "server-only";
 import { fetchBackendJson } from "@/lib/server/backend";
 import {
   BookingDetailApi,
+  BookingSummaryApi,
   DashboardSummaryApi,
   CurrentUserApi,
   EventDetailApi,
   EventSummaryApi,
+  MyBookingsStatus,
+  MyEventsFilter,
+  MyEventsSort,
   PageResponse,
 } from "@/lib/types";
 
@@ -41,6 +45,21 @@ export async function fetchBookingDetail(bookingId: string) {
   });
 }
 
+export async function fetchMyBookings(params?: {
+  status?: MyBookingsStatus;
+  page?: number;
+  size?: number;
+}) {
+  const search = new URLSearchParams();
+  search.set("page", String(params?.page ?? 1));
+  search.set("size", String(params?.size ?? 12));
+  if (params?.status && params.status !== "all") search.set("status", params.status);
+
+  return fetchBackendJson<PageResponse<BookingSummaryApi>>(`/api/v1/me/bookings?${search.toString()}`, undefined, {
+    includeIncomingCookies: true,
+  });
+}
+
 export async function fetchCurrentUser() {
   return fetchBackendJson<CurrentUserApi>("/api/v1/me", undefined, {
     includeIncomingCookies: true,
@@ -56,10 +75,14 @@ export async function fetchDashboardSummary() {
 export async function fetchMyEvents(params?: {
   page?: number;
   size?: number;
+  filter?: MyEventsFilter;
+  sort?: MyEventsSort;
 }) {
   const search = new URLSearchParams();
   search.set("page", String(params?.page ?? 1));
   search.set("size", String(params?.size ?? 12));
+  if (params?.filter && params.filter !== "all") search.set("filter", params.filter);
+  if (params?.sort && params.sort !== "latest") search.set("sort", params.sort);
 
   return fetchBackendJson<PageResponse<EventSummaryApi>>(`/api/v1/me/events?${search.toString()}`, undefined, {
     includeIncomingCookies: true,
