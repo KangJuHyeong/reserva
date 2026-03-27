@@ -567,5 +567,6 @@ Errors:
 
 Notes:
 - only the creator who owns the event may update it
+- edits are allowed only before `reservationOpenDateTime`; once reservations are open the API returns `FORBIDDEN`
 - `totalSlots` must remain greater than or equal to the current reserved slot count
 - `maxTicketsPerBooking` must not exceed `totalSlots`

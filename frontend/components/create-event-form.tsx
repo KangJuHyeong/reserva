@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
-import { ArrowLeft, CalendarClock, ImageIcon, MapPin, Ticket, UserRoundPlus } from "lucide-react";
+import { ArrowLeft, CalendarClock, ImageIcon, Lock, MapPin, Ticket, UserRoundPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ApiErrorResponse, EventCreateRequestApi, EventCreateResponseApi } from "@/lib/types";
 
 const categoryOptions = ["Concert", "Restaurant", "Art & Design", "Sports", "Other"] as const;
+
 const categoryLabels: Record<(typeof categoryOptions)[number], string> = {
   Concert: "콘서트",
   Restaurant: "레스토랑",
@@ -17,8 +18,8 @@ const categoryLabels: Record<(typeof categoryOptions)[number], string> = {
 };
 
 const errorMessages: Record<string, string> = {
-  FORBIDDEN: "이벤트를 생성하거나 수정할 권한이 없습니다. 현재 로그인 상태를 다시 확인해 주세요.",
-  UNAUTHENTICATED: "인증 정보가 없습니다. 로그인 후 다시 시도해 주세요.",
+  FORBIDDEN: "이 이벤트는 예약 오픈 전까지만 수정할 수 있습니다.",
+  UNAUTHENTICATED: "인증 정보가 없습니다. 다시 로그인해 주세요.",
   INVALID_SCHEDULE: "예약 오픈 시각은 이벤트 시작 시각보다 이전이어야 합니다.",
   VALIDATION_ERROR: "입력값을 다시 확인해 주세요.",
 };
@@ -43,6 +44,8 @@ interface CreateEventFormProps {
   mode?: "create" | "edit";
   eventId?: string;
   initialValues?: FormState;
+  editLocked?: boolean;
+  editLockedMessage?: string;
 }
 
 const initialState: FormState = {
@@ -98,11 +101,12 @@ function validateForm(form: FormState) {
   }
 
   if (form.reservedSlots != null && totalSlots < form.reservedSlots) {
-    return `총 좌석 수는 현재 예약된 수량(${form.reservedSlots})보다 작을 수 없습니다.`;
+    return `총 좌석 수는 현재 예약 수량(${form.reservedSlots})보다 작을 수 없습니다.`;
   }
 
   const eventDateTime = new Date(toIsoString(form.eventDate, form.eventTime));
   const reservationOpenDateTime = new Date(toIsoString(form.reservationOpenDate, form.reservationOpenTime));
+
   if (Number.isNaN(eventDateTime.getTime()) || Number.isNaN(reservationOpenDateTime.getTime())) {
     return "날짜와 시간을 올바르게 입력해 주세요.";
   }
@@ -118,6 +122,8 @@ export function CreateEventForm({
   mode = "create",
   eventId,
   initialValues,
+  editLocked = false,
+  editLockedMessage,
 }: CreateEventFormProps = {}) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(initialValues ?? initialState);
@@ -127,27 +133,34 @@ export function CreateEventForm({
   const totalSlotsNumber = Number(form.totalSlots);
   const maxTicketsPerBookingNumber = Number(form.maxTicketsPerBooking);
   const reservedSlots = form.reservedSlots ?? 0;
+  const isEditMode = mode === "edit";
+  const controlsDisabled = isSubmitting || editLocked;
 
   const capacitySummary = useMemo(() => {
     if (!Number.isInteger(totalSlotsNumber) || totalSlotsNumber < 1) {
-      return "총 좌석 수를 입력하면 현재 정원 설정을 요약해 드립니다.";
+      return "총 좌석 수를 입력하면 현재 정원 정책이 요약되어 표시됩니다.";
     }
 
     const remaining = Math.max(totalSlotsNumber - reservedSlots, 0);
     const perBookingText =
       Number.isInteger(maxTicketsPerBookingNumber) && maxTicketsPerBookingNumber > 0
-        ? `한 번 예약할 때 최대 ${maxTicketsPerBookingNumber}장까지 받을 수 있습니다.`
-        : "1회 예약 최대 수량을 입력하면 예약 제한을 함께 안내합니다.";
+        ? `한 번의 예약에서 최대 ${maxTicketsPerBookingNumber}장까지 받을 수 있습니다.`
+        : "1회 예약 최대 수량을 입력하면 예약 제한 기준도 함께 안내됩니다.";
 
-    if (mode === "edit") {
-      return `현재 예약된 수량은 ${reservedSlots}장이고, 수정 후 남는 좌석은 ${remaining}석입니다. ${perBookingText}`;
+    if (isEditMode) {
+      return `현재 예약된 수량은 ${reservedSlots}석이고, 수정 후 남는 좌석은 ${remaining}석입니다. ${perBookingText}`;
     }
 
-    return `현재 설정 기준 전체 정원은 ${totalSlotsNumber}석입니다. ${perBookingText}`;
-  }, [maxTicketsPerBookingNumber, mode, reservedSlots, totalSlotsNumber]);
+    return `현재 설정 기준 총 정원은 ${totalSlotsNumber}석입니다. ${perBookingText}`;
+  }, [isEditMode, maxTicketsPerBookingNumber, reservedSlots, totalSlotsNumber]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (editLocked) {
+      setErrorMessage(editLockedMessage ?? "예약이 이미 오픈되어 더 이상 수정할 수 없습니다.");
+      return;
+    }
 
     const validationMessage = validateForm(form);
     if (validationMessage) {
@@ -171,8 +184,8 @@ export function CreateEventForm({
       imageUrl: form.imageUrl.trim(),
     };
 
-    const response = await fetch(mode === "edit" && eventId ? `/api/events/${eventId}` : "/api/events", {
-      method: mode === "edit" ? "PATCH" : "POST",
+    const response = await fetch(isEditMode && eventId ? `/api/events/${eventId}` : "/api/events", {
+      method: isEditMode ? "PATCH" : "POST",
       headers: {
         "Content-Type": "application/json",
       },
@@ -187,7 +200,7 @@ export function CreateEventForm({
     }
 
     await response.json() as EventCreateResponseApi;
-    router.push(mode === "edit" ? "/my-events" : "/");
+    router.push(isEditMode ? "/my-events" : "/");
     router.refresh();
   }
 
@@ -195,187 +208,201 @@ export function CreateEventForm({
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(242,189,97,0.18),_transparent_30%),linear-gradient(180deg,_hsl(var(--background)),_hsl(var(--secondary)))] px-6 py-8">
       <div className="mx-auto max-w-5xl">
         <Link
-          href={mode === "edit" ? "/my-events" : "/"}
+          href={isEditMode ? "/my-events" : "/"}
           className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
-          {mode === "edit" ? "내 이벤트로 돌아가기" : "홈으로 돌아가기"}
+          {isEditMode ? "내 이벤트로 돌아가기" : "홈으로 돌아가기"}
         </Link>
 
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
           <section className="rounded-[28px] border border-border/70 bg-card/95 p-6 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.35)] sm:p-8">
             <div className="mb-8">
               <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">
-                {mode === "edit" ? "이벤트 수정" : "이벤트 생성"}
+                {isEditMode ? "이벤트 수정" : "이벤트 생성"}
               </p>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                {mode === "edit" ? "이벤트 정보를 수정해 주세요" : "새 이벤트를 등록해 보세요"}
+                {isEditMode ? "이벤트 정보를 조정해 주세요" : "새 이벤트를 등록해 보세요"}
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                {mode === "edit"
-                  ? "이미 공개한 이벤트의 핵심 정보와 예약 조건을 여기서 조정할 수 있습니다. 정원을 줄일 때는 이미 예약된 수량보다 작아질 수 없다는 점을 확인해 주세요."
-                  : "제목, 일정, 위치, 정원만 정확히 입력해도 바로 공개 가능한 이벤트를 만들 수 있습니다. 예약 오픈 시각은 이벤트 시작보다 이전이어야 합니다."}
+                {isEditMode
+                  ? "설명, 일정, 정원, 예약 오픈 시점을 조정할 수 있습니다. 단, 예약이 이미 열린 이벤트는 정보 불일치를 막기 위해 수정이 잠깁니다."
+                  : "제목, 일정, 장소, 정원을 입력하면 바로 공개 가능한 이벤트를 만들 수 있습니다. 예약 오픈 시각은 이벤트 시작보다 빨라야 합니다."}
               </p>
             </div>
 
+            {editLocked ? (
+              <div className="mb-6 rounded-[24px] border border-border bg-muted/40 px-5 py-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <Lock className="h-4 w-4 text-primary" />
+                  수정 잠금
+                </div>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  {editLockedMessage ?? "예약이 이미 오픈되어 이 이벤트는 더 이상 수정할 수 없습니다."}
+                </p>
+              </div>
+            ) : null}
+
             <form className="space-y-6" onSubmit={handleSubmit}>
-              <div className="grid gap-6 md:grid-cols-2">
-                <label className="block text-sm font-medium text-foreground">
-                  이벤트 제목
-                  <input
-                    value={form.title}
-                    onChange={(inputEvent) => setForm((current) => ({ ...current, title: inputEvent.target.value }))}
-                    className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    placeholder="한강 재즈 나이트"
-                  />
-                </label>
-
-                <label className="block text-sm font-medium text-foreground">
-                  카테고리
-                  <select
-                    value={form.category}
-                    onChange={(inputEvent) =>
-                      setForm((current) => ({ ...current, category: inputEvent.target.value as FormState["category"] }))
-                    }
-                    className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  >
-                    {categoryOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {categoryLabels[option]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              <label className="block text-sm font-medium text-foreground">
-                이벤트 설명
-                <textarea
-                  value={form.description}
-                  onChange={(inputEvent) => setForm((current) => ({ ...current, description: inputEvent.target.value }))}
-                  className="mt-2 min-h-32 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  placeholder="이벤트 분위기, 참가 대상, 진행 방식, 현장 안내를 적어 주세요."
-                />
-              </label>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                <label className="block text-sm font-medium text-foreground">
-                  가격
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={form.price}
-                    onChange={(inputEvent) => setForm((current) => ({ ...current, price: inputEvent.target.value }))}
-                    className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    placeholder="45"
-                  />
-                </label>
-
-                <label className="block text-sm font-medium text-foreground">
-                  총 좌석 수
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={form.totalSlots}
-                    onChange={(inputEvent) => setForm((current) => ({ ...current, totalSlots: inputEvent.target.value }))}
-                    className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    placeholder="120"
-                  />
-                </label>
-
-                <label className="block text-sm font-medium text-foreground">
-                  1회 예약 최대 수량
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={form.maxTicketsPerBooking}
-                    onChange={(inputEvent) =>
-                      setForm((current) => ({ ...current, maxTicketsPerBooking: inputEvent.target.value }))
-                    }
-                    className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    placeholder="4"
-                  />
-                </label>
-              </div>
-
-              <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-4 text-sm text-muted-foreground">
-                <p className="font-medium text-foreground">정원 설정 안내</p>
-                <p className="mt-2 leading-6">{capacitySummary}</p>
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                <label className="block text-sm font-medium text-foreground">
-                  위치
-                  <input
-                    value={form.location}
-                    onChange={(inputEvent) => setForm((current) => ({ ...current, location: inputEvent.target.value }))}
-                    className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    placeholder="성수 재즈 클럽"
-                  />
-                </label>
-
-                <label className="block text-sm font-medium text-foreground">
-                  커버 이미지 URL
-                  <input
-                    type="url"
-                    value={form.imageUrl}
-                    onChange={(inputEvent) => setForm((current) => ({ ...current, imageUrl: inputEvent.target.value }))}
-                    className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    placeholder="https://example.com/event-cover.jpg"
-                  />
-                </label>
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="grid gap-4 sm:grid-cols-2">
+              <fieldset disabled={controlsDisabled} className="space-y-6 disabled:opacity-100">
+                <div className="grid gap-6 md:grid-cols-2">
                   <label className="block text-sm font-medium text-foreground">
-                    이벤트 날짜
+                    이벤트 제목
                     <input
-                      type="date"
-                      value={form.eventDate}
-                      onChange={(inputEvent) => setForm((current) => ({ ...current, eventDate: inputEvent.target.value }))}
-                      className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      value={form.title}
+                      onChange={(inputEvent) => setForm((current) => ({ ...current, title: inputEvent.target.value }))}
+                      className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
+                      placeholder="감성 재즈 라이브"
                     />
                   </label>
+
                   <label className="block text-sm font-medium text-foreground">
-                    이벤트 시간
+                    카테고리
+                    <select
+                      value={form.category}
+                      onChange={(inputEvent) =>
+                        setForm((current) => ({ ...current, category: inputEvent.target.value as FormState["category"] }))
+                      }
+                      className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
+                    >
+                      {categoryOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {categoryLabels[option]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                <label className="block text-sm font-medium text-foreground">
+                  이벤트 설명
+                  <textarea
+                    value={form.description}
+                    onChange={(inputEvent) => setForm((current) => ({ ...current, description: inputEvent.target.value }))}
+                    className="mt-2 min-h-32 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
+                    placeholder="이벤트 분위기, 참가 대상, 현장 안내를 적어 주세요."
+                  />
+                </label>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  <label className="block text-sm font-medium text-foreground">
+                    가격
                     <input
-                      type="time"
-                      value={form.eventTime}
-                      onChange={(inputEvent) => setForm((current) => ({ ...current, eventTime: inputEvent.target.value }))}
-                      className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.price}
+                      onChange={(inputEvent) => setForm((current) => ({ ...current, price: inputEvent.target.value }))}
+                      className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
+                      placeholder="45"
+                    />
+                  </label>
+
+                  <label className="block text-sm font-medium text-foreground">
+                    총 좌석 수
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={form.totalSlots}
+                      onChange={(inputEvent) => setForm((current) => ({ ...current, totalSlots: inputEvent.target.value }))}
+                      className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
+                      placeholder="120"
+                    />
+                  </label>
+
+                  <label className="block text-sm font-medium text-foreground">
+                    1회 예약 최대 수량
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={form.maxTicketsPerBooking}
+                      onChange={(inputEvent) =>
+                        setForm((current) => ({ ...current, maxTicketsPerBooking: inputEvent.target.value }))
+                      }
+                      className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
+                      placeholder="4"
                     />
                   </label>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-4 text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground">정원 설정 안내</p>
+                  <p className="mt-2 leading-6">{capacitySummary}</p>
+                </div>
+
+                <div className="grid gap-6 md:grid-cols-2">
                   <label className="block text-sm font-medium text-foreground">
-                    예약 오픈 날짜
+                    위치
                     <input
-                      type="date"
-                      value={form.reservationOpenDate}
-                      onChange={(inputEvent) =>
-                        setForm((current) => ({ ...current, reservationOpenDate: inputEvent.target.value }))
-                      }
-                      className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      value={form.location}
+                      onChange={(inputEvent) => setForm((current) => ({ ...current, location: inputEvent.target.value }))}
+                      className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
+                      placeholder="성수 라이브 하우스"
                     />
                   </label>
+
                   <label className="block text-sm font-medium text-foreground">
-                    예약 오픈 시간
+                    커버 이미지 URL
                     <input
-                      type="time"
-                      value={form.reservationOpenTime}
-                      onChange={(inputEvent) =>
-                        setForm((current) => ({ ...current, reservationOpenTime: inputEvent.target.value }))
-                      }
-                      className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      type="url"
+                      value={form.imageUrl}
+                      onChange={(inputEvent) => setForm((current) => ({ ...current, imageUrl: inputEvent.target.value }))}
+                      className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
+                      placeholder="https://example.com/event-cover.jpg"
                     />
                   </label>
                 </div>
-              </div>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block text-sm font-medium text-foreground">
+                      이벤트 날짜
+                      <input
+                        type="date"
+                        value={form.eventDate}
+                        onChange={(inputEvent) => setForm((current) => ({ ...current, eventDate: inputEvent.target.value }))}
+                        className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
+                      />
+                    </label>
+                    <label className="block text-sm font-medium text-foreground">
+                      이벤트 시간
+                      <input
+                        type="time"
+                        value={form.eventTime}
+                        onChange={(inputEvent) => setForm((current) => ({ ...current, eventTime: inputEvent.target.value }))}
+                        className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block text-sm font-medium text-foreground">
+                      예약 오픈 날짜
+                      <input
+                        type="date"
+                        value={form.reservationOpenDate}
+                        onChange={(inputEvent) =>
+                          setForm((current) => ({ ...current, reservationOpenDate: inputEvent.target.value }))
+                        }
+                        className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
+                      />
+                    </label>
+                    <label className="block text-sm font-medium text-foreground">
+                      예약 오픈 시간
+                      <input
+                        type="time"
+                        value={form.reservationOpenTime}
+                        onChange={(inputEvent) =>
+                          setForm((current) => ({ ...current, reservationOpenTime: inputEvent.target.value }))
+                        }
+                        className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </fieldset>
 
               {errorMessage ? (
                 <div className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -384,12 +411,17 @@ export function CreateEventForm({
               ) : null}
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Button type="submit" size="lg" className="h-12 rounded-xl px-6 text-base" disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="h-12 rounded-xl px-6 text-base"
+                  disabled={controlsDisabled}
+                >
                   {isSubmitting
-                    ? mode === "edit"
+                    ? isEditMode
                       ? "이벤트 수정 중..."
                       : "이벤트 생성 중..."
-                    : mode === "edit"
+                    : isEditMode
                       ? "변경사항 저장"
                       : "이벤트 생성"}
                 </Button>
@@ -399,9 +431,9 @@ export function CreateEventForm({
                   size="lg"
                   className="h-12 rounded-xl px-6"
                   onClick={() => setForm(initialValues ?? initialState)}
-                  disabled={isSubmitting}
+                  disabled={controlsDisabled}
                 >
-                  {mode === "edit" ? "초기값으로 되돌리기" : "입력 초기화"}
+                  {isEditMode ? "초기값으로 되돌리기" : "입력 초기화"}
                 </Button>
               </div>
             </form>
@@ -409,7 +441,7 @@ export function CreateEventForm({
 
           <aside className="space-y-4">
             <div className="rounded-[28px] border border-border/70 bg-card/90 p-6">
-              <h2 className="text-lg font-semibold text-foreground">게시 전 확인</h2>
+              <h2 className="text-lg font-semibold text-foreground">운영 체크리스트</h2>
               <div className="mt-5 space-y-4 text-sm text-muted-foreground">
                 <div className="flex gap-3">
                   <UserRoundPlus className="mt-0.5 h-4 w-4 text-primary" />
@@ -421,21 +453,21 @@ export function CreateEventForm({
                 </div>
                 <div className="flex gap-3">
                   <Ticket className="mt-0.5 h-4 w-4 text-primary" />
-                  <p>총 좌석 수와 1회 예약 최대 수량은 예약 가능 정책을 직접 결정합니다.</p>
+                  <p>총 좌석 수와 1회 예약 최대 수량이 실제 예약 정책을 결정합니다.</p>
                 </div>
                 <div className="flex gap-3">
                   <ImageIcon className="mt-0.5 h-4 w-4 text-primary" />
-                  <p>이미지 업로드 기능은 아직 없고, 외부 이미지 URL만 입력할 수 있습니다.</p>
+                  <p>이미지는 업로드 방식이 아니라 외부 이미지 URL 입력 방식입니다.</p>
                 </div>
                 <div className="flex gap-3">
                   <MapPin className="mt-0.5 h-4 w-4 text-primary" />
-                  <p>{mode === "edit" ? "저장 후에는 내 이벤트 목록으로 돌아갑니다." : "생성 후에는 홈으로 이동합니다."}</p>
+                  <p>{isEditMode ? "저장 후에는 내 이벤트 목록으로 돌아갑니다." : "생성 후에는 홈으로 이동합니다."}</p>
                 </div>
               </div>
             </div>
 
             <div className="rounded-[28px] border border-dashed border-border/80 bg-background/70 p-6">
-              <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">현재 전송 값</p>
+              <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">현재 입력 요약</p>
               <div className="mt-4 space-y-3 text-sm">
                 <div className="rounded-xl bg-card px-4 py-3">
                   <div className="text-xs text-muted-foreground">title</div>

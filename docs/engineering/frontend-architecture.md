@@ -243,6 +243,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 #### Current Structure
 - prefilled event form reusing the create-event field set
 - owner-only entry from `/my-events`
+- visible lock state after reservation open so creators can immediately tell whether editing is still allowed
 - save CTA and reset/cancel action
 
 #### Current States
@@ -259,6 +260,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 
 #### Target Improvements
 - Keep edit and create field sets aligned while the product stays within the current event-publishing baseline.
+- Keep `/my-events` and the edit form explicit that events become non-editable once reservations have opened.
 
 ### `/create`
 
