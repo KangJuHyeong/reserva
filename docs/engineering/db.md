@@ -174,6 +174,7 @@ Booking creation must atomically do both:
 
 Current:
 - booking creation rejects `ticket_count` values above the event's configured per-booking maximum before inventory reservation proceeds
+- booking cancellation updates booking status and releases the same ticket count back to `event_inventory` in the same transactional flow
 
 ### Capacity Protection
 Recommended approaches:
@@ -187,6 +188,11 @@ Current:
 Required protection:
 - application-level duplicate check
 - DB-backed rule where feasible
+
+### Event Deletion
+Current:
+- creator-driven event deletion is allowed only before `reservation_open_datetime`
+- events with any persisted bookings must not be deleted
 
 ## Query Support
 The schema must support:

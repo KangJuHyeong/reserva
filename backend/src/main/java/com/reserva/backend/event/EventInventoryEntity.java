@@ -62,4 +62,9 @@ public class EventInventoryEntity {
     public void reserve(int ticketCount) {
         this.reservedSlots += ticketCount;
     }
+
+    public void release(int ticketCount, LocalDateTime now) {
+        this.reservedSlots -= ticketCount;
+        this.updatedAt = now;
+    }
 }

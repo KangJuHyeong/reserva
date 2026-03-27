@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Clock, Hash, MapPin, User, Users, XCircle } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Hash, MapPin, User, Users } from "lucide-react";
+import { CancelBookingButton } from "@/components/cancel-booking-button";
 import { Button } from "@/components/ui/button";
 import { toBookingDetailViewModel } from "@/lib/mappers";
 import { BackendApiError } from "@/lib/server/backend";
@@ -169,12 +170,7 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
                 </div>
               </div>
 
-              {booking.status === "confirmed" ? (
-                <Button variant="outline" className="w-full cursor-not-allowed border-destructive text-destructive hover:bg-destructive/10" disabled>
-                  <XCircle className="mr-2 h-4 w-4" />
-                  예약 취소
-                </Button>
-              ) : null}
+              {booking.status === "confirmed" ? <CancelBookingButton bookingId={booking.bookingId} /> : null}
             </div>
           </div>
         </main>

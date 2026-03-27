@@ -1,5 +1,6 @@
 package com.reserva.backend.event;
 
+import com.reserva.backend.booking.BookingRepository;
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.model.UserRole;
@@ -41,13 +42,16 @@ class EventCommandServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private BookingRepository bookingRepository;
+
     private EventCommandService eventCommandService;
     private final CurrentUser creatorUser = new CurrentUser("usr_creator", "Creator Name");
     private final CurrentUser standardUser = new CurrentUser("usr_1", "Alex Johnson");
 
     @BeforeEach
     void setUp() {
-        eventCommandService = new EventCommandService(eventRepository, userRepository);
+        eventCommandService = new EventCommandService(eventRepository, userRepository, bookingRepository);
     }
 
     @Test
@@ -295,6 +299,65 @@ class EventCommandServiceTest {
                 });
 
         verify(eventRepository, never()).save(any(EventEntity.class));
+    }
+
+    @Test
+    void deleteEventDeletesOwnedEventBeforeReservationsOpen() {
+        EventEntity event = EventEntity.create(
+                "evt_1",
+                user("usr_creator", UserRole.CREATOR),
+                "Summer Jazz Night",
+                com.reserva.backend.event.model.EventCategory.CONCERT,
+                "Experience an unforgettable evening of smooth jazz.",
+                "https://example.com/image.jpg",
+                "Blue Note Jazz Club, NYC",
+                new BigDecimal("45.00"),
+                OffsetDateTime.of(2026, 4, 15, 18, 0, 0, 0, ZoneOffset.UTC).toLocalDateTime(),
+                OffsetDateTime.now(ZoneOffset.UTC).plusDays(3).toLocalDateTime(),
+                6,
+                EventStatus.PUBLISHED,
+                EventVisibility.PUBLIC,
+                java.time.LocalDateTime.now(ZoneOffset.UTC),
+                120
+        );
+        when(eventRepository.findById("evt_1")).thenReturn(Optional.of(event));
+        when(bookingRepository.existsByEventId("evt_1")).thenReturn(false);
+
+        eventCommandService.deleteEvent(creatorUser, "evt_1");
+
+        verify(eventRepository).delete(event);
+    }
+
+    @Test
+    void deleteEventRejectsAfterReservationsOpen() {
+        EventEntity event = EventEntity.create(
+                "evt_1",
+                user("usr_creator", UserRole.CREATOR),
+                "Summer Jazz Night",
+                com.reserva.backend.event.model.EventCategory.CONCERT,
+                "Experience an unforgettable evening of smooth jazz.",
+                "https://example.com/image.jpg",
+                "Blue Note Jazz Club, NYC",
+                new BigDecimal("45.00"),
+                OffsetDateTime.of(2026, 4, 15, 18, 0, 0, 0, ZoneOffset.UTC).toLocalDateTime(),
+                OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(1).toLocalDateTime(),
+                6,
+                EventStatus.PUBLISHED,
+                EventVisibility.PUBLIC,
+                java.time.LocalDateTime.now(ZoneOffset.UTC),
+                120
+        );
+        when(eventRepository.findById("evt_1")).thenReturn(Optional.of(event));
+
+        assertThatThrownBy(() -> eventCommandService.deleteEvent(creatorUser, "evt_1"))
+                .isInstanceOf(ApiException.class)
+                .satisfies(exception -> {
+                    ApiException apiException = (ApiException) exception;
+                    assertThat(apiException.getErrorCode()).isEqualTo(ErrorCode.EVENT_NOT_DELETABLE);
+                    assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+                });
+
+        verify(eventRepository, never()).delete(any(EventEntity.class));
     }
 
     private EventCreateRequest validRequest() {

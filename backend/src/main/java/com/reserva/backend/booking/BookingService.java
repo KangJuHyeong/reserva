@@ -103,6 +103,38 @@ public class BookingService {
         );
     }
 
+    @Transactional
+    public void cancelBooking(CurrentUser currentUser, String bookingId) {
+        BookingEntity booking = bookingRepository.findByBookingCodeAndUserIdForUpdate(bookingId, currentUser.id())
+                .orElseThrow(() -> new ApiException(ErrorCode.BOOKING_NOT_FOUND, HttpStatus.NOT_FOUND, "The booking was not found."));
+
+        if (booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new ApiException(
+                    ErrorCode.BOOKING_NOT_CANCELLABLE,
+                    HttpStatus.CONFLICT,
+                    "Only confirmed bookings can be cancelled."
+            );
+        }
+
+        EventEntity event = eventRepository.findById(booking.getEventId())
+                .orElseThrow(() -> new ApiException(ErrorCode.BOOKING_NOT_FOUND, HttpStatus.NOT_FOUND, "The booking was not found."));
+
+        if (!LocalDateTime.now(ZoneOffset.UTC).isBefore(event.getEventDateTime())) {
+            throw new ApiException(
+                    ErrorCode.BOOKING_NOT_CANCELLABLE,
+                    HttpStatus.FORBIDDEN,
+                    "You can only cancel a booking before the event starts."
+            );
+        }
+
+        EventInventoryEntity inventory = eventInventoryRepository.findByEventIdForUpdate(booking.getEventId())
+                .orElseThrow(() -> new ApiException(ErrorCode.EVENT_NOT_FOUND, HttpStatus.NOT_FOUND, "Inventory was not found for this event."));
+
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        inventory.release(booking.getTicketCount(), now);
+        booking.cancel(now);
+    }
+
     private String generateBookingCode() {
         int year = OffsetDateTime.now(ZoneOffset.UTC).getYear();
         return bookingCodePrefix + "-" + year + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();

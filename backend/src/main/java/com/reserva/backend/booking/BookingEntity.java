@@ -116,4 +116,10 @@ public class BookingEntity {
     public BigDecimal getTotalAmount() {
         return totalAmount;
     }
+
+    public void cancel(LocalDateTime cancelledAt) {
+        this.status = BookingStatus.CANCELLED;
+        this.cancelledAt = cancelledAt;
+        this.updatedAt = cancelledAt;
+    }
 }
