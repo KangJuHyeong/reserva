@@ -16,6 +16,7 @@ public record EventDetailResponse(
         int totalSlots,
         int reservedSlots,
         int remainingSlots,
+        int maxTicketsPerBooking,
         boolean isWatchlisted,
         EventHostResponse host
 ) {

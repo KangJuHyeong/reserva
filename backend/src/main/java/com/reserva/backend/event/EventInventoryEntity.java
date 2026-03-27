@@ -54,6 +54,11 @@ public class EventInventoryEntity {
         return totalSlots - reservedSlots;
     }
 
+    public void updateTotalSlots(int totalSlots, LocalDateTime now) {
+        this.totalSlots = totalSlots;
+        this.updatedAt = now;
+    }
+
     public void reserve(int ticketCount) {
         this.reservedSlots += ticketCount;
     }

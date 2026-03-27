@@ -6,6 +6,7 @@ import com.reserva.backend.common.model.UserRole;
 import com.reserva.backend.common.security.CurrentUser;
 import com.reserva.backend.event.api.EventCreateRequest;
 import com.reserva.backend.event.api.EventCreateResponse;
+import com.reserva.backend.event.api.EventUpdateResponse;
 import com.reserva.backend.event.model.EventStatus;
 import com.reserva.backend.event.model.EventVisibility;
 import com.reserva.backend.user.UserEntity;
@@ -66,6 +67,7 @@ class EventCommandServiceTest {
         assertThat(saved.getStatus()).isEqualTo(EventStatus.PUBLISHED);
         assertThat(saved.getVisibility()).isEqualTo(EventVisibility.PUBLIC);
         assertThat(saved.getInventory().getTotalSlots()).isEqualTo(120);
+        assertThat(saved.getMaxTicketsPerBooking()).isEqualTo(6);
         assertThat(saved.getInventory().getReservedSlots()).isZero();
     }
 
@@ -90,6 +92,7 @@ class EventCommandServiceTest {
                 OffsetDateTime.of(2026, 4, 15, 18, 0, 0, 0, ZoneOffset.UTC),
                 OffsetDateTime.of(2026, 4, 15, 18, 0, 0, 0, ZoneOffset.UTC),
                 120,
+                6,
                 "https://example.com/image.jpg"
         );
 
@@ -115,6 +118,7 @@ class EventCommandServiceTest {
                 OffsetDateTime.of(2026, 4, 15, 18, 0, 0, 0, ZoneOffset.UTC),
                 OffsetDateTime.of(2026, 4, 10, 10, 0, 0, 0, ZoneOffset.UTC),
                 120,
+                6,
                 "https://example.com/image.jpg"
         );
 
@@ -129,6 +133,137 @@ class EventCommandServiceTest {
         verify(eventRepository, never()).save(any(EventEntity.class));
     }
 
+    @Test
+    void createEventRejectsMaxTicketsPerBookingAboveTotalSlots() {
+        EventCreateRequest request = new EventCreateRequest(
+                "Summer Jazz Night",
+                "Concert",
+                "Experience an unforgettable evening of smooth jazz.",
+                new BigDecimal("45.00"),
+                "Blue Note Jazz Club, NYC",
+                OffsetDateTime.of(2026, 4, 15, 18, 0, 0, 0, ZoneOffset.UTC),
+                OffsetDateTime.of(2026, 4, 10, 10, 0, 0, 0, ZoneOffset.UTC),
+                5,
+                6,
+                "https://example.com/image.jpg"
+        );
+
+        assertThatThrownBy(() -> eventCommandService.createEvent(creatorUser, request))
+                .isInstanceOf(ApiException.class)
+                .satisfies(exception -> {
+                    ApiException apiException = (ApiException) exception;
+                    assertThat(apiException.getErrorCode()).isEqualTo(ErrorCode.VALIDATION_ERROR);
+                    assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+                });
+
+        verify(eventRepository, never()).save(any(EventEntity.class));
+    }
+
+    @Test
+    void updateEventUpdatesOwnedEvent() {
+        EventEntity event = EventEntity.create(
+                "evt_1",
+                user("usr_creator", UserRole.CREATOR),
+                "Summer Jazz Night",
+                com.reserva.backend.event.model.EventCategory.CONCERT,
+                "Experience an unforgettable evening of smooth jazz.",
+                "https://example.com/image.jpg",
+                "Blue Note Jazz Club, NYC",
+                new BigDecimal("45.00"),
+                OffsetDateTime.of(2026, 4, 15, 18, 0, 0, 0, ZoneOffset.UTC).toLocalDateTime(),
+                OffsetDateTime.of(2026, 4, 10, 10, 0, 0, 0, ZoneOffset.UTC).toLocalDateTime(),
+                6,
+                EventStatus.PUBLISHED,
+                EventVisibility.PUBLIC,
+                java.time.LocalDateTime.now(ZoneOffset.UTC),
+                120
+        );
+        ReflectionTestUtils.setField(event.getInventory(), "reservedSlots", 4);
+        when(eventRepository.findById("evt_1")).thenReturn(Optional.of(event));
+        when(eventRepository.save(any(EventEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        EventUpdateResponse response = eventCommandService.updateEvent(creatorUser, "evt_1", validRequest());
+
+        assertThat(response.id()).isEqualTo("evt_1");
+        assertThat(event.getTitle()).isEqualTo("Summer Jazz Night");
+        assertThat(event.getInventory().getTotalSlots()).isEqualTo(120);
+        assertThat(event.getMaxTicketsPerBooking()).isEqualTo(6);
+    }
+
+    @Test
+    void updateEventRejectsDifferentCreator() {
+        EventEntity event = EventEntity.create(
+                "evt_1",
+                user("usr_other", UserRole.CREATOR),
+                "Summer Jazz Night",
+                com.reserva.backend.event.model.EventCategory.CONCERT,
+                "Experience an unforgettable evening of smooth jazz.",
+                "https://example.com/image.jpg",
+                "Blue Note Jazz Club, NYC",
+                new BigDecimal("45.00"),
+                OffsetDateTime.of(2026, 4, 15, 18, 0, 0, 0, ZoneOffset.UTC).toLocalDateTime(),
+                OffsetDateTime.of(2026, 4, 10, 10, 0, 0, 0, ZoneOffset.UTC).toLocalDateTime(),
+                6,
+                EventStatus.PUBLISHED,
+                EventVisibility.PUBLIC,
+                java.time.LocalDateTime.now(ZoneOffset.UTC),
+                120
+        );
+        when(eventRepository.findById("evt_1")).thenReturn(Optional.of(event));
+
+        assertThatThrownBy(() -> eventCommandService.updateEvent(creatorUser, "evt_1", validRequest()))
+                .isInstanceOf(ApiException.class)
+                .satisfies(exception -> {
+                    ApiException apiException = (ApiException) exception;
+                    assertThat(apiException.getErrorCode()).isEqualTo(ErrorCode.FORBIDDEN);
+                    assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+                });
+    }
+
+    @Test
+    void updateEventRejectsTotalSlotsBelowReservedSlots() {
+        EventEntity event = EventEntity.create(
+                "evt_1",
+                user("usr_creator", UserRole.CREATOR),
+                "Summer Jazz Night",
+                com.reserva.backend.event.model.EventCategory.CONCERT,
+                "Experience an unforgettable evening of smooth jazz.",
+                "https://example.com/image.jpg",
+                "Blue Note Jazz Club, NYC",
+                new BigDecimal("45.00"),
+                OffsetDateTime.of(2026, 4, 15, 18, 0, 0, 0, ZoneOffset.UTC).toLocalDateTime(),
+                OffsetDateTime.of(2026, 4, 10, 10, 0, 0, 0, ZoneOffset.UTC).toLocalDateTime(),
+                6,
+                EventStatus.PUBLISHED,
+                EventVisibility.PUBLIC,
+                java.time.LocalDateTime.now(ZoneOffset.UTC),
+                120
+        );
+        ReflectionTestUtils.setField(event.getInventory(), "reservedSlots", 8);
+        when(eventRepository.findById("evt_1")).thenReturn(Optional.of(event));
+
+        EventCreateRequest request = new EventCreateRequest(
+                "Summer Jazz Night",
+                "Concert",
+                "Experience an unforgettable evening of smooth jazz.",
+                new BigDecimal("45.00"),
+                "Blue Note Jazz Club, NYC",
+                OffsetDateTime.of(2026, 4, 15, 18, 0, 0, 0, ZoneOffset.UTC),
+                OffsetDateTime.of(2026, 4, 10, 10, 0, 0, 0, ZoneOffset.UTC),
+                7,
+                6,
+                "https://example.com/image.jpg"
+        );
+
+        assertThatThrownBy(() -> eventCommandService.updateEvent(creatorUser, "evt_1", request))
+                .isInstanceOf(ApiException.class)
+                .satisfies(exception -> {
+                    ApiException apiException = (ApiException) exception;
+                    assertThat(apiException.getErrorCode()).isEqualTo(ErrorCode.VALIDATION_ERROR);
+                    assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+                });
+    }
+
     private EventCreateRequest validRequest() {
         return new EventCreateRequest(
                 "Summer Jazz Night",
@@ -139,6 +274,7 @@ class EventCommandServiceTest {
                 OffsetDateTime.of(2026, 4, 15, 18, 0, 0, 0, ZoneOffset.UTC),
                 OffsetDateTime.of(2026, 4, 10, 10, 0, 0, 0, ZoneOffset.UTC),
                 120,
+                6,
                 "https://example.com/image.jpg"
         );
     }

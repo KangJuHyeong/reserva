@@ -70,6 +70,7 @@ export interface EventDetailApi {
   totalSlots: number;
   reservedSlots: number;
   remainingSlots: number;
+  maxTicketsPerBooking: number;
   isWatchlisted: boolean;
   host: EventHostApi;
 }
@@ -105,6 +106,7 @@ export interface EventCreateRequestApi {
   eventDateTime: string;
   reservationOpenDateTime: string;
   totalSlots: number;
+  maxTicketsPerBooking: number;
   imageUrl: string;
 }
 
@@ -189,6 +191,7 @@ export interface EventDetailViewModel {
   totalSlots: number;
   reservedSlots: number;
   remainingSlots: number;
+  maxTicketsPerBooking: number;
   isWatchlisted: boolean;
   hostName: string;
   hostAvatarUrl: string | null;

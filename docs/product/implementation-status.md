@@ -29,6 +29,7 @@
   - `GET /api/v1/events`
   - `GET /api/v1/events/{eventId}`
   - `POST /api/v1/events`
+  - `PATCH /api/v1/events/{eventId}`
   - `POST /api/v1/events/{eventId}/watchlist`
   - `DELETE /api/v1/events/{eventId}/watchlist`
   - `POST /api/v1/events/{eventId}/bookings`
@@ -36,6 +37,7 @@
   - `GET /api/v1/me/bookings/{bookingId}`
   - `GET /api/v1/me/dashboard-summary`
   - `GET /api/v1/me/events`
+  - `GET /api/v1/me/events/{eventId}`
 
 ### Frontend
 - Frontend Next.js app exists in `frontend`.
@@ -49,6 +51,7 @@
   - `/booking/[id]`
   - `/dashboard`
   - `/my-events`
+  - `/my-events/[id]/edit`
   - `/create`
   - `/login`
   - `/signup`
@@ -58,13 +61,14 @@
   - Google OAuth callback exchange backed by the same frontend-owned JWT cookie contract
   - event discovery with search, category filtering, a default mixed feed, derived sections, and pagination
   - event detail with watchlist state and direct booking action
-  - booking creation with capacity checks and duplicate-booking protection
+  - booking creation with capacity checks, duplicate-booking protection, and an event-specific per-booking ticket quantity limit
   - my bookings list and booking detail
   - watchlist save/remove on cards and event detail
   - persisted watchlist loading through `/?view=Watchlist`
-  - authenticated event creation page, form, and API
-  - personalized dashboard summary with stats, recent bookings, opening-soon preview, watchlist preview, and quick access to my-events
-  - dedicated `/my-events` page for the current user's created events with pagination
+  - authenticated event creation page, form, and API including event-specific max ticket configuration
+  - authenticated creator event editing through `/my-events/[id]/edit` with owner-only backend update rules
+  - personalized dashboard summary that more clearly serves as the user's activity home for bookings, saved events, opening-soon items, and published-event preview
+  - dedicated `/my-events` page for the current user's created events with pagination and clearer creator-workspace framing
 
 ### Database
 - Database baseline exists through:
@@ -73,6 +77,7 @@
   - `V3__create_bookings.sql`
   - `V4__create_watchlists.sql`
   - `V5__add_google_subject_to_users.sql`
+  - `V6__add_max_tickets_per_booking_to_events.sql`
 
 ### Deployment
 - Deployment assets exist in `infra/deploy`.
@@ -132,15 +137,15 @@
   - `/login`
 
 ## Next Priorities
-1. JWT-protected API baseline and Google OAuth rollout
+1. Creator workspace UX polish for `/dashboard`, `/my-events`, `/my-events/[id]/edit`, and event-capacity form clarity
 2. Frontend local runtime stability hardening for repeated `next dev` and `next start` restarts
-3. Vercel frontend plus EC2 backend and MySQL verification and environment hardening
-4. Redis foundation for queue-ready reservation control
-5. Residual validation and regression hardening around auth, booking, watchlist, and create flows
+3. JWT-protected API baseline and Google OAuth follow-up validation
+4. Vercel frontend plus EC2 backend and MySQL verification and environment hardening
+5. Redis foundation for queue-ready reservation control
 
 Priority rationale:
-- Core event, booking, watchlist, dashboard, event creation, and my-events flows are working in the current baseline after runtime bug fixes and end-to-end verification.
-- The active auth redesign now changes the baseline from session-first runtime auth to JWT-protected APIs with Google OAuth in scope.
-- Local frontend runtime stability is still important, but auth transport now has higher product impact than repeated restart cleanup.
+- Core event, booking, watchlist, dashboard, event creation, event editing, and my-events flows are working in the current baseline after runtime bug fixes and end-to-end verification.
+- The most visible remaining product gap is creator-side UX clarity: edit-mode copy, workspace information hierarchy, and event-capacity guidance still need polish to feel production-ready.
+- Local frontend runtime stability remains important because repeated restart reliability affects verification speed and deployment confidence.
+- JWT and Google OAuth are now part of the live baseline, so the remaining auth work is validation and hardening rather than first-pass rollout.
 - Docker packaging, reverse-proxy setup, and server-side env conventions are now present, and the current lightweight deploy path remains Vercel for frontend plus EC2 for backend and MySQL.
-- Redis should be introduced first as infrastructure for queue-ready reservation control, with broad waiting-room behavior deferred until a narrower MVP is defined.

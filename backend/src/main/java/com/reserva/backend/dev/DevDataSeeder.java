@@ -42,6 +42,7 @@ public class DevDataSeeder implements ApplicationRunner {
                     "45.00",
                     7,
                     -1,
+                    4,
                     120
             ),
             new SeedEventDefinition(
@@ -54,6 +55,7 @@ public class DevDataSeeder implements ApplicationRunner {
                     "32.00",
                     10,
                     -2,
+                    4,
                     90
             ),
             new SeedEventDefinition(
@@ -66,6 +68,7 @@ public class DevDataSeeder implements ApplicationRunner {
                     "78.00",
                     5,
                     -1,
+                    2,
                     24
             ),
             new SeedEventDefinition(
@@ -78,6 +81,7 @@ public class DevDataSeeder implements ApplicationRunner {
                     "26.00",
                     8,
                     0,
+                    4,
                     36
             ),
             new SeedEventDefinition(
@@ -90,6 +94,7 @@ public class DevDataSeeder implements ApplicationRunner {
                     "18.00",
                     14,
                     3,
+                    2,
                     40
             ),
             new SeedEventDefinition(
@@ -102,6 +107,7 @@ public class DevDataSeeder implements ApplicationRunner {
                     "22.00",
                     12,
                     2,
+                    3,
                     28
             ),
             new SeedEventDefinition(
@@ -114,6 +120,7 @@ public class DevDataSeeder implements ApplicationRunner {
                     "12.00",
                     4,
                     -1,
+                    6,
                     80
             ),
             new SeedEventDefinition(
@@ -126,6 +133,7 @@ public class DevDataSeeder implements ApplicationRunner {
                     "19.00",
                     9,
                     1,
+                    3,
                     30
             )
     );
@@ -210,6 +218,7 @@ public class DevDataSeeder implements ApplicationRunner {
                             new BigDecimal(definition.price()),
                             now.plusDays(definition.eventOffsetDays()),
                             now.plusDays(definition.reservationOpenOffsetDays()),
+                            definition.maxTicketsPerBooking(),
                             EventStatus.PUBLISHED,
                             EventVisibility.PUBLIC,
                             now,
@@ -257,6 +266,7 @@ public class DevDataSeeder implements ApplicationRunner {
             String price,
             int eventOffsetDays,
             int reservationOpenOffsetDays,
+            int maxTicketsPerBooking,
             int totalSlots
     ) {
     }

@@ -46,14 +46,14 @@ export function MyEventsPage({
           <div>
             <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
               <ArrowLeft className="h-4 w-4" />
-              Back to My Page
+              Back to Dashboard
             </Link>
-            <p className="mt-4 text-sm font-medium uppercase tracking-[0.24em] text-primary">My Events</p>
+            <p className="mt-4 text-sm font-medium uppercase tracking-[0.24em] text-primary">Creator Workspace</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              {currentUser.name}, here is your published lineup.
+              {currentUser.name}, your published events live here.
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Keep the events you created in a dedicated workspace separate from your bookings and personal dashboard summary.
+              This page keeps your created events separate from your booking summary. Open an event to review its public page, and use Create Event when you are ready to publish another one.
             </p>
           </div>
 
@@ -65,17 +65,31 @@ export function MyEventsPage({
           </Button>
         </div>
 
+        <section className="rounded-[28px] border border-border/70 bg-card/95 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">Workspace Notes</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Dashboard is for summary and personal activity. This page is for the events you published.
+              </p>
+            </div>
+            <div className="rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+              {totalItems.toLocaleString()} published events
+            </div>
+          </div>
+        </section>
+
         {items.length === 0 ? (
           <section className="rounded-[28px] border border-dashed border-border/80 bg-card/95 p-10 text-center">
             <CalendarClock className="mx-auto h-10 w-10 text-primary" />
-            <h2 className="mt-4 text-xl font-semibold text-foreground">No created events yet</h2>
+            <h2 className="mt-4 text-xl font-semibold text-foreground">No published events yet</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Your published events will appear here once you create them.
+              Once you create and publish an event, it will appear in this creator workspace.
             </p>
             <Button asChild className="mt-6 rounded-xl">
               <Link href="/create">
                 <Plus className="h-4 w-4" />
-                Create your first event
+                Publish your first event
               </Link>
             </Button>
           </section>
@@ -83,9 +97,8 @@ export function MyEventsPage({
           <>
             <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {items.map((event) => (
-                <Link
+                <article
                   key={event.id}
-                  href={`/reservation/${event.id}`}
                   className="group overflow-hidden rounded-[28px] border border-border/70 bg-card/95 transition-colors hover:border-primary/40"
                 >
                   <div className="relative aspect-[16/10] overflow-hidden">
@@ -108,8 +121,16 @@ export function MyEventsPage({
                       <span className="text-muted-foreground">Host</span>
                       <span className="font-medium text-foreground">{event.hostName}</span>
                     </div>
+                    <div className="flex gap-3">
+                      <Button asChild variant="outline" className="flex-1 rounded-xl">
+                        <Link href={`/reservation/${event.id}`}>View Event</Link>
+                      </Button>
+                      <Button asChild className="flex-1 rounded-xl">
+                        <Link href={`/my-events/${event.id}/edit`}>Edit Event</Link>
+                      </Button>
+                    </div>
                   </div>
-                </Link>
+                </article>
               ))}
             </section>
 

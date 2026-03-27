@@ -52,6 +52,7 @@ Common error codes:
 - `BOOKING_NOT_FOUND`
 - `EVENT_SOLD_OUT`
 - `ALREADY_BOOKED`
+- `BOOKING_QUANTITY_LIMIT_EXCEEDED`
 - `INVALID_SCHEDULE`
 
 ## Shared Data Shapes
@@ -97,6 +98,7 @@ Common error codes:
   "totalSlots": 100,
   "reservedSlots": 87,
   "remainingSlots": 13,
+  "maxTicketsPerBooking": 10,
   "isWatchlisted": true,
   "host": {
     "id": "usr_900",
@@ -375,7 +377,13 @@ Errors:
 - `EVENT_NOT_FOUND`
 - `EVENT_SOLD_OUT`
 - `ALREADY_BOOKED`
+- `BOOKING_QUANTITY_LIMIT_EXCEEDED`
 - `VALIDATION_ERROR`
+
+Notes:
+- `ticketCount` must be at least `1`
+- `ticketCount` must not exceed the event's `maxTicketsPerBooking`
+- `GET /events/{eventId}` returns `maxTicketsPerBooking` so the frontend can clamp the selector before submit
 
 ### GET /me/bookings
 Current:
@@ -485,6 +493,17 @@ Notes:
 - returns only the authenticated user's created events
 - default ordering is newest-created first
 
+### GET /me/events/{eventId}
+Current:
+- implemented
+
+Response `200 OK`:
+- returns the `Event Detail` shape for the authenticated creator's own event
+
+Errors:
+- `UNAUTHENTICATED`
+- `EVENT_NOT_FOUND`
+
 ## Event Management API
 
 ### POST /events
@@ -502,6 +521,7 @@ Request:
   "eventDateTime": "2026-04-15T18:00:00Z",
   "reservationOpenDateTime": "2026-04-10T10:00:00Z",
   "totalSlots": 100,
+  "maxTicketsPerBooking": 4,
   "imageUrl": "https://example.com/image.jpg"
 }
 ```
@@ -518,3 +538,34 @@ Errors:
 - `UNAUTHENTICATED`
 - `VALIDATION_ERROR`
 - `INVALID_SCHEDULE`
+
+Notes:
+- `maxTicketsPerBooking` must be at least `1`
+- `maxTicketsPerBooking` must not exceed `totalSlots`
+
+### PATCH /events/{eventId}
+Current:
+- implemented
+
+Request:
+- same payload as `POST /events`
+
+Response `200 OK`:
+```json
+{
+  "id": "evt_999",
+  "title": "Updated Event"
+}
+```
+
+Errors:
+- `UNAUTHENTICATED`
+- `FORBIDDEN`
+- `EVENT_NOT_FOUND`
+- `VALIDATION_ERROR`
+- `INVALID_SCHEDULE`
+
+Notes:
+- only the creator who owns the event may update it
+- `totalSlots` must remain greater than or equal to the current reserved slot count
+- `maxTicketsPerBooking` must not exceed `totalSlots`

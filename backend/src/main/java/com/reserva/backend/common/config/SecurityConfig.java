@@ -36,6 +36,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/events", "/api/v1/events/*").permitAll()
                         .requestMatchers("/api/v1/me/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/events").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/events/*").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/events/*/bookings").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/events/*/watchlist").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/events/*/watchlist").authenticated()

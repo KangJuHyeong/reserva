@@ -19,6 +19,7 @@ export default async function Dashboard() {
         recentBookings={summary.recentBookings.map(toBookingSummaryViewModel)}
         upcomingOpenEvents={summary.upcomingOpenEvents.map(toEventSummaryViewModel)}
         watchlistPreview={summary.watchlistPreview.map(toEventSummaryViewModel)}
+        createdEventsPreview={summary.createdEventsPreview.map(toEventSummaryViewModel)}
       />
     );
   } catch (error) {

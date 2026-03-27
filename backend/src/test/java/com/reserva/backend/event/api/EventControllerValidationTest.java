@@ -93,6 +93,7 @@ class EventControllerValidationTest {
                 Arguments.of(payloadWith("imageUrl", " "), "imageUrl: must not be blank"),
                 Arguments.of(payloadWith("price", new BigDecimal("-1")), "price: must be greater than or equal to 0"),
                 Arguments.of(payloadWith("totalSlots", 0), "totalSlots: must be greater than or equal to 1"),
+                Arguments.of(payloadWith("maxTicketsPerBooking", 0), "maxTicketsPerBooking: must be greater than or equal to 1"),
                 Arguments.of(payloadWith("eventDateTime", null), "eventDateTime: must not be null"),
                 Arguments.of(payloadWith("reservationOpenDateTime", null), "reservationOpenDateTime: must not be null")
         );
@@ -114,6 +115,7 @@ class EventControllerValidationTest {
         payload.put("eventDateTime", "2026-04-15T18:00:00Z");
         payload.put("reservationOpenDateTime", "2026-04-10T10:00:00Z");
         payload.put("totalSlots", 120);
+        payload.put("maxTicketsPerBooking", 6);
         payload.put("imageUrl", "https://example.com/image.jpg");
         return payload;
     }
