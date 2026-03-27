@@ -16,8 +16,8 @@ interface WatchlistToggleButtonProps {
 }
 
 const errorMessages: Record<string, string> = {
-  UNAUTHENTICATED: "Sign in is required to use your watchlist.",
-  EVENT_NOT_FOUND: "This event could not be found.",
+  UNAUTHENTICATED: "찜 기능을 사용하려면 로그인해 주세요.",
+  EVENT_NOT_FOUND: "이 이벤트를 찾을 수 없습니다.",
 };
 
 export function WatchlistToggleButton({
@@ -52,7 +52,7 @@ export function WatchlistToggleButton({
           return;
         }
 
-        const payload = (await response.json().catch(() => ({ code: "UNKNOWN_ERROR", message: "Watchlist request failed." }))) as ApiErrorResponse;
+        const payload = (await response.json().catch(() => ({ code: "UNKNOWN_ERROR", message: "찜 요청에 실패했습니다." }))) as ApiErrorResponse;
         const message = errorMessages[payload.code] ?? payload.message;
         setIsWatchlisted(!nextValue);
         onChange?.(!nextValue);
@@ -60,7 +60,7 @@ export function WatchlistToggleButton({
       } catch {
         setIsWatchlisted(!nextValue);
         onChange?.(!nextValue);
-        onError?.("Watchlist request failed.");
+        onError?.("찜 요청에 실패했습니다.");
       } finally {
         setIsPending(false);
       }
@@ -82,8 +82,8 @@ export function WatchlistToggleButton({
         className
       )}
       aria-pressed={isWatchlisted}
-      aria-label={isWatchlisted ? "Remove from watchlist" : "Save to watchlist"}
-      title={isWatchlisted ? "Remove from watchlist" : "Save to watchlist"}
+      aria-label={isWatchlisted ? "찜 해제" : "찜하기"}
+      title={isWatchlisted ? "찜 해제" : "찜하기"}
     >
       <Heart className={cn("h-4 w-4", isWatchlisted && "fill-current", iconClassName)} />
     </Button>

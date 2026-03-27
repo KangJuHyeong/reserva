@@ -3,6 +3,7 @@ export type Category =
   | "Concert"
   | "Restaurant"
   | "Art & Design"
+  | "Other"
   | "Sports"
   | "Trending"
   | "Ending Soon"

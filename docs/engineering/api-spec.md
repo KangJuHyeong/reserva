@@ -279,7 +279,7 @@ Query parameters:
 
 Query behavior:
 - `q` matches event title, description, location, and host name
-- `category` must be one of `Concert`, `Restaurant`, `Art & Design`, `Sports`
+- `category` must be one of `Concert`, `Restaurant`, `Art & Design`, `Sports`, `Other`
 - `section` must be one of `trending`, `endingSoon`, `openingSoon`, `watchlist`
 - invalid `category` or `section` returns `VALIDATION_ERROR`
 

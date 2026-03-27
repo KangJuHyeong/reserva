@@ -27,15 +27,16 @@ interface MobileNavProps {
 }
 
 const categories: Array<{ id: Category; label: string; icon: React.ElementType }> = [
-  { id: "All", label: "All", icon: LayoutGrid },
-  { id: "Concert", label: "Concert", icon: Music },
-  { id: "Restaurant", label: "Restaurant", icon: UtensilsCrossed },
-  { id: "Art & Design", label: "Art & Design", icon: Palette },
-  { id: "Sports", label: "Sports", icon: Trophy },
-  { id: "Trending", label: "Trending", icon: TrendingUp },
-  { id: "Ending Soon", label: "Ending Soon", icon: Clock },
-  { id: "Upcoming", label: "Upcoming", icon: CalendarClock },
-  { id: "Watchlist", label: "Watchlist", icon: Heart },
+  { id: "All", label: "전체", icon: LayoutGrid },
+  { id: "Concert", label: "콘서트", icon: Music },
+  { id: "Restaurant", label: "레스토랑", icon: UtensilsCrossed },
+  { id: "Art & Design", label: "아트 & 디자인", icon: Palette },
+  { id: "Sports", label: "스포츠", icon: Trophy },
+  { id: "Other", label: "기타", icon: LayoutGrid },
+  { id: "Trending", label: "인기", icon: TrendingUp },
+  { id: "Ending Soon", label: "마감 임박", icon: Clock },
+  { id: "Upcoming", label: "오픈 예정", icon: CalendarClock },
+  { id: "Watchlist", label: "찜한 이벤트", icon: Heart },
 ];
 
 export function MobileNav({ selectedCategory }: MobileNavProps) {
@@ -88,7 +89,7 @@ export function MobileNav({ selectedCategory }: MobileNavProps) {
             </div>
 
             <nav className="mb-6 space-y-1">
-              <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Categories</p>
+              <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">카테고리</p>
               {categories.map((category) => {
                 const Icon = category.icon;
                 const isActive = selectedCategory === category.id;
@@ -116,15 +117,15 @@ export function MobileNav({ selectedCategory }: MobileNavProps) {
             <div className="border-t border-sidebar-border pt-4">
               <Link href="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
                 <LayoutDashboard className="h-4 w-4" />
-                Dashboard
+                대시보드
               </Link>
               <Link href="/my-events" onClick={() => setIsOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
                 <ListChecks className="h-4 w-4" />
-                My Events
+                내 이벤트
               </Link>
               <Link href="/create" onClick={() => setIsOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
                 <Plus className="h-4 w-4" />
-                Create Event
+                이벤트 만들기
               </Link>
             </div>
           </div>

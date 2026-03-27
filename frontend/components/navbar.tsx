@@ -60,7 +60,7 @@ export function Navbar({ searchQuery, currentUser }: NavbarProps) {
               type="text"
               defaultValue={searchQuery}
               onChange={(event) => updateSearch(event.target.value)}
-              placeholder="Search events..."
+              placeholder="이벤트 검색..."
               className="h-10 w-full rounded-lg border border-border bg-input pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
             {isPending ? <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">...</span> : null}
@@ -73,13 +73,13 @@ export function Navbar({ searchQuery, currentUser }: NavbarProps) {
               <Link href="/dashboard">
                 <Button variant="outline" className="gap-2">
                   <LayoutDashboard className="h-4 w-4" />
-                  <span className="hidden sm:inline">Dashboard</span>
+                  <span className="hidden sm:inline">대시보드</span>
                 </Button>
               </Link>
               <Link href="/my-events">
                 <Button variant="outline" className="gap-2">
                   <ListChecks className="h-4 w-4" />
-                  <span className="hidden sm:inline">My Events</span>
+                  <span className="hidden sm:inline">내 이벤트</span>
                 </Button>
               </Link>
             </>
@@ -87,7 +87,7 @@ export function Navbar({ searchQuery, currentUser }: NavbarProps) {
           <Link href="/create">
             <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Create Event</span>
+              <span className="hidden sm:inline">이벤트 만들기</span>
             </Button>
           </Link>
           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
@@ -109,7 +109,7 @@ export function Navbar({ searchQuery, currentUser }: NavbarProps) {
             <Link href="/login">
               <Button variant="outline" className="gap-2">
                 <User className="h-4 w-4" />
-                Sign In
+                로그인
               </Button>
             </Link>
           )}

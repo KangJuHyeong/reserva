@@ -6,7 +6,7 @@ import { fetchCurrentUser, fetchEvents } from "@/lib/server/queries";
 import { Category } from "@/lib/types";
 
 function parseCategory(value?: string): Category {
-  const allowed: Category[] = ["All", "Concert", "Restaurant", "Art & Design", "Sports", "Trending", "Ending Soon", "Upcoming", "Watchlist"];
+  const allowed: Category[] = ["All", "Concert", "Restaurant", "Art & Design", "Other", "Sports", "Trending", "Ending Soon", "Upcoming", "Watchlist"];
   if (!value || !allowed.includes(value as Category)) {
     return "All";
   }
@@ -18,6 +18,7 @@ function toEventQuery(category: Category) {
     case "Concert":
     case "Restaurant":
     case "Art & Design":
+    case "Other":
     case "Sports":
       return { category };
     case "Watchlist":
@@ -59,8 +60,8 @@ export default async function Home({
     if (error instanceof BackendApiError && error.code === BACKEND_UNAVAILABLE_CODE) {
       return (
         <BackendUnavailablePage
-          title="Unable to load discovery"
-          description="The frontend started, but it could not reach the backend to load the event feed."
+          title="이벤트 목록을 불러올 수 없습니다"
+          description="프론트엔드는 시작되었지만 이벤트 목록을 가져오기 위해 백엔드에 연결하지 못했습니다."
         />
       );
     }

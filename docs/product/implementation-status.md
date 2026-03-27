@@ -126,6 +126,7 @@
 - Stable demo event ids when demo data is enabled:
   - `evt_demo_jazz`
   - `evt_demo_art`
+  - `evt_demo_other_market`
 - Minimum routes to verify once local servers are running:
   - `/`
   - `/?view=Watchlist`

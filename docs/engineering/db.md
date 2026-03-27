@@ -81,6 +81,13 @@ Recommended enums:
 - `status`: `draft | published | cancelled | completed`
 - `visibility`: `public | private`
 
+Current category values:
+- `Concert`
+- `Restaurant`
+- `Art & Design`
+- `Sports`
+- `Other`
+
 ### event_inventory
 Purpose:
 - store current capacity state separately from event content fields

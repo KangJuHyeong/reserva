@@ -20,10 +20,10 @@ export function BackendUnavailablePage({
         <h1 className="mt-4 text-3xl font-bold text-foreground">{title}</h1>
         <p className="mt-3 text-muted-foreground">{description}</p>
         <p className="mt-4 text-sm text-muted-foreground">
-          Check that the backend is running and that `BACKEND_BASE_URL` points to the correct origin.
+          백엔드가 실행 중인지, 그리고 `BACKEND_BASE_URL`이 올바른 주소를 가리키는지 확인해 주세요.
         </p>
         <Link href="/" className="mt-6 inline-block">
-          <Button>Back to Home</Button>
+          <Button>홈으로 돌아가기</Button>
         </Link>
       </div>
     </main>

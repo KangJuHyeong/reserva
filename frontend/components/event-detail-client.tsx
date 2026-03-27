@@ -18,15 +18,24 @@ const categoryColors: Record<string, string> = {
   Concert: "bg-primary/20 text-primary",
   Restaurant: "bg-accent/20 text-accent",
   "Art & Design": "bg-chart-4/20 text-chart-4",
+  Other: "bg-muted text-foreground",
   Sports: "bg-chart-3/20 text-chart-3",
 };
 
+const categoryLabels: Record<string, string> = {
+  Concert: "콘서트",
+  Restaurant: "레스토랑",
+  "Art & Design": "아트 & 디자인",
+  Other: "기타",
+  Sports: "스포츠",
+};
+
 const errorMessages: Record<string, string> = {
-  UNAUTHENTICATED: "Sign in first to reserve this event.",
-  EVENT_SOLD_OUT: "This event no longer has enough remaining slots.",
-  ALREADY_BOOKED: "You already have an active booking for this event.",
-  BOOKING_QUANTITY_LIMIT_EXCEEDED: "You selected more tickets than the booking limit allows.",
-  VALIDATION_ERROR: "This reservation request is invalid right now.",
+  UNAUTHENTICATED: "이 이벤트를 예약하려면 먼저 로그인해 주세요.",
+  EVENT_SOLD_OUT: "이 이벤트는 남은 좌석이 부족합니다.",
+  ALREADY_BOOKED: "이미 이 이벤트에 예약한 내역이 있습니다.",
+  BOOKING_QUANTITY_LIMIT_EXCEEDED: "선택한 수량이 예약 제한을 초과했습니다.",
+  VALIDATION_ERROR: "현재 이 예약 요청은 유효하지 않습니다.",
 };
 
 export function EventDetailClient({ event }: EventDetailClientProps) {
@@ -46,12 +55,12 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
 
   async function handleReserve() {
     if (!Number.isInteger(ticketCount) || ticketCount < 1) {
-      setErrorMessage("Ticket count must be at least 1.");
+      setErrorMessage("예약 수량은 최소 1장이어야 합니다.");
       return;
     }
 
     if (ticketCount > maxSelectableTickets) {
-      setErrorMessage(`You can reserve up to ${maxSelectableTickets} tickets for this booking.`);
+      setErrorMessage(`이번 예약에서는 최대 ${maxSelectableTickets}장까지 선택할 수 있습니다.`);
       return;
     }
 
@@ -83,7 +92,7 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
         <div className="flex h-16 items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground">
             <ArrowLeft className="h-5 w-5" />
-            <span>Back to Events</span>
+            <span>이벤트 목록으로 돌아가기</span>
           </Link>
           <div className="flex items-center gap-2">
             <WatchlistToggleButton
@@ -108,7 +117,7 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
               <Image src={event.imageUrl} alt={event.title} fill className="object-cover" />
               <div className="absolute left-4 top-4">
                 <span className={cn("rounded-full px-3 py-1.5 text-sm font-medium", categoryColors[event.category] ?? "bg-secondary text-secondary-foreground")}>
-                  {event.category}
+                  {categoryLabels[event.category] ?? event.category}
                 </span>
               </div>
             </div>
@@ -136,13 +145,13 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
                 {event.hostAvatarUrl ? <Image src={event.hostAvatarUrl} alt={event.hostName} fill className="object-cover" /> : null}
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Hosted by</p>
+                <p className="text-sm text-muted-foreground">주최자</p>
                 <p className="font-semibold text-foreground">{event.hostName}</p>
               </div>
             </div>
 
             <div>
-              <h2 className="mb-3 text-xl font-semibold text-foreground">About this event</h2>
+              <h2 className="mb-3 text-xl font-semibold text-foreground">이벤트 소개</h2>
               <p className="leading-relaxed text-muted-foreground">{event.description}</p>
             </div>
           </div>
@@ -151,14 +160,14 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
             <div className="sticky top-24 rounded-xl border border-border bg-card p-6">
                 <div className="mb-1 text-3xl font-bold text-foreground">
                   ${event.price}
-                  <span className="text-base font-normal text-muted-foreground"> / person</span>
+                  <span className="text-base font-normal text-muted-foreground"> / 1인</span>
                 </div>
 
               <div className="mt-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Users className="h-5 w-5" />
-                    <span>Participants</span>
+                    <span>참여 인원</span>
                   </div>
                   <span className="font-semibold text-foreground">{event.reservedSlots}/{event.totalSlots}</span>
                 </div>
@@ -166,9 +175,9 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
                 <div>
                   <div className="mb-2 flex items-center justify-between text-sm">
                     <span className={cn("font-medium", event.remainingSlots <= 5 ? "text-destructive" : "text-muted-foreground")}>
-                      {event.remainingSlots} spots remaining
+                      남은 좌석 {event.remainingSlots}석
                     </span>
-                    <span className="text-muted-foreground">{Math.round(progress)}% filled</span>
+                    <span className="text-muted-foreground">{Math.round(progress)}% 예약됨</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-secondary">
                     <div
@@ -182,7 +191,7 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
                 </div>
 
                 <label className="block text-sm text-muted-foreground">
-                  Ticket Count
+                  예약 수량
                   <input
                     type="number"
                     min={1}
@@ -201,7 +210,7 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
                     className="mt-2 h-11 w-full rounded-lg border border-border bg-input px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
                   />
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Up to {event.maxTicketsPerBooking} tickets per booking. {event.remainingSlots} spots remain right now.
+                    1회 예약당 최대 {event.maxTicketsPerBooking}장까지 가능합니다. 현재 남은 좌석은 {event.remainingSlots}석입니다.
                   </p>
                 </label>
 
@@ -213,26 +222,26 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
                   onClick={handleReserve}
                   disabled={isSubmitting || isSoldOut}
                 >
-                  {isSubmitting ? "Reserving..." : event.remainingSlots === 0 ? "Sold Out" : "Reserve My Spot"}
+                  {isSubmitting ? "예약 중..." : event.remainingSlots === 0 ? "매진" : "예약하기"}
                 </Button>
 
                 <p className="text-center text-xs text-muted-foreground">
-                  {isWatchlisted ? "Saved in your watchlist." : "Tap the heart to save this event for later."}
+                  {isWatchlisted ? "찜한 이벤트에 저장되었습니다." : "하트를 눌러 나중에 볼 이벤트로 저장하세요."}
                 </p>
               </div>
 
               <div className="mt-6 border-t border-border pt-6">
                 <div className="mb-3 flex items-center gap-2">
                   <CalendarClock className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">Reservation Opens</span>
+                  <span className="text-sm font-medium text-foreground">예약 오픈</span>
                 </div>
                 <div className="rounded-lg bg-primary/10 p-3 text-sm">
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="text-muted-foreground">Date</span>
+                    <span className="text-muted-foreground">날짜</span>
                     <span className="font-medium text-primary">{event.reservationOpenDateLabel}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Time</span>
+                    <span className="text-muted-foreground">시간</span>
                     <span className="font-medium text-primary">{event.reservationOpenTimeLabel}</span>
                   </div>
                 </div>

@@ -15,7 +15,16 @@ const categoryColors: Record<string, string> = {
   Concert: "bg-primary/20 text-primary",
   Restaurant: "bg-accent/20 text-accent",
   "Art & Design": "bg-chart-4/20 text-chart-4",
+  Other: "bg-muted text-foreground",
   Sports: "bg-chart-3/20 text-chart-3",
+};
+
+const categoryLabels: Record<string, string> = {
+  Concert: "콘서트",
+  Restaurant: "레스토랑",
+  "Art & Design": "아트 & 디자인",
+  Other: "기타",
+  Sports: "스포츠",
 };
 
 export function ReservationCard({ reservation, onWatchlistChange }: ReservationCardProps) {
@@ -30,7 +39,7 @@ export function ReservationCard({ reservation, onWatchlistChange }: ReservationC
 
           <div className="absolute left-3 top-3 flex gap-2">
             <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium", categoryColors[reservation.category] ?? "bg-secondary text-secondary-foreground")}>
-              {reservation.category}
+              {categoryLabels[reservation.category] ?? reservation.category}
             </span>
           </div>
 
@@ -58,14 +67,14 @@ export function ReservationCard({ reservation, onWatchlistChange }: ReservationC
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Users className="h-3.5 w-3.5" />
-            <span>{reservation.reservedSlots}/{reservation.totalSlots} participants</span>
+            <span>{reservation.reservedSlots}/{reservation.totalSlots}명 참여</span>
           </div>
         </div>
 
         <div className="mt-3">
           <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-            <span>{reservation.remainingSlots} spots left</span>
-            <span>{Math.round(progress)}% filled</span>
+            <span>남은 자리 {reservation.remainingSlots}석</span>
+            <span>{Math.round(progress)}% 예약됨</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
             <div
@@ -80,7 +89,7 @@ export function ReservationCard({ reservation, onWatchlistChange }: ReservationC
 
         <div className="mt-4 flex items-center gap-2">
           <Link href={`/reservation/${reservation.id}`} className="flex-1">
-            <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Reserve My Spot</Button>
+            <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">예약하기</Button>
           </Link>
           <WatchlistToggleButton eventId={reservation.id} initialIsWatchlisted={reservation.isWatchlisted} onChange={onWatchlistChange} />
         </div>

@@ -4,7 +4,8 @@ public enum EventCategory {
     CONCERT("Concert"),
     RESTAURANT("Restaurant"),
     ART_AND_DESIGN("Art & Design"),
-    SPORTS("Sports");
+    SPORTS("Sports"),
+    OTHER("Other");
 
     private final String label;
 

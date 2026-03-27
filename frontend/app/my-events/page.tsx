@@ -40,8 +40,8 @@ export default async function MyEvents({
     if (error instanceof BackendApiError && error.code === BACKEND_UNAVAILABLE_CODE) {
       return (
         <BackendUnavailablePage
-          title="Unable to load my events"
-          description="The published-events workspace could not reach the backend service."
+          title="내 이벤트 화면을 불러올 수 없습니다"
+          description="게시한 이벤트 작업 공간이 백엔드 서비스에 연결하지 못했습니다."
         />
       );
     }
