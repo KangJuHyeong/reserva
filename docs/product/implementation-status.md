@@ -30,11 +30,13 @@
   - `GET /api/v1/events/{eventId}`
   - `POST /api/v1/events`
   - `PATCH /api/v1/events/{eventId}`
+  - `DELETE /api/v1/events/{eventId}`
   - `POST /api/v1/events/{eventId}/watchlist`
   - `DELETE /api/v1/events/{eventId}/watchlist`
   - `POST /api/v1/events/{eventId}/bookings`
   - `GET /api/v1/me/bookings`
   - `GET /api/v1/me/bookings/{bookingId}`
+  - `POST /api/v1/me/bookings/{bookingId}/cancel`
   - `GET /api/v1/me/dashboard-summary`
   - `GET /api/v1/me/events`
   - `GET /api/v1/me/events/{eventId}`
@@ -63,12 +65,14 @@
   - event discovery with search, category filtering, a default mixed feed, derived sections, and pagination
   - event detail with watchlist state and direct booking action
   - booking creation with capacity checks, duplicate-booking protection, and an event-specific per-booking ticket quantity limit
+  - booking cancellation before event start with inventory release back into event capacity
   - my bookings list and booking detail
   - dedicated `/my-bookings` page for the current user's reservation history with status filtering and pagination
   - watchlist save/remove on cards and event detail
   - persisted watchlist loading through `/?view=Watchlist`
   - authenticated event creation page, form, and API including event-specific max ticket configuration
   - authenticated creator event editing through `/my-events/[id]/edit` with owner-only, pre-reservation-open backend update rules
+  - authenticated creator event deletion from `/my-events` while reservations are still unopened
   - personalized dashboard summary that more clearly serves as the user's activity home for bookings, saved events, opening-soon items, and published-event preview
   - dedicated `/my-events` page for the current user's created events with pagination, clearer creator-workspace framing, and server-backed creator filter/sort controls
 

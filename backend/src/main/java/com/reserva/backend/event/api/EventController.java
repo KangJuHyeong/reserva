@@ -12,6 +12,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @Validated
 @RestController
@@ -67,6 +69,13 @@ public class EventController {
                                            @PathVariable String eventId,
                                            @Valid @RequestBody EventCreateRequest request) {
         return eventCommandService.updateEvent(currentUser, eventId, request);
+    }
+
+    @DeleteMapping("/{eventId}")
+    @ResponseStatus(NO_CONTENT)
+    public void deleteEvent(@AuthenticationPrincipal CurrentUser currentUser,
+                            @PathVariable String eventId) {
+        eventCommandService.deleteEvent(currentUser, eventId);
     }
 
     @PostMapping("/{eventId}/bookings")

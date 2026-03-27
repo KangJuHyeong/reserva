@@ -1,5 +1,6 @@
 package com.reserva.backend.event;
 
+import com.reserva.backend.booking.BookingRepository;
 import com.reserva.backend.common.error.ApiException;
 import com.reserva.backend.common.error.ErrorCode;
 import com.reserva.backend.common.security.CurrentUser;
@@ -24,11 +25,14 @@ public class EventCommandService {
 
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
 
     public EventCommandService(EventRepository eventRepository,
-                               UserRepository userRepository) {
+                               UserRepository userRepository,
+                               BookingRepository bookingRepository) {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
+        this.bookingRepository = bookingRepository;
     }
 
     @Transactional
@@ -123,5 +127,33 @@ public class EventCommandService {
 
         EventEntity savedEvent = eventRepository.save(event);
         return new EventUpdateResponse(savedEvent.getId(), savedEvent.getTitle());
+    }
+
+    @Transactional
+    public void deleteEvent(CurrentUser currentUser, String eventId) {
+        EventEntity event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ApiException(ErrorCode.EVENT_NOT_FOUND, HttpStatus.NOT_FOUND, "The event was not found."));
+
+        if (!event.getCreator().getId().equals(currentUser.id())) {
+            throw new ApiException(ErrorCode.FORBIDDEN, HttpStatus.FORBIDDEN, "You cannot delete this event.");
+        }
+
+        if (!LocalDateTime.now(ZoneOffset.UTC).isBefore(event.getReservationOpenDateTime())) {
+            throw new ApiException(
+                    ErrorCode.EVENT_NOT_DELETABLE,
+                    HttpStatus.FORBIDDEN,
+                    "You can only delete this event before reservations open."
+            );
+        }
+
+        if (event.getInventory().getReservedSlots() > 0 || bookingRepository.existsByEventId(eventId)) {
+            throw new ApiException(
+                    ErrorCode.EVENT_NOT_DELETABLE,
+                    HttpStatus.CONFLICT,
+                    "Events with bookings cannot be deleted."
+            );
+        }
+
+        eventRepository.delete(event);
     }
 }

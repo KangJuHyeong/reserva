@@ -26,6 +26,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.EnumSet;
 import java.util.Optional;
 
@@ -33,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -202,6 +204,91 @@ class BookingServiceTest {
         assertThat(captor.getValue().getEventId()).isEqualTo("evt_1");
         assertThat(captor.getValue().getParticipantName()).isEqualTo("Alex Johnson");
         assertThat(captor.getValue().getTicketCount()).isEqualTo(2);
+    }
+
+    @Test
+    void cancelBookingMarksBookingCancelledAndReleasesInventory() {
+        BookingEntity booking = BookingEntity.create(
+                "booking-1",
+                "BK-2026-ABC12345",
+                "usr_1",
+                "evt_1",
+                "Alex Johnson",
+                2,
+                new BigDecimal("45.00"),
+                new BigDecimal("90.00"),
+                LocalDateTime.now().minusDays(1)
+        );
+        EventEntity event = event("evt_1", 10, 2, LocalDateTime.now().minusDays(2));
+        ReflectionTestUtils.setField(event, "eventDateTime", LocalDateTime.now().plusDays(2));
+
+        when(bookingRepository.findByBookingCodeAndUserIdForUpdate("BK-2026-ABC12345", "usr_1"))
+                .thenReturn(Optional.of(booking));
+        when(eventRepository.findById("evt_1")).thenReturn(Optional.of(event));
+        when(eventInventoryRepository.findByEventIdForUpdate("evt_1")).thenReturn(Optional.of(event.getInventory()));
+
+        bookingService.cancelBooking(currentUser, "BK-2026-ABC12345");
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELLED);
+        assertThat(event.getInventory().getReservedSlots()).isZero();
+    }
+
+    @Test
+    void cancelBookingRejectsNonConfirmedStatus() {
+        BookingEntity booking = BookingEntity.create(
+                "booking-1",
+                "BK-2026-CANCELLED",
+                "usr_1",
+                "evt_1",
+                "Alex Johnson",
+                2,
+                new BigDecimal("45.00"),
+                new BigDecimal("90.00"),
+                LocalDateTime.now().minusDays(1)
+        );
+        ReflectionTestUtils.setField(booking, "status", BookingStatus.CANCELLED);
+
+        when(bookingRepository.findByBookingCodeAndUserIdForUpdate("BK-2026-CANCELLED", "usr_1"))
+                .thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.cancelBooking(currentUser, "BK-2026-CANCELLED"))
+                .isInstanceOf(ApiException.class)
+                .satisfies(exception -> {
+                    ApiException apiException = (ApiException) exception;
+                    assertThat(apiException.getErrorCode()).isEqualTo(ErrorCode.BOOKING_NOT_CANCELLABLE);
+                    assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.CONFLICT);
+                });
+    }
+
+    @Test
+    void cancelBookingRejectsAfterEventStarts() {
+        BookingEntity booking = BookingEntity.create(
+                "booking-1",
+                "BK-2026-PAST",
+                "usr_1",
+                "evt_1",
+                "Alex Johnson",
+                2,
+                new BigDecimal("45.00"),
+                new BigDecimal("90.00"),
+                LocalDateTime.now().minusDays(1)
+        );
+        EventEntity event = mock(EventEntity.class);
+        when(event.getEventDateTime()).thenReturn(LocalDateTime.now(ZoneOffset.UTC).minusMinutes(5));
+
+        when(bookingRepository.findByBookingCodeAndUserIdForUpdate("BK-2026-PAST", "usr_1"))
+                .thenReturn(Optional.of(booking));
+        when(eventRepository.findById("evt_1")).thenReturn(Optional.of(event));
+
+        assertThatThrownBy(() -> bookingService.cancelBooking(currentUser, "BK-2026-PAST"))
+                .isInstanceOf(ApiException.class)
+                .satisfies(exception -> {
+                    ApiException apiException = (ApiException) exception;
+                    assertThat(apiException.getErrorCode()).isEqualTo(ErrorCode.BOOKING_NOT_CANCELLABLE);
+                    assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+                });
+
+        verify(eventInventoryRepository, never()).findByEventIdForUpdate(any());
     }
 
     private EventEntity event(String id, int totalSlots, int reservedSlots, LocalDateTime reservationOpenDateTime) {

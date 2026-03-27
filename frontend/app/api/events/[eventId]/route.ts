@@ -7,3 +7,11 @@ export async function PATCH(
   const { eventId } = await params;
   return proxyBackend(request, `/api/v1/events/${eventId}`, "PATCH");
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ eventId: string }> }
+) {
+  const { eventId } = await params;
+  return proxyBackend(request, `/api/v1/events/${eventId}`, "DELETE");
+}

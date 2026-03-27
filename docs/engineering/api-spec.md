@@ -54,6 +54,8 @@ Common error codes:
 - `ALREADY_BOOKED`
 - `BOOKING_QUANTITY_LIMIT_EXCEEDED`
 - `INVALID_SCHEDULE`
+- `BOOKING_NOT_CANCELLABLE`
+- `EVENT_NOT_DELETABLE`
 
 ## Shared Data Shapes
 
@@ -408,6 +410,23 @@ Errors:
 - `UNAUTHENTICATED`
 - `BOOKING_NOT_FOUND`
 
+### POST /me/bookings/{bookingId}/cancel
+Current:
+- implemented
+
+Response `204 No Content`
+
+Errors:
+- `UNAUTHENTICATED`
+- `BOOKING_NOT_FOUND`
+- `BOOKING_NOT_CANCELLABLE`
+
+Notes:
+- only the authenticated booking owner may cancel the booking
+- only `confirmed` bookings may be cancelled
+- cancellation is allowed only before the event start time
+- successful cancellation changes booking status to `cancelled` and releases reserved capacity back to the event inventory
+
 ## Dashboard And My Event APIs
 
 ### GET /me/dashboard-summary
@@ -577,3 +596,20 @@ Notes:
 - edits are allowed only before `reservationOpenDateTime`; once reservations are open the API returns `FORBIDDEN`
 - `totalSlots` must remain greater than or equal to the current reserved slot count
 - `maxTicketsPerBooking` must not exceed `totalSlots`
+
+### DELETE /events/{eventId}
+Current:
+- implemented
+
+Response `204 No Content`
+
+Errors:
+- `UNAUTHENTICATED`
+- `FORBIDDEN`
+- `EVENT_NOT_FOUND`
+- `EVENT_NOT_DELETABLE`
+
+Notes:
+- only the creator who owns the event may delete it
+- deletion is allowed only before `reservationOpenDateTime`
+- events with any existing bookings must not be deleted

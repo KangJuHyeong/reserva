@@ -167,6 +167,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - participant details
 - payment summary
 - host information
+- cancel CTA for cancellable reservations
 - navigation back to discovery
 
 #### Current States
@@ -177,10 +178,11 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 
 #### Current Data Dependencies
 - `GET /me/bookings/{bookingId}`
+- `POST /me/bookings/{bookingId}/cancel`
 
 #### Target Improvements
-- Keep booking detail as a focused read view.
-- Do not add speculative payment or cancel flows until backend support exists.
+- Keep booking detail focused on a single reservation while exposing cancellation only when the backend marks the booking as still cancellable.
+- Avoid adding broader check-in or payment-management controls until backend scope expands.
 
 ### `/dashboard`
 
@@ -252,6 +254,7 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 - create-event CTA
 - server-backed filter and sort controls
 - created-event card grid
+- delete CTA for still-editable events
 - pagination controls
 
 #### Current States
@@ -263,11 +266,12 @@ Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` 
 #### Current Data Dependencies
 - `GET /me`
 - `GET /me/events`
+- `DELETE /events/{eventId}`
 
 #### Target Improvements
 - Keep this route separate from dashboard because it creates a clearer IA boundary between "my summary" and "my published inventory."
 - Keep edit affordances focused on direct creator maintenance instead of turning the page into a broader operations console.
-- Grow creator operations through server-backed filters and ordering first, then add event-specific reservation views as a follow-up slice.
+- Grow creator operations through server-backed filters, ordering, and clearly bounded maintenance actions before adding broader event-operations tooling.
 
 ### `/my-events/[id]/edit`
 

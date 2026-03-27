@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, CalendarClock, Lock, Plus } from "lucide-react";
+import { DeleteEventButton } from "@/components/delete-event-button";
 import { Button } from "@/components/ui/button";
 import { CurrentUserApi, EventSummaryViewModel, MyEventsFilter, MyEventsSort } from "@/lib/types";
 
@@ -293,6 +294,7 @@ export function MyEventsPage({
                           </Button>
                         )}
                       </div>
+                      {editable ? <DeleteEventButton eventId={event.id} title={event.title} /> : null}
                     </div>
                   </article>
                 );
