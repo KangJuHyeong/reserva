@@ -98,6 +98,10 @@ public class EventCommandService {
             throw new ApiException(ErrorCode.FORBIDDEN, HttpStatus.FORBIDDEN, "You cannot edit this event.");
         }
 
+        if (!LocalDateTime.now(ZoneOffset.UTC).isBefore(event.getReservationOpenDateTime())) {
+            throw new ApiException(ErrorCode.FORBIDDEN, HttpStatus.FORBIDDEN, "You can only edit this event before reservations open.");
+        }
+
         if (request.totalSlots() < event.getInventory().getReservedSlots()) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, "totalSlots must be greater than or equal to reservedSlots.");
         }

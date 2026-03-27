@@ -22,11 +22,14 @@ export default async function EditMyEventPage({
   try {
     await fetchCurrentUser();
     const event = await fetchMyEventDetail(id);
+    const isEditLocked = new Date(event.reservationOpenDateTime).getTime() <= Date.now();
 
     return (
       <CreateEventForm
         mode="edit"
         eventId={id}
+        editLocked={isEditLocked}
+        editLockedMessage="예약이 이미 오픈된 이벤트는 정보 불일치를 막기 위해 수정할 수 없습니다."
         initialValues={{
           title: event.title,
           category: event.category as "Concert" | "Restaurant" | "Art & Design" | "Sports" | "Other",
@@ -49,7 +52,7 @@ export default async function EditMyEventPage({
       return (
         <BackendUnavailablePage
           title="이벤트 수정 화면을 불러올 수 없습니다"
-          description="수정 페이지가 백엔드 서비스에 연결하지 못했습니다."
+          description="수정 페이지가 백엔드 서비스에 연결되지 않았습니다."
         />
       );
     }

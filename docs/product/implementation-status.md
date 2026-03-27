@@ -66,7 +66,7 @@
   - watchlist save/remove on cards and event detail
   - persisted watchlist loading through `/?view=Watchlist`
   - authenticated event creation page, form, and API including event-specific max ticket configuration
-  - authenticated creator event editing through `/my-events/[id]/edit` with owner-only backend update rules
+  - authenticated creator event editing through `/my-events/[id]/edit` with owner-only, pre-reservation-open backend update rules
   - personalized dashboard summary that more clearly serves as the user's activity home for bookings, saved events, opening-soon items, and published-event preview
   - dedicated `/my-events` page for the current user's created events with pagination and clearer creator-workspace framing
 
@@ -146,7 +146,7 @@
 
 Priority rationale:
 - Core event, booking, watchlist, dashboard, event creation, event editing, and my-events flows are working in the current baseline after runtime bug fixes and end-to-end verification.
-- The most visible remaining product gap is creator-side UX clarity: edit-mode copy, workspace information hierarchy, and event-capacity guidance still need polish to feel production-ready.
+- Creator workspace now makes editability clearer by locking post-open events in both the list view and edit form, but dashboard-side creator summary polish still remains.
 - Local frontend runtime stability remains important because repeated restart reliability affects verification speed and deployment confidence.
 - JWT and Google OAuth are now part of the live baseline, so the remaining auth work is validation and hardening rather than first-pass rollout.
 - Docker packaging, reverse-proxy setup, and server-side env conventions are now present, and the current lightweight deploy path remains Vercel for frontend plus EC2 for backend and MySQL.

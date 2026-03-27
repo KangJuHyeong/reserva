@@ -264,6 +264,39 @@ class EventCommandServiceTest {
                 });
     }
 
+    @Test
+    void updateEventRejectsWhenReservationAlreadyOpened() {
+        EventEntity event = EventEntity.create(
+                "evt_1",
+                user("usr_creator", UserRole.CREATOR),
+                "Summer Jazz Night",
+                com.reserva.backend.event.model.EventCategory.CONCERT,
+                "Experience an unforgettable evening of smooth jazz.",
+                "https://example.com/image.jpg",
+                "Blue Note Jazz Club, NYC",
+                new BigDecimal("45.00"),
+                OffsetDateTime.of(2026, 4, 15, 18, 0, 0, 0, ZoneOffset.UTC).toLocalDateTime(),
+                OffsetDateTime.now(ZoneOffset.UTC).minusHours(1).toLocalDateTime(),
+                6,
+                EventStatus.PUBLISHED,
+                EventVisibility.PUBLIC,
+                java.time.LocalDateTime.now(ZoneOffset.UTC),
+                120
+        );
+        when(eventRepository.findById("evt_1")).thenReturn(Optional.of(event));
+
+        assertThatThrownBy(() -> eventCommandService.updateEvent(creatorUser, "evt_1", validRequest()))
+                .isInstanceOf(ApiException.class)
+                .satisfies(exception -> {
+                    ApiException apiException = (ApiException) exception;
+                    assertThat(apiException.getErrorCode()).isEqualTo(ErrorCode.FORBIDDEN);
+                    assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+                    assertThat(apiException.getMessage()).contains("before reservations open");
+                });
+
+        verify(eventRepository, never()).save(any(EventEntity.class));
+    }
+
     private EventCreateRequest validRequest() {
         return new EventCreateRequest(
                 "Summer Jazz Night",

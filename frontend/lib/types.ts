@@ -163,6 +163,7 @@ export interface EventSummaryViewModel {
   category: string;
   price: number;
   location: string;
+  reservationOpenDateTime: string;
   dateLabel: string;
   timeLabel: string;
   reservationOpenLabel: string;
@@ -185,6 +186,7 @@ export interface EventDetailViewModel {
   description: string;
   price: number;
   location: string;
+  reservationOpenDateTime: string;
   eventDateLabel: string;
   eventTimeLabel: string;
   reservationOpenDateLabel: string;
