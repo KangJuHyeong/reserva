@@ -9,3 +9,5 @@ Current rules:
 
 Current documents:
 - `implementation-workflow.md`: default feature-slice implementation procedure and service ownership rules
+- `performance-testing.md`: backend performance-seeding and k6 load-test baseline
+- `performance-test-report-2026-03-29.md`: first local k6 results against the performance seed baseline

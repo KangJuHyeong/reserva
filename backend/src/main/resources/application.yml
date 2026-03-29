@@ -37,3 +37,11 @@ app:
       client-secret: ${GOOGLE_CLIENT_SECRET:}
   dev:
     seed-demo-data: ${SEED_DEMO_DATA:false}
+    seed-performance-data: ${SEED_PERFORMANCE_DATA:false}
+    performance:
+      reset-existing-data: ${PERF_RESET_DATA:false}
+      creator-count: ${PERF_CREATOR_COUNT:20}
+      user-count: ${PERF_USER_COUNT:300}
+      event-count: ${PERF_EVENT_COUNT:1000}
+      watchlists-per-user: ${PERF_WATCHLISTS_PER_USER:4}
+      random-seed: ${PERF_RANDOM_SEED:20260329}

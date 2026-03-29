@@ -16,7 +16,11 @@ import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Repository
 public class EventRepositoryImpl implements EventRepositoryCustom {
@@ -47,26 +51,45 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
                 .and(searchPredicate(event, creator, query))
                 .and(sectionPredicate(section, inventory, event, watchlist, currentUserId, now));
 
-        JPAQuery<EventEntity> contentQuery = queryFactory.selectFrom(event)
-                .join(event.creator, creator).fetchJoin()
-                .join(event.inventory, inventory).fetchJoin();
+        boolean hasSearchQuery = query != null && !query.isBlank();
+        boolean needsInventoryJoinForCount = section == DiscoverySection.TRENDING;
+        boolean needsWatchlistJoinForCount = section == DiscoverySection.WATCHLIST;
 
         JPAQuery<Long> countQuery = queryFactory.select(event.count())
-                .from(event)
-                .join(event.creator, creator)
-                .join(event.inventory, inventory);
+                .from(event);
 
-        if (section == DiscoverySection.WATCHLIST) {
-            contentQuery.join(watchlist).on(watchlist.eventId.eq(event.id).and(watchlist.userId.eq(currentUserId)));
+        JPAQuery<String> contentIdQuery = queryFactory.select(event.id)
+                .from(event);
+
+        if (hasSearchQuery) {
+            contentIdQuery.join(event.creator, creator);
+        }
+
+        if (section == DiscoverySection.TRENDING) {
+            contentIdQuery.join(event.inventory, inventory);
+        }
+
+        if (hasSearchQuery) {
+            countQuery.join(event.creator, creator);
+        }
+
+        if (needsInventoryJoinForCount) {
+            countQuery.join(event.inventory, inventory);
+        }
+
+        if (needsWatchlistJoinForCount) {
+            contentIdQuery.join(watchlist).on(watchlist.eventId.eq(event.id).and(watchlist.userId.eq(currentUserId)));
             countQuery.join(watchlist).on(watchlist.eventId.eq(event.id).and(watchlist.userId.eq(currentUserId)));
         }
 
-        List<EventEntity> events = contentQuery
+        List<String> pageEventIds = contentIdQuery
                 .where(predicate)
                 .orderBy(orderSpecifiers(section, event, inventory))
                 .offset((long) (page - 1) * size)
                 .limit(size)
                 .fetch();
+
+        List<EventEntity> events = fetchDiscoverableEvents(pageEventIds);
 
         Long total = countQuery
                 .where(predicate)
@@ -124,7 +147,6 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
 
         String normalizedQuery = query.trim();
         return event.title.containsIgnoreCase(normalizedQuery)
-                .or(event.description.containsIgnoreCase(normalizedQuery))
                 .or(event.location.containsIgnoreCase(normalizedQuery))
                 .or(creator.displayName.containsIgnoreCase(normalizedQuery));
     }
@@ -217,6 +239,29 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
                 5,
                 0.8d
         );
+    }
+
+    private List<EventEntity> fetchDiscoverableEvents(List<String> eventIds) {
+        if (eventIds.isEmpty()) {
+            return List.of();
+        }
+
+        QEventEntity event = QEventEntity.eventEntity;
+        QUserEntity creator = QUserEntity.userEntity;
+        QEventInventoryEntity inventory = QEventInventoryEntity.eventInventoryEntity;
+
+        Map<String, Integer> orderById = java.util.stream.IntStream.range(0, eventIds.size())
+                .boxed()
+                .collect(Collectors.toMap(eventIds::get, Function.identity()));
+
+        return queryFactory.selectFrom(event)
+                .join(event.creator, creator).fetchJoin()
+                .join(event.inventory, inventory).fetchJoin()
+                .where(event.id.in(eventIds))
+                .fetch()
+                .stream()
+                .sorted(Comparator.comparingInt(found -> orderById.getOrDefault(found.getId(), Integer.MAX_VALUE)))
+                .toList();
     }
 
 }
