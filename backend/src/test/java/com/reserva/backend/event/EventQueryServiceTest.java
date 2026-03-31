@@ -124,7 +124,7 @@ class EventQueryServiceTest {
     void getEventDetailReflectsWatchlistState() {
         EventEntity event = event("evt_1", LocalDateTime.now().plusDays(1));
 
-        when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
+        when(eventRepository.findDetailByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(Optional.of(event));
         when(currentUserProvider.getCurrentUserOrNull()).thenReturn(new CurrentUser("usr_1", "Alex Johnson"));
         when(watchlistRepository.existsByUserIdAndEventId("usr_1", "evt_1")).thenReturn(true);
@@ -193,7 +193,7 @@ class EventQueryServiceTest {
     void getMyEventDetailReturnsOwnedEvent() {
         EventEntity event = event("evt_created_1", LocalDateTime.now().plusDays(4));
 
-        when(eventRepository.findByIdAndCreator_Id("evt_created_1", "usr_1")).thenReturn(Optional.of(event));
+        when(eventRepository.findDetailByIdAndCreatorId("evt_created_1", "usr_1")).thenReturn(Optional.of(event));
 
         EventDetailResponse response = eventQueryService.getMyEventDetail(new CurrentUser("usr_1", "Alex Johnson"), "evt_created_1");
 

@@ -61,7 +61,7 @@ public class BookingQueryService {
         BookingEntity booking = bookingRepository.findByBookingCodeAndUserId(bookingId, currentUser.id())
                 .orElseThrow(() -> new ApiException(ErrorCode.BOOKING_NOT_FOUND, HttpStatus.NOT_FOUND, "The booking was not found."));
 
-        EventEntity event = eventRepository.findById(booking.getEventId())
+        EventEntity event = eventRepository.findByIdWithCreator(booking.getEventId())
                 .orElseThrow(() -> new ApiException(ErrorCode.BOOKING_NOT_FOUND, HttpStatus.NOT_FOUND, "The booking was not found."));
 
         return new BookingDetailResponse(

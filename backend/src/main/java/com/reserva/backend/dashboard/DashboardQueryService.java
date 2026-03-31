@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import org.springframework.data.domain.PageRequest;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.List;
@@ -71,7 +72,7 @@ public class DashboardQueryService {
                         .limit(3)
                         .map(event -> toEventSummaryResponse(event, watchlistedEventIds, now))
                         .toList(),
-                eventRepository.findTop3ByCreator_IdOrderByCreatedAtDesc(userId).stream()
+                eventRepository.findRecentDetailsByCreatorId(userId, PageRequest.of(0, 3)).stream()
                         .map(event -> toEventSummaryResponse(event, watchlistedEventIds, now))
                         .toList()
         );
@@ -111,7 +112,7 @@ public class DashboardQueryService {
             return List.of();
         }
 
-        Map<String, EventEntity> eventMap = eventRepository.findAllByIdInAndStatusAndVisibility(
+        Map<String, EventEntity> eventMap = eventRepository.findDetailsByIdInAndStatusAndVisibility(
                         watchlistEventIds,
                         EventStatus.PUBLISHED,
                         EventVisibility.PUBLIC

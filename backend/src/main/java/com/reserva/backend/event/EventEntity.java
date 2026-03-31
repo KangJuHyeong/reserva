@@ -27,7 +27,7 @@ public class EventEntity {
     @Column(length = 36, nullable = false)
     private String id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id", nullable = false)
     private UserEntity creator;
 
@@ -73,7 +73,7 @@ public class EventEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToOne(mappedBy = "event", fetch = FetchType.EAGER, cascade = CascadeType.ALL, optional = false)
+    @OneToOne(mappedBy = "event", fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false)
     private EventInventoryEntity inventory;
 
     public static EventEntity create(String id,
