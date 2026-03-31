@@ -64,7 +64,7 @@ public class EventQueryService {
     }
 
     public EventDetailResponse getEventDetail(String eventId) {
-        EventEntity event = eventRepository.findByIdAndStatusAndVisibility(eventId, EventStatus.PUBLISHED, EventVisibility.PUBLIC)
+        EventEntity event = eventRepository.findDetailByIdAndStatusAndVisibility(eventId, EventStatus.PUBLISHED, EventVisibility.PUBLIC)
                 .orElseThrow(() -> new ApiException(ErrorCode.EVENT_NOT_FOUND, HttpStatus.NOT_FOUND, "The event was not found."));
         return toDetailResponse(event, currentUserProvider.getCurrentUserOrNull());
     }
@@ -91,7 +91,7 @@ public class EventQueryService {
     }
 
     public EventDetailResponse getMyEventDetail(CurrentUser currentUser, String eventId) {
-        EventEntity event = eventRepository.findByIdAndCreator_Id(eventId, currentUser.id())
+        EventEntity event = eventRepository.findDetailByIdAndCreatorId(eventId, currentUser.id())
                 .orElseThrow(() -> new ApiException(ErrorCode.EVENT_NOT_FOUND, HttpStatus.NOT_FOUND, "The event was not found for the current user."));
         return toDetailResponse(event, currentUser);
     }

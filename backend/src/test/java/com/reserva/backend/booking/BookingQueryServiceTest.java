@@ -106,7 +106,7 @@ class BookingQueryServiceTest {
         EventEntity event = event("evt_1");
 
         when(bookingRepository.findByBookingCodeAndUserId("BK-2026-ABC12345", "usr_1")).thenReturn(Optional.of(booking));
-        when(eventRepository.findById("evt_1")).thenReturn(Optional.of(event));
+        when(eventRepository.findByIdWithCreator("evt_1")).thenReturn(Optional.of(event));
 
         BookingDetailResponse response = bookingQueryService.getMyBookingDetail(currentUser, "BK-2026-ABC12345");
 

@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
@@ -61,10 +62,10 @@ class DashboardQueryServiceTest {
         when(eventRepository.findAllById(List.of("evt_booked"))).thenReturn(List.of(bookedEvent));
         when(watchlistRepository.countByUserId("usr_1")).thenReturn(2L);
         when(watchlistRepository.findEventIdsByUserIdOrderByCreatedAtDesc("usr_1")).thenReturn(List.of("evt_watch_1", "evt_watch_2"));
-        when(eventRepository.findAllByIdInAndStatusAndVisibility(List.of("evt_watch_1", "evt_watch_2"), EventStatus.PUBLISHED, EventVisibility.PUBLIC))
+        when(eventRepository.findDetailsByIdInAndStatusAndVisibility(List.of("evt_watch_1", "evt_watch_2"), EventStatus.PUBLISHED, EventVisibility.PUBLIC))
                 .thenReturn(List.of(watchlistUpcoming, watchlistReady));
         when(eventRepository.countByCreator_Id("usr_1")).thenReturn(1L);
-        when(eventRepository.findTop3ByCreator_IdOrderByCreatedAtDesc("usr_1")).thenReturn(List.of(createdEvent));
+        when(eventRepository.findRecentDetailsByCreatorId("usr_1", PageRequest.of(0, 3))).thenReturn(List.of(createdEvent));
 
         DashboardSummaryResponse response = dashboardQueryService.getDashboardSummary(currentUser);
 
