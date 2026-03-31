@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useMemo, useState } from "react";
+import { type FormEvent, type ReactNode, useMemo, useState } from "react";
 import { ArrowLeft, CalendarClock, ImageIcon, Lock, MapPin, Ticket, UserRoundPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatNumber } from "@/lib/format";
 import { ApiErrorResponse, EventCreateRequestApi, EventCreateResponseApi } from "@/lib/types";
 
 const categoryOptions = ["Concert", "Restaurant", "Art & Design", "Sports", "Other"] as const;
@@ -93,11 +94,11 @@ function validateForm(form: FormState) {
 
   const maxTicketsPerBooking = Number(form.maxTicketsPerBooking);
   if (!Number.isInteger(maxTicketsPerBooking) || maxTicketsPerBooking < 1) {
-    return "1회 예약 최대 수량은 1 이상의 정수여야 합니다.";
+    return "1회 예약당 최대 수량은 1 이상의 정수여야 합니다.";
   }
 
   if (maxTicketsPerBooking > totalSlots) {
-    return "1회 예약 최대 수량은 총 좌석 수를 초과할 수 없습니다.";
+    return "1회 예약당 최대 수량은 총 좌석 수를 초과할 수 없습니다.";
   }
 
   if (form.reservedSlots != null && totalSlots < form.reservedSlots) {
@@ -136,29 +137,45 @@ export function CreateEventForm({
   const isEditMode = mode === "edit";
   const controlsDisabled = isSubmitting || editLocked;
 
+  const capacityMetrics = useMemo(() => {
+    const hasTotalSlots = Number.isInteger(totalSlotsNumber) && totalSlotsNumber > 0;
+    const hasMaxTicketsPerBooking = Number.isInteger(maxTicketsPerBookingNumber) && maxTicketsPerBookingNumber > 0;
+    const totalSlots = hasTotalSlots ? totalSlotsNumber : 0;
+    const remainingSlots = Math.max(totalSlots - reservedSlots, 0);
+    const reservationProgress = totalSlots > 0 ? Math.min(100, Math.round((reservedSlots / totalSlots) * 100)) : 0;
+    const effectivePerBookingLimit = hasMaxTicketsPerBooking ? Math.min(maxTicketsPerBookingNumber, totalSlots || maxTicketsPerBookingNumber) : null;
+
+    return {
+      hasTotalSlots,
+      hasMaxTicketsPerBooking,
+      totalSlots,
+      remainingSlots,
+      reservationProgress,
+      effectivePerBookingLimit,
+    };
+  }, [maxTicketsPerBookingNumber, reservedSlots, totalSlotsNumber]);
+
   const capacitySummary = useMemo(() => {
-    if (!Number.isInteger(totalSlotsNumber) || totalSlotsNumber < 1) {
-      return "총 좌석 수를 입력하면 현재 정원 정책이 요약되어 표시됩니다.";
+    if (!capacityMetrics.hasTotalSlots) {
+      return "총 좌석 수를 입력하면 현재 수용 인원 정책을 바로 요약해서 보여드립니다.";
     }
 
-    const remaining = Math.max(totalSlotsNumber - reservedSlots, 0);
-    const perBookingText =
-      Number.isInteger(maxTicketsPerBookingNumber) && maxTicketsPerBookingNumber > 0
-        ? `한 번의 예약에서 최대 ${maxTicketsPerBookingNumber}장까지 받을 수 있습니다.`
-        : "1회 예약 최대 수량을 입력하면 예약 제한 기준도 함께 안내됩니다.";
+    if (!capacityMetrics.hasMaxTicketsPerBooking) {
+      return `총 ${formatNumber(capacityMetrics.totalSlots)}석 기준으로 운영됩니다. 1회 예약당 최대 수량을 입력하면 실제 예약 제한도 함께 안내됩니다.`;
+    }
 
     if (isEditMode) {
-      return `현재 예약된 수량은 ${reservedSlots}석이고, 수정 후 남는 좌석은 ${remaining}석입니다. ${perBookingText}`;
+      return `현재 ${formatNumber(reservedSlots)}석이 예약되어 있고, 남은 좌석은 ${formatNumber(capacityMetrics.remainingSlots)}석입니다. 한 번의 예약에서 최대 ${formatNumber(capacityMetrics.effectivePerBookingLimit ?? 0)}석까지 받을 수 있습니다.`;
     }
 
-    return `현재 설정 기준 총 정원은 ${totalSlotsNumber}석입니다. ${perBookingText}`;
-  }, [isEditMode, maxTicketsPerBookingNumber, reservedSlots, totalSlotsNumber]);
+    return `총 ${formatNumber(capacityMetrics.totalSlots)}석으로 시작하며, 한 번의 예약에서 최대 ${formatNumber(capacityMetrics.effectivePerBookingLimit ?? 0)}석까지 받을 수 있습니다.`;
+  }, [capacityMetrics, isEditMode, reservedSlots]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (editLocked) {
-      setErrorMessage(editLockedMessage ?? "예약이 이미 오픈되어 더 이상 수정할 수 없습니다.");
+      setErrorMessage(editLockedMessage ?? "예약이 이미 열려 더 이상 수정할 수 없습니다.");
       return;
     }
 
@@ -199,7 +216,7 @@ export function CreateEventForm({
       return;
     }
 
-    await response.json() as EventCreateResponseApi;
+    await (response.json() as Promise<EventCreateResponseApi>);
     router.push(isEditMode ? "/my-events" : "/");
     router.refresh();
   }
@@ -226,8 +243,8 @@ export function CreateEventForm({
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
                 {isEditMode
-                  ? "설명, 일정, 정원, 예약 오픈 시점을 조정할 수 있습니다. 단, 예약이 이미 열린 이벤트는 정보 불일치를 막기 위해 수정이 잠깁니다."
-                  : "제목, 일정, 장소, 정원을 입력하면 바로 공개 가능한 이벤트를 만들 수 있습니다. 예약 오픈 시각은 이벤트 시작보다 빨라야 합니다."}
+                  ? "설명, 일정, 좌석 수, 예약 오픈 시점을 이 화면에서 정리할 수 있습니다. 예약이 이미 열린 이벤트는 정보 불일치를 막기 위해 수정이 잠깁니다."
+                  : "제목, 일정, 장소, 좌석 정책을 입력하면 공개 가능한 이벤트를 만들 수 있습니다. 예약 오픈 시각은 이벤트 시작보다 반드시 빨라야 합니다."}
               </p>
             </div>
 
@@ -238,7 +255,7 @@ export function CreateEventForm({
                   수정 잠금
                 </div>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  {editLockedMessage ?? "예약이 이미 오픈되어 이 이벤트는 더 이상 수정할 수 없습니다."}
+                  {editLockedMessage ?? "예약이 이미 열려 있는 이벤트는 더 이상 수정할 수 없습니다."}
                 </p>
               </div>
             ) : null}
@@ -294,7 +311,7 @@ export function CreateEventForm({
                       value={form.price}
                       onChange={(inputEvent) => setForm((current) => ({ ...current, price: inputEvent.target.value }))}
                       className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
-                      placeholder="45"
+                      placeholder="45000"
                     />
                   </label>
 
@@ -302,17 +319,23 @@ export function CreateEventForm({
                     총 좌석 수
                     <input
                       type="number"
-                      min="1"
+                      min={form.reservedSlots != null ? form.reservedSlots : 1}
                       step="1"
                       value={form.totalSlots}
                       onChange={(inputEvent) => setForm((current) => ({ ...current, totalSlots: inputEvent.target.value }))}
                       className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
                       placeholder="120"
                     />
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                      이벤트 전체 수용 인원입니다.
+                      {isEditMode
+                        ? ` 현재 예약된 ${formatNumber(reservedSlots)}석보다 작게 줄일 수 없습니다.`
+                        : " 예약 가능한 총 재고를 정한다고 생각하면 됩니다."}
+                    </p>
                   </label>
 
                   <label className="block text-sm font-medium text-foreground">
-                    1회 예약 최대 수량
+                    1회 예약당 최대 수량
                     <input
                       type="number"
                       min="1"
@@ -324,12 +347,58 @@ export function CreateEventForm({
                       className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
                       placeholder="4"
                     />
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                      한 사용자가 한 번의 예약에서 가져갈 수 있는 최대 좌석 수입니다. 총 좌석 수보다 크게 설정할 수 없습니다.
+                    </p>
                   </label>
                 </div>
 
-                <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-4 text-sm text-muted-foreground">
-                  <p className="font-medium text-foreground">정원 설정 안내</p>
-                  <p className="mt-2 leading-6">{capacitySummary}</p>
+                <div className="rounded-[24px] border border-border/70 bg-background/70 p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="max-w-2xl">
+                      <p className="font-medium text-foreground">수용 인원 설정 요약</p>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">{capacitySummary}</p>
+                    </div>
+                    {isEditMode ? (
+                      <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                        현재 예약 {formatNumber(reservedSlots)}석
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                    <MetricCard
+                      label="총 좌석"
+                      value={capacityMetrics.hasTotalSlots ? `${formatNumber(capacityMetrics.totalSlots)}석` : "미입력"}
+                    />
+                    <MetricCard
+                      label={isEditMode ? "남은 좌석" : "즉시 예약 가능 좌석"}
+                      value={capacityMetrics.hasTotalSlots ? `${formatNumber(capacityMetrics.remainingSlots)}석` : "미입력"}
+                    />
+                    <MetricCard
+                      label="1회 예약 한도"
+                      value={
+                        capacityMetrics.hasMaxTicketsPerBooking && capacityMetrics.effectivePerBookingLimit != null
+                          ? `${formatNumber(capacityMetrics.effectivePerBookingLimit)}석`
+                          : "미입력"
+                      }
+                    />
+                  </div>
+
+                  {isEditMode && capacityMetrics.hasTotalSlots ? (
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>현재 예약 점유율</span>
+                        <span>{capacityMetrics.reservationProgress}%</span>
+                      </div>
+                      <div className="mt-2 h-2 rounded-full bg-secondary">
+                        <div
+                          className="h-2 rounded-full bg-primary transition-all"
+                          style={{ width: `${capacityMetrics.reservationProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
@@ -339,7 +408,7 @@ export function CreateEventForm({
                       value={form.location}
                       onChange={(inputEvent) => setForm((current) => ({ ...current, location: inputEvent.target.value }))}
                       className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted"
-                      placeholder="성수 라이브 하우스"
+                      placeholder="성수 라이브하우스"
                     />
                   </label>
 
@@ -411,19 +480,8 @@ export function CreateEventForm({
               ) : null}
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="h-12 rounded-xl px-6 text-base"
-                  disabled={controlsDisabled}
-                >
-                  {isSubmitting
-                    ? isEditMode
-                      ? "이벤트 수정 중..."
-                      : "이벤트 생성 중..."
-                    : isEditMode
-                      ? "변경사항 저장"
-                      : "이벤트 생성"}
+                <Button type="submit" size="lg" className="h-12 rounded-xl px-6 text-base" disabled={controlsDisabled}>
+                  {isSubmitting ? (isEditMode ? "이벤트 수정 중..." : "이벤트 생성 중...") : isEditMode ? "변경사항 저장" : "이벤트 생성"}
                 </Button>
                 <Button
                   type="button"
@@ -443,61 +501,94 @@ export function CreateEventForm({
             <div className="rounded-[28px] border border-border/70 bg-card/90 p-6">
               <h2 className="text-lg font-semibold text-foreground">운영 체크리스트</h2>
               <div className="mt-5 space-y-4 text-sm text-muted-foreground">
-                <div className="flex gap-3">
-                  <UserRoundPlus className="mt-0.5 h-4 w-4 text-primary" />
-                  <p>현재 로그인한 사용자가 이 이벤트의 주최자로 등록됩니다.</p>
-                </div>
-                <div className="flex gap-3">
-                  <CalendarClock className="mt-0.5 h-4 w-4 text-primary" />
-                  <p>예약 오픈 시각은 이벤트 시작 시각보다 반드시 빨라야 합니다.</p>
-                </div>
-                <div className="flex gap-3">
-                  <Ticket className="mt-0.5 h-4 w-4 text-primary" />
-                  <p>총 좌석 수와 1회 예약 최대 수량이 실제 예약 정책을 결정합니다.</p>
-                </div>
-                <div className="flex gap-3">
-                  <ImageIcon className="mt-0.5 h-4 w-4 text-primary" />
-                  <p>이미지는 업로드 방식이 아니라 외부 이미지 URL 입력 방식입니다.</p>
-                </div>
-                <div className="flex gap-3">
-                  <MapPin className="mt-0.5 h-4 w-4 text-primary" />
-                  <p>{isEditMode ? "저장 후에는 내 이벤트 목록으로 돌아갑니다." : "생성 후에는 홈으로 이동합니다."}</p>
-                </div>
+                <ChecklistRow icon={<UserRoundPlus className="mt-0.5 h-4 w-4 text-primary" />}>
+                  현재 로그인한 사용자가 이 이벤트의 주최자로 등록됩니다.
+                </ChecklistRow>
+                <ChecklistRow icon={<CalendarClock className="mt-0.5 h-4 w-4 text-primary" />}>
+                  예약 오픈 시각은 이벤트 시작 시각보다 반드시 빨라야 합니다.
+                </ChecklistRow>
+                <ChecklistRow icon={<Ticket className="mt-0.5 h-4 w-4 text-primary" />}>
+                  총 좌석 수와 1회 예약당 최대 수량이 실제 예약 정책을 결정합니다.
+                </ChecklistRow>
+                <ChecklistRow icon={<ImageIcon className="mt-0.5 h-4 w-4 text-primary" />}>
+                  이미지는 업로드가 아니라 외부 이미지 URL 입력 방식입니다.
+                </ChecklistRow>
+                <ChecklistRow icon={<MapPin className="mt-0.5 h-4 w-4 text-primary" />}>
+                  {isEditMode ? "저장 후에는 내 이벤트 목록으로 돌아갑니다." : "생성 후에는 홈 화면으로 이동합니다."}
+                </ChecklistRow>
               </div>
             </div>
 
             <div className="rounded-[28px] border border-dashed border-border/80 bg-background/70 p-6">
               <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">현재 입력 요약</p>
               <div className="mt-4 space-y-3 text-sm">
-                <div className="rounded-xl bg-card px-4 py-3">
-                  <div className="text-xs text-muted-foreground">title</div>
-                  <div className="mt-1 break-all text-foreground">{form.title || "미입력"}</div>
-                </div>
-                <div className="rounded-xl bg-card px-4 py-3">
-                  <div className="text-xs text-muted-foreground">category / totalSlots / maxTicketsPerBooking</div>
-                  <div className="mt-1 text-foreground">
-                    {categoryLabels[form.category]} / {form.totalSlots || "미입력"} / {form.maxTicketsPerBooking || "미입력"}
-                  </div>
-                </div>
-                <div className="rounded-xl bg-card px-4 py-3">
-                  <div className="text-xs text-muted-foreground">eventDateTime</div>
-                  <div className="mt-1 break-all text-foreground">
-                    {form.eventDate && form.eventTime ? toIsoString(form.eventDate, form.eventTime) : "미입력"}
-                  </div>
-                </div>
-                <div className="rounded-xl bg-card px-4 py-3">
-                  <div className="text-xs text-muted-foreground">reservationOpenDateTime</div>
-                  <div className="mt-1 break-all text-foreground">
-                    {form.reservationOpenDate && form.reservationOpenTime
+                <SummaryRow label="title" value={form.title || "미입력"} />
+                <SummaryRow
+                  label="category / totalSlots / maxTicketsPerBooking"
+                  value={`${categoryLabels[form.category]} / ${form.totalSlots || "미입력"} / ${form.maxTicketsPerBooking || "미입력"}`}
+                />
+                <SummaryRow
+                  label="eventDateTime"
+                  value={form.eventDate && form.eventTime ? toIsoString(form.eventDate, form.eventTime) : "미입력"}
+                />
+                <SummaryRow
+                  label="reservationOpenDateTime"
+                  value={
+                    form.reservationOpenDate && form.reservationOpenTime
                       ? toIsoString(form.reservationOpenDate, form.reservationOpenTime)
-                      : "미입력"}
-                  </div>
-                </div>
+                      : "미입력"
+                  }
+                />
               </div>
             </div>
           </aside>
         </div>
       </div>
     </main>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-border/70 bg-card/80 px-4 py-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-2 text-lg font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function ChecklistRow({
+  icon,
+  children,
+}: {
+  icon: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex gap-3">
+      {icon}
+      <p>{children}</p>
+    </div>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-xl bg-card px-4 py-3">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="mt-1 break-all text-foreground">{value}</div>
+    </div>
   );
 }
