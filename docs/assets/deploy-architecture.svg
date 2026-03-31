@@ -1,0 +1,44 @@
+﻿<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="720" rx="32" fill="#F5F2EA"/>
+  <rect x="40" y="40" width="1120" height="640" rx="28" fill="#FFFDF7" stroke="#D6D0C4" stroke-width="2"/>
+  <text x="80" y="100" fill="#2F3A2F" font-family="Segoe UI, Arial, sans-serif" font-size="36" font-weight="700">Reserva Deployment Architecture</text>
+  <text x="80" y="138" fill="#5F685D" font-family="Segoe UI, Arial, sans-serif" font-size="18">Vercel frontend + EC2 backend semideploy baseline</text>
+  <rect x="90" y="220" width="180" height="100" rx="22" fill="#DDE8D8" stroke="#5B7A64" stroke-width="2"/>
+  <text x="180" y="262" text-anchor="middle" fill="#233127" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700">User</text>
+  <text x="180" y="292" text-anchor="middle" fill="#3F5245" font-family="Segoe UI, Arial, sans-serif" font-size="20">Browser</text>
+  <rect x="360" y="140" width="260" height="120" rx="24" fill="#D7E8F6" stroke="#4E7BA6" stroke-width="2"/>
+  <text x="490" y="190" text-anchor="middle" fill="#1E3550" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700">Vercel</text>
+  <text x="490" y="224" text-anchor="middle" fill="#35506B" font-family="Segoe UI, Arial, sans-serif" font-size="21">Next.js Frontend</text>
+  <rect x="360" y="300" width="260" height="120" rx="24" fill="#E8F2FB" stroke="#6A92B7" stroke-width="2"/>
+  <text x="490" y="350" text-anchor="middle" fill="#23415E" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700">Same-origin</text>
+  <text x="490" y="382" text-anchor="middle" fill="#3A5A79" font-family="Segoe UI, Arial, sans-serif" font-size="20">Route Handlers / SSR</text>
+  <rect x="760" y="120" width="300" height="360" rx="28" fill="#F6EFE1" stroke="#B68B4A" stroke-width="2"/>
+  <text x="790" y="168" fill="#5F4215" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700">EC2 Host</text>
+  <rect x="810" y="200" width="200" height="86" rx="20" fill="#F9DFAF" stroke="#C28A22" stroke-width="2"/>
+  <text x="910" y="246" text-anchor="middle" fill="#5B3D0A" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="700">Nginx</text>
+  <rect x="810" y="312" width="200" height="90" rx="20" fill="#FCECC8" stroke="#CC9C3E" stroke-width="2"/>
+  <text x="910" y="350" text-anchor="middle" fill="#5C4216" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">Spring Boot</text>
+  <text x="910" y="380" text-anchor="middle" fill="#7A5A26" font-family="Segoe UI, Arial, sans-serif" font-size="18">Backend API</text>
+  <rect x="810" y="428" width="200" height="90" rx="20" fill="#FFF3D7" stroke="#D2A652" stroke-width="2"/>
+  <text x="910" y="466" text-anchor="middle" fill="#6C4D17" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">MySQL</text>
+  <text x="910" y="496" text-anchor="middle" fill="#886127" font-family="Segoe UI, Arial, sans-serif" font-size="18">Private network</text>
+  <rect x="360" y="520" width="260" height="120" rx="24" fill="#E5DDD3" stroke="#8B7663" stroke-width="2"/>
+  <text x="490" y="565" text-anchor="middle" fill="#43372C" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="700">GitHub Actions</text>
+  <text x="490" y="598" text-anchor="middle" fill="#655548" font-family="Segoe UI, Arial, sans-serif" font-size="20">Build &amp; Push to GHCR</text>
+  <path d="M270 270H330C345 270 360 255 360 240V228" stroke="#50785A" stroke-width="4" stroke-linecap="round"/>
+  <path d="M352 235L360 220L368 235" stroke="#50785A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M490 260V300" stroke="#5F84A8" stroke-width="4" stroke-linecap="round"/>
+  <path d="M482 292L490 307L498 292" stroke="#5F84A8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M620 360H700C730 360 760 330 760 300" stroke="#857564" stroke-width="4" stroke-linecap="round"/>
+  <path d="M752 308L760 292L768 308" stroke="#857564" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M910 286V312" stroke="#A56E1F" stroke-width="4" stroke-linecap="round"/>
+  <path d="M902 304L910 320L918 304" stroke="#A56E1F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M910 402V428" stroke="#B6842D" stroke-width="4" stroke-linecap="round"/>
+  <path d="M902 420L910 436L918 420" stroke="#B6842D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M620 580H740C770 580 805 555 840 520" stroke="#7C6957" stroke-width="4" stroke-linecap="round"/>
+  <path d="M832 523L849 511L840 529" stroke="#7C6957" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="238" y="246" fill="#4A6151" font-family="Segoe UI, Arial, sans-serif" font-size="16">HTTPS</text>
+  <text x="526" y="286" fill="#5D7C98" font-family="Segoe UI, Arial, sans-serif" font-size="16">cookie -&gt; bearer</text>
+  <text x="638" y="336" fill="#6F6458" font-family="Segoe UI, Arial, sans-serif" font-size="16">API requests</text>
+  <text x="650" y="556" fill="#6F6458" font-family="Segoe UI, Arial, sans-serif" font-size="16">deploy image</text>
+</svg>
