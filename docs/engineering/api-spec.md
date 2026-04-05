@@ -2,7 +2,7 @@
 
 This document defines the minimum API contract for the current product baseline.
 
-Use `docs/product/implementation-status.md` for implementation coverage and `agent.md` for scope boundaries.
+Use `docs/product/implementation-status.md` for implementation coverage and local-only `.agent-local/agent.md` for scope boundaries.
 
 ## Status Frame
 

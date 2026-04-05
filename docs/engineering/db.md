@@ -2,7 +2,7 @@
 
 This document defines the minimum persistence model and integrity requirements for the current product baseline.
 
-Use `docs/product/implementation-status.md` for current implementation coverage and `agent.md` for scope boundaries.
+Use `docs/product/implementation-status.md` for current implementation coverage and local-only `.agent-local/agent.md` for scope boundaries.
 
 ## Status Frame
 

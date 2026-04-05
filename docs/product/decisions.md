@@ -37,12 +37,12 @@
 - `Future / Not finalized`: refresh-token rotation and multi-provider account linking beyond Google are not finalized
 
 ## Documentation Decisions
-- `Current`: `agent.md` is the operating guide and rule hub
+- `Current`: local-only `.agent-local/agent.md` is the operating guide and rule hub
 - `Current`: `README.md` is the public-facing project summary
 - `Current`: `docs/product/implementation-status.md` is the current-state status board
 - `Current`: `docs/product/decisions.md` is the short decision log
 - `Current`: detailed API, DB, and architecture contracts stay in dedicated engineering docs
-- `Current`: default implementation should follow a full-stack feature-slice workflow
+- `Current`: default implementation should follow the local-only `.agent-local/implementation-workflow.md` feature-slice workflow
 - `Current`: service ownership should stay aligned to feature domains, not temporary task groupings
 
 ## Scope Decisions

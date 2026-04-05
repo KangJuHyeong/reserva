@@ -2,7 +2,7 @@
 
 This document describes the current product-baseline system responsibilities, request flows, and system boundaries.
 
-Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` for current implementation coverage.
+Use local-only `.agent-local/agent.md` for scope boundaries and `docs/product/implementation-status.md` for current implementation coverage.
 
 ## Status Frame
 

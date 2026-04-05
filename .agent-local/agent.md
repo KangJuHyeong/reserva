@@ -7,10 +7,12 @@ Use it to keep code, scope, and supporting documents aligned with the current pr
 
 `README.md` is the public-facing project summary. It is not the implementation source of truth.
 
+This file is local-only and intentionally kept outside Git tracking under `.agent-local/`.
+
 ## 2. Source Of Truth Order
 When repository documents conflict, use this order:
 
-1. `agent.md`
+1. `.agent-local/agent.md`
 2. `docs/product/implementation-status.md`
 3. `docs/product/decisions.md`
 4. `docs/engineering/frontend-architecture.md`
@@ -20,7 +22,7 @@ When repository documents conflict, use this order:
 8. `README.md`
 
 Rules:
-- `agent.md` owns repository operating rules, scope boundaries, implementation priorities, and documentation ownership.
+- `.agent-local/agent.md` owns repository operating rules, scope boundaries, implementation priorities, and documentation ownership.
 - Product and engineering docs should define minimum safe contracts, not speculative platform scope.
 - If a topic is not part of the current product baseline and not required for safe implementation, keep it out of current scope.
 
@@ -28,8 +30,8 @@ Rules:
 
 ### 3.1 Root Entry Documents
 - `README.md`: external-facing project summary, stack, repo shape, and doc links
-- `agent.md`: internal operating guide and implementation source of truth
-- `MAIN_PROMPT.md`: thin launcher for implementation sessions that defers to `agent.md`
+- `.agent-local/agent.md`: local-only internal operating guide and implementation source of truth
+- `.agent-local/MAIN_PROMPT.md`: local-only launcher for implementation sessions that defers to `.agent-local/agent.md`
 
 ### 3.2 Product Documents
 - `docs/product/implementation-status.md`: current vs temporary vs target implementation status
@@ -42,8 +44,8 @@ Rules:
 - `docs/engineering/db.md`: persistence model, constraints, and integrity rules
 
 ### 3.4 Operations Documents
-- `docs/operations/README.md`: boundary for operations documentation that does not belong in root entry files
-- `docs/operations/implementation-workflow.md`: default feature-slice implementation workflow and service ownership rules
+- `.agent-local/implementation-workflow.md`: local-only default feature-slice implementation workflow and service ownership rules
+- `docs/operations`: operational verification and performance records
 
 ## 4. Status Vocabulary
 Use the same labels across all docs.
@@ -252,7 +254,7 @@ Approved current auth extension:
 
 ## 12. Documentation Update Rules
 When scope or behavior changes:
-- Update `agent.md` if boundaries, priorities, terminology, or doc ownership change
+- Update `.agent-local/agent.md` if boundaries, priorities, terminology, or doc ownership change
 - Update `README.md` if the public-facing product summary, stack summary, or repo shape changes
 - Update `docs/product/implementation-status.md` if implementation coverage or temporary mechanisms change
 - Update `docs/product/decisions.md` if decisions or temporary choices change
