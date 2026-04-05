@@ -2,7 +2,7 @@
 
 This document describes the route IA, UX states, and target improvements for the current frontend baseline.
 
-Use `agent.md` for scope boundaries and `docs/product/implementation-status.md` for repository-wide status.
+Use local-only `.agent-local/agent.md` for scope boundaries and `docs/product/implementation-status.md` for repository-wide status.
 
 ## Route Map
 - `/`

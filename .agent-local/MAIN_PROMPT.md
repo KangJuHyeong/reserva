@@ -12,7 +12,7 @@ Use `agent.md` as the canonical source for:
 Use supporting documents only as needed:
 - quick current-state check: `docs/product/implementation-status.md`
 - current decisions: `docs/product/decisions.md`
-- workflow details: `docs/operations/implementation-workflow.md`
+- workflow details: `.agent-local/implementation-workflow.md`
 - detailed contracts:
   - `docs/engineering/api-spec.md`
   - `docs/engineering/db.md`

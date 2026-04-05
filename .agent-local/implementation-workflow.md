@@ -2,7 +2,7 @@
 
 This document defines the repository's default implementation procedure.
 
-Use `docs/product/implementation-status.md` for status, `agent.md` for scope, and the engineering documents for technical contracts.
+Use `docs/product/implementation-status.md` for status, `.agent-local/agent.md` for scope, and the engineering documents for technical contracts.
 
 ## Purpose
 - keep feature implementation order consistent
@@ -15,8 +15,8 @@ Use `docs/product/implementation-status.md` for status, `agent.md` for scope, an
 - Do not create broad cross-domain services just because a task touches multiple areas.
 
 ## Default Workflow
-1. Confirm that the feature belongs to current scope in `agent.md`.
-2. Check its priority in `agent.md` and its current state in `docs/product/implementation-status.md`.
+1. Confirm that the feature belongs to current scope in `.agent-local/agent.md`.
+2. Check its priority in `.agent-local/agent.md` and its current state in `docs/product/implementation-status.md`.
 3. Check whether `docs/engineering/api-spec.md` needs updates.
 4. Check whether `docs/engineering/db.md` needs updates.
 5. Implement the backend slice in the owning feature package.
@@ -84,7 +84,7 @@ Query rule:
 - any changed engineering contract docs
 
 ## Example: Watchlist Persistence
-1. Confirm in `agent.md` that watchlist is current scope.
+1. Confirm in `.agent-local/agent.md` that watchlist is current scope.
 2. Confirm in `docs/engineering/api-spec.md` that `POST /events/{eventId}/watchlist` and `DELETE /events/{eventId}/watchlist` are the intended contracts.
 3. Confirm in `docs/engineering/db.md` that watchlist persistence requires unique `(user_id, event_id)`.
 4. Implement backend behavior in the `watchlist` feature package.
