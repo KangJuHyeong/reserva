@@ -1,0 +1,31 @@
+name: reserva-local
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: reserva-local-mysql
+    environment:
+      MYSQL_DATABASE: reserva
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-local-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: reserva-local-redis
+    command: ["redis-server", "--appendonly", "no", "--save", ""]
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  mysql-local-data:

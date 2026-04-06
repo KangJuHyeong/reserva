@@ -88,6 +88,7 @@
 ### Deployment
 - Deployment assets exist in `infra/deploy`.
 - The current semideploy baseline uses Docker Compose with `nginx`, `backend`, and profile-gated `mysql` services.
+- Redis-backed booking admission locking is being added as the first queue-ready reservation-control seam.
 - GitHub Actions workflow exists for backend image build/push and EC2 SSH-based redeploy.
 - Production env files are expected to remain on the target server instead of in the repository.
 
@@ -95,6 +96,7 @@
 - No temporary auth fallback remains in the current baseline.
 - Frontend deployment is temporarily split from EC2 and is expected to run on Vercel while backend and MySQL stay on EC2 for validation.
 - Auth runtime is temporarily mid-transition from backend-managed session state to JWT bearer auth.
+- Redis-backed reservation control is temporarily limited to event-scoped booking admission locking and does not yet include a user-visible waiting room.
 
 ## Target
 - Keep `/dashboard` as a summary page and `/my-events` as the dedicated created-events workspace instead of collapsing both responsibilities into one route.
@@ -157,3 +159,4 @@ Priority rationale:
 - Local frontend runtime stability remains important because repeated restart reliability affects verification speed and deployment confidence.
 - JWT and Google OAuth are now part of the live baseline, so the remaining auth work is validation and hardening rather than first-pass rollout.
 - Docker packaging, reverse-proxy setup, and server-side env conventions are now present, and the current lightweight deploy path remains Vercel for frontend plus EC2 for backend and MySQL.
+- The first Redis step should stay narrowly focused on reservation admission control so it improves booking safety without expanding into a visible queue experience yet.
