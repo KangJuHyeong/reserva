@@ -30,20 +30,33 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final EventRepository eventRepository;
     private final EventInventoryRepository eventInventoryRepository;
+    private final BookingAdmissionGuard bookingAdmissionGuard;
     private final String bookingCodePrefix;
 
     public BookingService(BookingRepository bookingRepository,
                           EventRepository eventRepository,
                           EventInventoryRepository eventInventoryRepository,
+                          BookingAdmissionGuard bookingAdmissionGuard,
                           @Value("${app.booking.code-prefix:BK}") String bookingCodePrefix) {
         this.bookingRepository = bookingRepository;
         this.eventRepository = eventRepository;
         this.eventInventoryRepository = eventInventoryRepository;
+        this.bookingAdmissionGuard = bookingAdmissionGuard;
         this.bookingCodePrefix = bookingCodePrefix;
     }
 
     @Transactional
     public BookingCreateResponse createBooking(CurrentUser currentUser, String eventId, BookingCreateRequest request) {
+        try (AutoCloseable ignored = bookingAdmissionGuard.acquireEventLock(eventId)) {
+            return createBookingWithinLock(currentUser, eventId, request);
+        } catch (ApiException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw new IllegalStateException("Failed to release booking lock.", exception);
+        }
+    }
+
+    private BookingCreateResponse createBookingWithinLock(CurrentUser currentUser, String eventId, BookingCreateRequest request) {
         if (request.ticketCount() < 1) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, "ticketCount must be at least 1");
         }

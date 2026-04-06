@@ -8,6 +8,13 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        enabled: ${REDIS_SSL:false}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -24,6 +31,7 @@ server:
 app:
   booking:
     code-prefix: BK
+    lock-ttl-seconds: ${BOOKING_LOCK_TTL_SECONDS:5}
   cors:
     allowed-origins: ${FRONTEND_ORIGIN:http://localhost:3000}
     allowed-origin-patterns: ${FRONTEND_ORIGIN_PATTERNS:}

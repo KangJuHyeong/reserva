@@ -73,6 +73,7 @@ Responsibilities:
 - compute derived sections and compose user-specific payloads
 - exchange Google authorization codes for Google identity and issue application JWTs
 - translate verified JWT bearer auth into request-scoped `SecurityContext` state for downstream services
+- acquire a short-lived event-scoped Redis booking lock before transactional booking writes
 
 Current baseline:
 - Spring Boot
@@ -126,6 +127,7 @@ Current:
 - prevent duplicate bookings
 - expose my-bookings list and detail
 - preserve snapshot data required by the confirmation view
+- fail closed on booking creation when reservation-control Redis is unavailable
 
 ### Watchlist
 Current:
@@ -170,9 +172,10 @@ Current:
 
 ### Create Booking
 1. An authenticated user submits a booking request for an event.
-2. The API validates event state, reservation-open time, capacity, and duplicate-booking rules.
-3. The API atomically decrements capacity and creates the booking.
-4. The API returns a booking confirmation payload.
+2. The API acquires a short-lived event-scoped Redis admission lock.
+3. The API validates event state, reservation-open time, capacity, and duplicate-booking rules.
+4. The API atomically decrements capacity and creates the booking.
+5. The API releases the Redis admission lock and returns a booking confirmation payload.
 
 ### Query My Bookings
 1. An authenticated user requests the booking list or booking detail.
@@ -227,6 +230,7 @@ At minimum, the API must distinguish:
 - Booking creation must protect remaining capacity.
 - Duplicate booking prevention must not rely on client behavior alone.
 - DB constraints and transactional logic should be combined where needed.
+- Reservation creation may reject immediately when the event-scoped Redis admission lock is already held.
 
 ## Architecture Principles
 - Prioritize product-critical flows.
@@ -237,3 +241,4 @@ At minimum, the API must distinguish:
 - Keep service ownership aligned to feature domains instead of temporary task groupings.
 - Keep auth transport centered on frontend-owned cookies and backend JWT verification instead of returning to backend-managed sessions.
 - Introduce queue infrastructure in narrow, replaceable seams before committing to a large visible waiting-room experience.
+- Keep Redis-based reservation control narrow and replaceable so future queue admission can build on the same seam.

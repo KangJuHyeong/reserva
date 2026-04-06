@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -34,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -51,15 +53,20 @@ class BookingServiceTest {
     @Mock
     private EventInventoryRepository eventInventoryRepository;
 
+    @Mock
+    private BookingAdmissionGuard bookingAdmissionGuard;
+
     private BookingService bookingService;
     private final CurrentUser currentUser = new CurrentUser("usr_1", "Alex Johnson");
 
     @BeforeEach
     void setUp() {
+        lenient().when(bookingAdmissionGuard.acquireEventLock(any())).thenReturn(() -> { });
         bookingService = new BookingService(
                 bookingRepository,
                 eventRepository,
                 eventInventoryRepository,
+                bookingAdmissionGuard,
                 "BK"
         );
     }
@@ -89,6 +96,28 @@ class BookingServiceTest {
                     assertThat(apiException.getErrorCode()).isEqualTo(ErrorCode.EVENT_NOT_FOUND);
                     assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.NOT_FOUND);
                 });
+
+        verify(bookingAdmissionGuard).acquireEventLock("evt_missing");
+    }
+
+    @Test
+    void createBookingRejectsWhenAnotherBookingIsAlreadyInProgress() {
+        when(bookingAdmissionGuard.acquireEventLock("evt_1"))
+                .thenThrow(new ApiException(
+                        ErrorCode.BOOKING_IN_PROGRESS,
+                        HttpStatus.CONFLICT,
+                        "Another booking for this event is currently being processed. Please try again shortly."
+                ));
+
+        assertThatThrownBy(() -> bookingService.createBooking(currentUser, "evt_1", new BookingCreateRequest(1)))
+                .isInstanceOf(ApiException.class)
+                .satisfies(exception -> {
+                    ApiException apiException = (ApiException) exception;
+                    assertThat(apiException.getErrorCode()).isEqualTo(ErrorCode.BOOKING_IN_PROGRESS);
+                    assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.CONFLICT);
+                });
+
+        verify(eventRepository, never()).findByIdAndStatusAndVisibility(any(), any(), any());
     }
 
     @Test
@@ -204,6 +233,26 @@ class BookingServiceTest {
         assertThat(captor.getValue().getEventId()).isEqualTo("evt_1");
         assertThat(captor.getValue().getParticipantName()).isEqualTo("Alex Johnson");
         assertThat(captor.getValue().getTicketCount()).isEqualTo(2);
+    }
+
+    @Test
+    void createBookingFailsWhenLockReleaseThrowsUnexpectedError() throws Exception {
+        AutoCloseable brokenLock = () -> {
+            throw new IOException("release failed");
+        };
+        when(bookingAdmissionGuard.acquireEventLock("evt_1")).thenReturn(brokenLock);
+        EventEntity event = event("evt_1", 10, 1, LocalDateTime.now().minusDays(1));
+
+        when(eventRepository.findByIdAndStatusAndVisibility("evt_1", EventStatus.PUBLISHED, EventVisibility.PUBLIC))
+                .thenReturn(Optional.of(event));
+        when(bookingRepository.existsByUserIdAndEventIdAndStatusIn(eq("usr_1"), eq("evt_1"), eq(EnumSet.of(BookingStatus.CONFIRMED))))
+                .thenReturn(false);
+        when(eventInventoryRepository.findByEventIdForUpdate("evt_1")).thenReturn(Optional.of(event.getInventory()));
+        when(bookingRepository.save(any(BookingEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertThatThrownBy(() -> bookingService.createBooking(currentUser, "evt_1", new BookingCreateRequest(1)))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Failed to release booking lock.");
     }
 
     @Test

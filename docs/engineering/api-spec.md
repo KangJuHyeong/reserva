@@ -52,6 +52,8 @@ Common error codes:
 - `BOOKING_NOT_FOUND`
 - `EVENT_SOLD_OUT`
 - `ALREADY_BOOKED`
+- `BOOKING_IN_PROGRESS`
+- `BOOKING_UNAVAILABLE`
 - `BOOKING_QUANTITY_LIMIT_EXCEEDED`
 - `INVALID_SCHEDULE`
 - `BOOKING_NOT_CANCELLABLE`
@@ -379,6 +381,8 @@ Errors:
 - `EVENT_NOT_FOUND`
 - `EVENT_SOLD_OUT`
 - `ALREADY_BOOKED`
+- `BOOKING_IN_PROGRESS`
+- `BOOKING_UNAVAILABLE`
 - `BOOKING_QUANTITY_LIMIT_EXCEEDED`
 - `VALIDATION_ERROR`
 
@@ -386,6 +390,9 @@ Notes:
 - `ticketCount` must be at least `1`
 - `ticketCount` must not exceed the event's `maxTicketsPerBooking`
 - `GET /events/{eventId}` returns `maxTicketsPerBooking` so the frontend can clamp the selector before submit
+- the booking path now acquires a short-lived event-scoped Redis admission lock before entering the transactional inventory update
+- `BOOKING_IN_PROGRESS` means another booking for the same event currently holds the lock and the client should retry shortly
+- `BOOKING_UNAVAILABLE` means the reservation-control Redis dependency could not be reached, so booking creation fails closed until Redis recovers
 
 ### GET /me/bookings
 Current:

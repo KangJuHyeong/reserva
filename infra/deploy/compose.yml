@@ -21,6 +21,9 @@ services:
       mysql:
         condition: service_healthy
         required: false
+      redis:
+        condition: service_started
+        required: false
     env_file:
       - ./env/backend.env
     restart: unless-stopped
@@ -44,6 +47,14 @@ services:
       start_period: 30s
     restart: unless-stopped
     mem_limit: 512m
+    networks:
+      - app
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "no", "--save", ""]
+    restart: unless-stopped
+    mem_limit: 128m
     networks:
       - app
 

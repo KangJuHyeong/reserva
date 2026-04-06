@@ -124,6 +124,7 @@ cd backend
 ```
 
 - 로컬 설정은 `backend/.env`를 기준으로 합니다.
+- 로컬 DB/Redis는 먼저 `docker compose -f infra/local/compose.yml up -d`로 띄우는 것을 권장합니다.
 
 ### Frontend
 ```powershell
@@ -134,6 +135,14 @@ npm run dev
 
 - 프론트엔드 환경 변수는 `frontend/.env.example`를 참고합니다.
 - `BACKEND_BASE_URL`을 통해 로컬 또는 배포 백엔드를 연결할 수 있습니다.
+
+### Local Infra
+```powershell
+docker compose -f infra/local/compose.yml up -d
+```
+
+- 로컬 개발 기본값은 `MySQL + Redis는 Docker`, `backend + frontend는 로컬 실행`입니다.
+- 이 방식이 권장되는 이유는 IDE 디버깅, 핫리로드, 빠른 재시작이 컨테이너 내부 실행보다 더 편하기 때문입니다.
 
 ## 추가 문서
 
