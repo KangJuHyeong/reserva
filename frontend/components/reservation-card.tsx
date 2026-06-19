@@ -29,7 +29,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 export function ReservationCard({ reservation, onWatchlistChange }: ReservationCardProps) {
-  const progress = (reservation.reservedSlots / reservation.totalSlots) * 100;
+  const progress = reservation.totalSlots > 0 ? (reservation.reservedSlots / reservation.totalSlots) * 100 : 0;
 
   return (
     <div className="group relative overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5">
@@ -74,16 +74,13 @@ export function ReservationCard({ reservation, onWatchlistChange }: ReservationC
 
         <div className="mt-3">
           <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-            <span>남은 자리 {reservation.remainingSlots}석</span>
-            <span>{Math.round(progress)}% 예약됨</span>
+            <span>남은 좌석 {reservation.remainingSlots}명</span>
+            <span>{Math.round(progress)}% 예약</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
             <div
-              className={cn(
-                "h-full rounded-full transition-all",
-                progress >= 90 ? "bg-destructive" : progress >= 70 ? "bg-chart-3" : "bg-primary"
-              )}
-              style={{ width: `${progress}%` }}
+              className={cn("h-full rounded-full transition-all", progress >= 90 ? "bg-destructive" : progress >= 70 ? "bg-chart-3" : "bg-primary")}
+              style={{ width: `${Math.min(100, progress)}%` }}
             />
           </div>
         </div>

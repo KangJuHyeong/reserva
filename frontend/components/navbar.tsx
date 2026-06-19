@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Bell, LayoutDashboard, ListChecks, LogOut, Plus, Search, Ticket, User } from "lucide-react";
+import { LayoutDashboard, ListChecks, LogOut, Plus, Search, Ticket, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CurrentUserApi } from "@/lib/types";
 
@@ -21,7 +21,6 @@ export function Navbar({ searchQuery, currentUser }: NavbarProps) {
 
   function updateSearch(query: string) {
     const params = new URLSearchParams(searchParams.toString());
-
     if (query.trim()) {
       params.set("q", query);
     } else {
@@ -45,7 +44,7 @@ export function Navbar({ searchQuery, currentUser }: NavbarProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur">
-      <div className="flex h-16 items-center justify-between px-6">
+      <div className="flex h-16 items-center justify-between gap-4 px-6">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <span className="text-sm font-bold text-primary-foreground">R</span>
@@ -53,7 +52,7 @@ export function Navbar({ searchQuery, currentUser }: NavbarProps) {
           <span className="text-xl font-semibold text-foreground">Reserva</span>
         </Link>
 
-        <div className="mx-8 flex max-w-md flex-1">
+        <div className="hidden max-w-md flex-1 md:flex">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -63,42 +62,41 @@ export function Navbar({ searchQuery, currentUser }: NavbarProps) {
               placeholder="이벤트 검색..."
               className="h-10 w-full rounded-lg border border-border bg-input pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
-            {isPending ? <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">...</span> : null}
+            {isPending ? <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">검색 중</span> : null}
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {currentUser ? (
             <>
               <Link href="/dashboard">
                 <Button variant="outline" className="gap-2">
                   <LayoutDashboard className="h-4 w-4" />
-                  <span className="hidden sm:inline">대시보드</span>
+                  <span className="hidden lg:inline">대시보드</span>
                 </Button>
               </Link>
               <Link href="/my-bookings">
                 <Button variant="outline" className="gap-2">
                   <Ticket className="h-4 w-4" />
-                  <span className="hidden sm:inline">내 예약</span>
+                  <span className="hidden lg:inline">내 예약</span>
                 </Button>
               </Link>
               <Link href="/my-events">
                 <Button variant="outline" className="gap-2">
                   <ListChecks className="h-4 w-4" />
-                  <span className="hidden sm:inline">내 이벤트</span>
+                  <span className="hidden lg:inline">내 이벤트</span>
                 </Button>
               </Link>
             </>
           ) : null}
+
           <Link href="/create">
             <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">이벤트 만들기</span>
             </Button>
           </Link>
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-            <Bell className="h-5 w-5" />
-          </Button>
+
           {currentUser ? (
             <>
               <Link href="/dashboard">

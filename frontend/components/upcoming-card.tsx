@@ -73,11 +73,7 @@ export function UpcomingCard({ reservation, onWatchlistChange }: UpcomingCardPro
             <Lock className="mr-2 h-4 w-4" />
             오픈 대기
           </Button>
-          <WatchlistToggleButton
-            eventId={reservation.id}
-            initialIsWatchlisted={reservation.isWatchlisted}
-            onChange={onWatchlistChange}
-          />
+          <WatchlistToggleButton eventId={reservation.id} initialIsWatchlisted={reservation.isWatchlisted} onChange={onWatchlistChange} />
         </div>
       </div>
     </div>

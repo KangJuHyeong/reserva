@@ -106,7 +106,7 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
                 <Timer className="h-8 w-8 text-muted-foreground" />
               </div>
               <h2 className="mt-4 text-xl font-semibold text-foreground">찜한 이벤트를 보려면 로그인해 주세요</h2>
-              <p className="mt-2 text-sm text-muted-foreground">찜한 이벤트 목록은 로그인한 사용자만 불러올 수 있습니다.</p>
+              <p className="mt-2 text-sm text-muted-foreground">찜한 이벤트 목록은 로그인한 사용자만 확인할 수 있습니다.</p>
               <button type="button" onClick={clearView} disabled={isPending} className="mt-5 text-sm text-primary hover:underline">
                 둘러보기로 돌아가기
               </button>
@@ -115,7 +115,7 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
             <div className="space-y-10">
               <section>
                 <h2 className="mb-2 text-xl font-semibold text-foreground">최신 이벤트</h2>
-                <p className="mb-4 text-sm text-muted-foreground">추천 섹션이 적을 때도 전체 분위기를 볼 수 있도록 다양한 카테고리를 함께 보여줍니다.</p>
+                <p className="mb-4 text-sm text-muted-foreground">카테고리와 예약 상태가 다른 이벤트를 한눈에 둘러보세요.</p>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
                   {latestReservations.map((reservation) =>
                     reservation.isOpeningSoon ? (
@@ -231,7 +231,7 @@ export function HomePage({ searchQuery, selectedCategory, items, currentUser, mo
                   <p className="mt-1 text-sm text-muted-foreground">
                     {selectedCategory === "Watchlist"
                       ? "하트 버튼으로 저장한 이벤트가 여기에 표시됩니다."
-                      : "검색어나 필터 조건을 바꿔서 다시 시도해 보세요."}
+                      : "검색어나 필터 조건을 바꿔 다시 시도해 보세요."}
                   </p>
                   {selectedCategory === "Watchlist" ? (
                     <button type="button" onClick={clearView} disabled={isPending} className="mt-5 text-sm text-primary hover:underline">
