@@ -32,10 +32,12 @@ const categoryLabels: Record<string, string> = {
 
 const errorMessages: Record<string, string> = {
   UNAUTHENTICATED: "이 이벤트를 예약하려면 먼저 로그인해 주세요.",
-  EVENT_SOLD_OUT: "이 이벤트는 남은 좌석이 부족합니다.",
+  EVENT_SOLD_OUT: "이 이벤트는 남은 좌석이 없습니다.",
   ALREADY_BOOKED: "이미 이 이벤트에 예약한 내역이 있습니다.",
+  BOOKING_IN_PROGRESS: "다른 예약 요청이 처리 중입니다. 잠시 후 다시 시도해 주세요.",
+  BOOKING_UNAVAILABLE: "예약 제어 시스템에 연결할 수 없어 예약을 진행할 수 없습니다.",
   BOOKING_QUANTITY_LIMIT_EXCEEDED: "선택한 수량이 예약 제한을 초과했습니다.",
-  VALIDATION_ERROR: "현재 이 예약 요청은 유효하지 않습니다.",
+  VALIDATION_ERROR: "현재 예약 요청을 처리할 수 없습니다.",
 };
 
 export function EventDetailClient({ event }: EventDetailClientProps) {
@@ -45,7 +47,7 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
   const [isWatchlisted, setIsWatchlisted] = useState(event.isWatchlisted);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [watchlistMessage, setWatchlistMessage] = useState<string | null>(null);
-  const progress = (event.reservedSlots / event.totalSlots) * 100;
+  const progress = event.totalSlots > 0 ? (event.reservedSlots / event.totalSlots) * 100 : 0;
   const maxSelectableTickets = Math.min(event.maxTicketsPerBooking, event.remainingSlots);
   const isSoldOut = event.remainingSlots === 0;
 
@@ -55,12 +57,12 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
 
   async function handleReserve() {
     if (!Number.isInteger(ticketCount) || ticketCount < 1) {
-      setErrorMessage("예약 수량은 최소 1장이어야 합니다.");
+      setErrorMessage("예약 수량은 최소 1명이어야 합니다.");
       return;
     }
 
     if (ticketCount > maxSelectableTickets) {
-      setErrorMessage(`이번 예약에서는 최대 ${maxSelectableTickets}장까지 선택할 수 있습니다.`);
+      setErrorMessage(`이번 예약에서는 최대 ${maxSelectableTickets}명까지 선택할 수 있습니다.`);
       return;
     }
 
@@ -158,10 +160,10 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
 
           <div className="lg:col-span-1">
             <div className="sticky top-24 rounded-xl border border-border bg-card p-6">
-                <div className="mb-1 text-3xl font-bold text-foreground">
-                  ${event.price}
-                  <span className="text-base font-normal text-muted-foreground"> / 1인</span>
-                </div>
+              <div className="mb-1 text-3xl font-bold text-foreground">
+                ${event.price}
+                <span className="text-base font-normal text-muted-foreground"> / 1명</span>
+              </div>
 
               <div className="mt-6 space-y-4">
                 <div className="flex items-center justify-between">
@@ -175,17 +177,14 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
                 <div>
                   <div className="mb-2 flex items-center justify-between text-sm">
                     <span className={cn("font-medium", event.remainingSlots <= 5 ? "text-destructive" : "text-muted-foreground")}>
-                      남은 좌석 {event.remainingSlots}석
+                      남은 좌석 {event.remainingSlots}명
                     </span>
-                    <span className="text-muted-foreground">{Math.round(progress)}% 예약됨</span>
+                    <span className="text-muted-foreground">{Math.round(progress)}% 예약</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-secondary">
                     <div
-                      className={cn(
-                        "h-full rounded-full transition-all",
-                        progress >= 90 ? "bg-destructive" : progress >= 70 ? "bg-chart-3" : "bg-primary"
-                      )}
-                      style={{ width: `${progress}%` }}
+                      className={cn("h-full rounded-full transition-all", progress >= 90 ? "bg-destructive" : progress >= 70 ? "bg-chart-3" : "bg-primary")}
+                      style={{ width: `${Math.min(100, progress)}%` }}
                     />
                   </div>
                 </div>
@@ -210,7 +209,7 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
                     className="mt-2 h-11 w-full rounded-lg border border-border bg-input px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
                   />
                   <p className="mt-2 text-xs text-muted-foreground">
-                    1회 예약당 최대 {event.maxTicketsPerBooking}장까지 가능합니다. 현재 남은 좌석은 {event.remainingSlots}석입니다.
+                    1회 예약은 최대 {event.maxTicketsPerBooking}명까지 가능합니다.
                   </p>
                 </label>
 
@@ -226,7 +225,7 @@ export function EventDetailClient({ event }: EventDetailClientProps) {
                 </Button>
 
                 <p className="text-center text-xs text-muted-foreground">
-                  {isWatchlisted ? "찜한 이벤트에 저장되었습니다." : "하트를 눌러 나중에 볼 이벤트로 저장하세요."}
+                  {isWatchlisted ? "찜한 이벤트에 저장되었습니다." : "하트를 눌러 나중에 볼 이벤트로 저장할 수 있습니다."}
                 </p>
               </div>
 

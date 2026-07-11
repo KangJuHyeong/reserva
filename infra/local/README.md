@@ -3,7 +3,7 @@
 Use this compose file for local development infrastructure on Windows, macOS, or Linux.
 
 It starts only:
-- MySQL on `localhost:3308`
+- MySQL on `localhost:3310`
 - Redis on `localhost:6379`
 
 Recommended local development flow:
@@ -13,7 +13,7 @@ Recommended local development flow:
 
 Current `backend/.env` already matches this local setup:
 - `DB_HOST=localhost`
-- `DB_PORT=3308`
+- `DB_PORT=3310`
 - `REDIS_HOST=localhost`
 - `REDIS_PORT=6379`
 

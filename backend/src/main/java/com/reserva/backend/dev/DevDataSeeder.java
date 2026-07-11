@@ -1,5 +1,8 @@
 package com.reserva.backend.dev;
 
+import com.reserva.backend.booking.BookingEntity;
+import com.reserva.backend.booking.BookingRepository;
+import com.reserva.backend.booking.model.BookingStatus;
 import com.reserva.backend.common.model.UserRole;
 import com.reserva.backend.event.EventEntity;
 import com.reserva.backend.event.EventRepository;
@@ -21,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.EnumSet;
 import java.util.List;
 
 @Component
@@ -31,6 +35,10 @@ public class DevDataSeeder implements ApplicationRunner {
     private static final String DEMO_CREATOR_ID = "usr_creator";
     private static final String DEMO_WATCHLIST_EVENT_ID = "evt_demo_jazz";
     private static final String DEMO_UPCOMING_EVENT_ID = "evt_demo_art";
+    private static final String DEMO_ALMOST_FULL_EVENT_ID = "evt_demo_rooftop_last_call";
+    private static final String DEMO_SOLD_OUT_EVENT_ID = "evt_demo_chef_waitlist";
+    private static final String DEMO_BOOKING_ID = "bkg_demo_alex_jazz";
+    private static final String DEMO_BOOKING_CODE = "BK-2026-DEMOJAZZ";
     private static final List<SeedEventDefinition> SEED_EVENTS = List.of(
             new SeedEventDefinition(
                     DEMO_WATCHLIST_EVENT_ID,
@@ -43,7 +51,36 @@ public class DevDataSeeder implements ApplicationRunner {
                     7,
                     -1,
                     4,
-                    120
+                    120,
+                    86
+            ),
+            new SeedEventDefinition(
+                    DEMO_ALMOST_FULL_EVENT_ID,
+                    "Rooftop Indie Sunset: Last Call",
+                    EventCategory.CONCERT,
+                    "A high-demand rooftop performance with only a few seats left for the final booking wave.",
+                    "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f",
+                    "Hangang Rooftop Stage, Seoul",
+                    "32.00",
+                    6,
+                    -2,
+                    2,
+                    30,
+                    27
+            ),
+            new SeedEventDefinition(
+                    DEMO_SOLD_OUT_EVENT_ID,
+                    "Chef's Table Tasting Journey",
+                    EventCategory.RESTAURANT,
+                    "A sold-out seasonal tasting menu with live plating commentary from the head chef.",
+                    "https://images.unsplash.com/photo-1414235077428-338989a2e8c0",
+                    "Maison Ember, Seoul",
+                    "78.00",
+                    5,
+                    -1,
+                    2,
+                    24,
+                    24
             ),
             new SeedEventDefinition(
                     "evt_demo_concert_rooftop",
@@ -56,20 +93,8 @@ public class DevDataSeeder implements ApplicationRunner {
                     10,
                     -2,
                     4,
-                    90
-            ),
-            new SeedEventDefinition(
-                    "evt_demo_restaurant_tasting",
-                    "Chef's Table Tasting Journey",
-                    EventCategory.RESTAURANT,
-                    "A seasonal tasting menu with live plating commentary from the head chef.",
-                    "https://images.unsplash.com/photo-1414235077428-338989a2e8c0",
-                    "Maison Ember, Seoul",
-                    "78.00",
-                    5,
-                    -1,
-                    2,
-                    24
+                    90,
+                    48
             ),
             new SeedEventDefinition(
                     "evt_demo_restaurant_brunch",
@@ -82,7 +107,8 @@ public class DevDataSeeder implements ApplicationRunner {
                     8,
                     0,
                     4,
-                    36
+                    36,
+                    12
             ),
             new SeedEventDefinition(
                     DEMO_UPCOMING_EVENT_ID,
@@ -95,7 +121,8 @@ public class DevDataSeeder implements ApplicationRunner {
                     14,
                     3,
                     2,
-                    40
+                    40,
+                    0
             ),
             new SeedEventDefinition(
                     "evt_demo_art_poster",
@@ -108,7 +135,8 @@ public class DevDataSeeder implements ApplicationRunner {
                     12,
                     2,
                     3,
-                    28
+                    28,
+                    6
             ),
             new SeedEventDefinition(
                     "evt_demo_sports_night_run",
@@ -121,7 +149,8 @@ public class DevDataSeeder implements ApplicationRunner {
                     4,
                     -1,
                     6,
-                    80
+                    80,
+                    58
             ),
             new SeedEventDefinition(
                     "evt_demo_sports_climb",
@@ -134,7 +163,8 @@ public class DevDataSeeder implements ApplicationRunner {
                     9,
                     1,
                     3,
-                    30
+                    30,
+                    9
             ),
             new SeedEventDefinition(
                     "evt_demo_other_market",
@@ -147,24 +177,28 @@ public class DevDataSeeder implements ApplicationRunner {
                     11,
                     2,
                     5,
-                    150
+                    150,
+                    35
             )
     );
 
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final WatchlistRepository watchlistRepository;
+    private final BookingRepository bookingRepository;
     private final EntityManager entityManager;
     private final PasswordEncoder passwordEncoder;
 
     public DevDataSeeder(UserRepository userRepository,
                          EventRepository eventRepository,
                          WatchlistRepository watchlistRepository,
+                         BookingRepository bookingRepository,
                          EntityManager entityManager,
                          PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
         this.watchlistRepository = watchlistRepository;
+        this.bookingRepository = bookingRepository;
         this.entityManager = entityManager;
         this.passwordEncoder = passwordEncoder;
     }
@@ -238,19 +272,38 @@ public class DevDataSeeder implements ApplicationRunner {
                             definition.totalSlots()
                     )));
 
+            if (event.getInventory().getReservedSlots() < definition.reservedSlots()) {
+                event.getInventory().reserve(definition.reservedSlots() - event.getInventory().getReservedSlots());
+            }
+
             if (DEMO_WATCHLIST_EVENT_ID.equals(definition.id())) {
                 watchlistEvent = event;
             }
         }
 
-        if (watchlistEvent != null && !watchlistRepository.existsByUserIdAndEventId(demoUser.getId(), watchlistEvent.getId())) {
-            persist(WatchlistEntity.create(
-                    "wl_demo_jazz",
+        if (!bookingRepository.existsByUserIdAndEventIdAndStatusIn(
+                demoUser.getId(),
+                DEMO_WATCHLIST_EVENT_ID,
+                EnumSet.of(BookingStatus.CONFIRMED)
+        )) {
+            persist(BookingEntity.create(
+                    DEMO_BOOKING_ID,
+                    DEMO_BOOKING_CODE,
                     demoUser.getId(),
-                    watchlistEvent.getId(),
-                    now
+                    DEMO_WATCHLIST_EVENT_ID,
+                    demoUser.getDisplayName(),
+                    2,
+                    new BigDecimal("45.00"),
+                    new BigDecimal("90.00"),
+                    now.minusHours(6)
             ));
         }
+
+        if (watchlistEvent != null) {
+            seedWatchlistIfMissing(demoUser.getId(), watchlistEvent.getId(), "wl_demo_jazz", now);
+        }
+        seedWatchlistIfMissing(demoUser.getId(), DEMO_UPCOMING_EVENT_ID, "wl_demo_art", now.minusHours(3));
+        seedWatchlistIfMissing(demoUser.getId(), DEMO_ALMOST_FULL_EVENT_ID, "wl_demo_last_call", now.minusHours(2));
     }
 
     private <T> T persist(T entity) {
@@ -269,6 +322,12 @@ public class DevDataSeeder implements ApplicationRunner {
         return user;
     }
 
+    private void seedWatchlistIfMissing(String userId, String eventId, String watchlistId, LocalDateTime createdAt) {
+        if (!watchlistRepository.existsByUserIdAndEventId(userId, eventId)) {
+            persist(WatchlistEntity.create(watchlistId, userId, eventId, createdAt));
+        }
+    }
+
     private record SeedEventDefinition(
             String id,
             String title,
@@ -280,7 +339,8 @@ public class DevDataSeeder implements ApplicationRunner {
             int eventOffsetDays,
             int reservationOpenOffsetDays,
             int maxTicketsPerBooking,
-            int totalSlots
+            int totalSlots,
+            int reservedSlots
     ) {
     }
 }
